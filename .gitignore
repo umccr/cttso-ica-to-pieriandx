@@ -1,0 +1,8 @@
+# Passwords, test files etc
+scratch/
+
+# PyCharm Files
+.idea/
+
+# Python cache
+*.pyc 

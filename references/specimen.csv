@@ -1,0 +1,1483 @@
+Code,Label
+309072003,Soft tissue sample
+608856009,Specimen from perirenal tissue
+438336007,Hemorrhoid tissue specimen
+430249001,Specimen from tongue
+309189008,Tongue biopsy sample
+119331003,Skeletal muscle specimen
+432058006,Specimen from skeletal muscle obtained by biopsy
+110900008,Skeletal muscle cytologic material
+430250001,Specimen from peritoneum
+309207002,Peritoneal biopsy sample
+432982004,Specimen from peritoneum obtained by fine needle aspiration biopsy
+434140003,Specimen from mesentery obtained by fine needle aspiration biopsy
+309208007,Omentum biopsy sample
+432146008,Specimen from mesentery obtained by biopsy
+433309007,Specimen from omentum
+309495002,Omentum tissue sample
+309496001,Omentectomy sample
+433322004,Specimen from mesentery
+309479002,Artery sample
+309481000,Temporal artery sample
+432097003,Specimen from artery obtained by biopsy
+122556008,Cord blood specimen
+703431007,Venous cord blood specimen
+122557004,Cord blood specimen from fetus
+703430008,Arterial cord blood specimen
+258564008,Buccal smear sample
+309508006,Soft tissue lesion fine needle aspirate sample
+258559009,Gingivocrevicular fluid sample
+309123007,Synovial sample
+309122002,Synovium biopsy sample
+309111001,Bursa biopsy sample
+309121009,Synovial tissue sample
+309110000,Bursa tissue sample
+309112008,Excised bursa sample
+309109005,Bursa sample
+258448003,Bursa fluid sample
+430132004,Specimen from sympathetic nerve ganglion
+432385009,Specimen from sympathetic nerve ganglion obtained by biopsy
+472866005,Swab from tongue
+608969007,Specimen from skin
+446952006,Specimen from skin obtained by scraping
+309068002,Skin lesion sample
+472862007,Swab from lesion of skin
+258505006,Skin ulcer swab
+472885008,Swab from pressure ulcer
+438343001,Swab of pilonidal sinus
+309075001,Skin cyst sample
+258503004,Skin swab
+258513007,Prepuce swab
+258516004,Frenulum of penis swab
+119325001,Tissue specimen from skin
+258549008,Skin scale sample
+396355000,Specimen from skin obtained by excision
+309506005,Skin excision biopsy sample
+396354001,Specimen from skin obtained by wide excision
+309505009,Skin incision biopsy sample
+396353007,Specimen from skin obtained by elliptical excision
+309067007,Specimen from skin obtained by curettage
+396356004,Specimen from skin obtained by re-excision
+396357008,Specimen from skin obtained by elliptical re-excision
+396358003,Specimen from skin obtained by wide re-excision
+396483002,Specimen from skin obtained by shave excision
+309504008,Skin punch biopsy sample
+258569003,Skin fibroblast sample
+309066003,Skin biopsy sample
+309071005,Penis skin biopsy sample
+309499008,Foreskin biopsy sample
+432134009,Specimen from skin obtained by fine needle aspiration biopsy
+258489000,Slit skin smear
+110893002,Cutaneous cytologic material
+472900002,Swab from gingiva
+309074002,Soft tissue biopsy sample
+309483002,Lip biopsy sample
+433115004,Specimen from lip obtained by fine needle aspiration biopsy
+309118007,Fascia biopsy sample
+441810001,Specimen from soft tissue obtained by fine needle aspiration biopsy
+442649003,Specimen from adipose tissue obtained by fine needle aspiration biopsy
+441876003,Specimen from sublingual gland obtained by fine needle aspiration biopsy
+432985002,Specimen from tongue obtained by fine needle aspiration biopsy
+409876003,Oral mucosal transudate sample
+608858005,Specimen from periureteral tissue
+110896005,Subcutaneous cytologic material
+440502004,Soft tissue specimen obtained by excision
+309119004,Excised fascia sample
+309485009,Excised sublingual gland sample
+309117002,Fascia sample
+258414004,Adipose tissue sample
+430133009,Specimen from lip
+472891005,Swab from lip
+431058008,Lip cytologic material
+258562007,Genetic sample
+441518000,Lymphoblastoid cell line specimen
+258568006,Polar body sample
+448789008,Nucleic acid specimen
+441673008,Ribonucleic acid specimen
+258566005,Deoxyribonucleic acid sample
+430220009,Specimen from head and neck structure
+309185002,Oral cavity sample
+309186001,Oral tissue sample
+309187005,Dental tissue sample
+418932006,Oral swab
+430319000,Specimen from tooth
+438805006,Whole tooth specimen
+432986001,Specimen from tooth obtained by biopsy
+119338009,Dentin specimen
+441620008,Oral fluid specimen
+258560004,Oral saliva sample
+258558001,Oral secretion sample
+258604001,Upper respiratory sample
+119389009,Specimen from throat
+128172000,Tissue specimen from throat
+309193002,Pharyngeal biopsy sample
+309191000,Tonsil biopsy sample
+309180007,Nasopharyngeal biopsy sample
+430248009,Specimen from nasopharyngeal structure
+258500001,Nasopharyngeal swab
+4.33801E+14,Nasopharyngeal and oropharyngeal swab
+258411007,Nasopharyngeal aspirate
+110905003,Nasopharyngeal cytologic material
+258467004,Nasopharyngeal washings
+258412000,Oropharyngeal aspirate
+258469001,Pharyngeal washings
+447391001,Specimen from pharynx obtained by aspiration
+110934009,Pharyngeal cytologic material
+472881004,Swab from pharynx
+258529004,Throat swab
+4.33881E+14,Nasal and throat swab
+472867001,Swab from tonsil
+430222001,Specimen from tonsil
+309192007,Tonsillectomy sample
+410581002,Upper respiratory fluid sample
+168141000,Nasal fluid sample
+258474009,Sinus fluid sample
+258475005,Sinus washings
+429836002,Specimen from maxillary sinus obtained by irrigation
+4.33871E+14,Nasal washings
+430144001,Specimen from larynx
+309182004,Larynx biopsy sample
+432865002,Specimen from larynx obtained by fine needle aspiration biopsy
+309184003,Vocal cord biopsy sample
+110908001,Laryngeal cytologic material
+110907006,Epiglottic cytologic material
+110909009,Vocal cord cytologic material
+309183009,Laryngectomy sample
+472888005,Swab from larynx
+119388001,Specimen from internal nose
+4.29931E+14,Nasal aspirate specimen
+433859006,Specimen from nasal fossae obtained by fine needle aspiration biopsy
+430245007,Specimen from nasal fossae
+432608000,Specimen from nasal fossae obtained by biopsy
+445297001,Swab of internal nose
+697989009,Anterior nares swab
+128167009,Tissue specimen from internal nose
+309179009,Nasal polyp sample
+309168004,Upper respiratory tissue sample
+309164002,Upper respiratory swab sample
+258501002,Pernasal swab
+258499005,Cough swab
+472901003,Swab from nasal sinus
+430238007,Specimen from nasal sinus
+110904004,Accessory sinus cytologic material
+433860001,Specimen from nasal sinus obtained by biopsy
+433861002,Specimen from nasal sinus obtained by fine needle aspiration biopsy
+110902000,Upper respiratory tract cytologic material
+433324003,Specimen from eye region
+119399004,Specimen from eye
+258601009,Lens sample
+258425008,Natural lens tissue
+258602002,Intraocular lens sample
+445160003,Swab of eye
+258498002,Conjunctival swab
+472894002,Swab from cornea
+119400006,Specimen from cornea
+128161005,Tissue specimen from cornea
+447403008,Tissue specimen from donor corneal rim
+258485006,Corneal scraping sample
+128164002,Tissue specimen from eye
+128160006,Tissue specimen from conjunctiva
+396928004,Specimen from eye obtained by enucleation
+399559008,Specimen from uvea obtained by enucleation of eye
+399512001,Specimen from retina obtained by enucleation of eye
+399451009,Tissue specimen from retina
+399640003,Specimen from retina obtained by limited exenteration of eye
+399603006,Specimen from retina obtained by complete exenteration of eye
+399619004,Tissue specimen from uvea
+399467003,Specimen from uvea obtained by limited exenteration of eye
+399499009,Specimen from uvea obtained by complete exenteration of eye
+399735000,Specimen from eye obtained by limited exenteration
+399443006,Specimen from eye obtained by complete exenteration
+432981006,Specimen from eye obtained by fine needle aspiration biopsy
+119401005,Specimen from conjunctiva
+447337004,Specimen from conjunctiva obtained by scraping
+446235003,Specimen from conjunctiva obtained by lavage
+309128003,Eye fluid sample
+258476006,Subretinal fluid sample
+258438000,Vitreous humor sample
+258444001,Aqueous humor sample
+431232001,Specimen from eye region obtained by biopsy
+446908003,Fluid specimen from mucocele of lacrimal sac
+258465007,Lacrimal fluid sample
+122594008,Tears specimen
+430117006,Eye region cytologic material
+110925004,Cytologic material of mouth
+110930000,Salivary gland cytologic material
+110952009,Submaxillary gland cytologic material
+110932008,Parotid gland cytologic material
+116159008,Upper aerodigestive tract cytologic material
+309149002,Parathyroid sample
+309151003,Parathyroid biopsy sample
+432141003,Specimen from parathyroid obtained by fine needle aspiration biopsy
+309150002,Parathyroid tissue sample
+309153000,Excised parathyroid sample
+119342007,Saliva specimen
+258561000,Parotid gland saliva sample
+447154002,Specimen from nose
+309178001,Nasal biopsy sample
+447339001,Nasal smear specimen
+110903005,Nasal cytologic material
+439895009,Tissue specimen from nose obtained by excision
+446842008,Tissue specimen from cervical lymph node
+399680007,Specimen from thyroid
+309146009,Thyroid fine needle aspirate sample
+116161004,"Fine needle aspirate of thyroid, cytologic material"
+309144007,Thyroid lobe sample
+122733002,Specimen from right lobe of thyroid obtained by lobe resection
+122734008,Specimen from left lobe of thyroid obtained by lobe resection
+309145008,Thyroid fluid sample
+309147000,Thyroid cyst fluid sample
+309148005,Thyroid direct smear sample
+432984003,Specimen from thyroid obtained by biopsy
+116160003,Thyroid cytologic material
+116162006,"Thyroid cytologic material, processed intraoperatively"
+127478007,Tissue specimen from thyroid gland
+399689008,Specimen from thyroid obtained by thyroidectomy
+399622002,Specimen from thyroid obtained by total thyroidectomy
+122732007,Specimen from thyroid obtained by lobectomy
+122735009,Specimen from thyroid obtained by isthmectomy
+309165001,Ear sample
+430241003,Ear cytologic material
+432910000,Specimen from ear obtained by biopsy
+434249007,Specimen from ear obtained by fine needle aspiration biopsy
+309167009,Middle ear biopsy sample
+447148003,Body substance specimen from ear
+122580007,Cerumen specimen
+128162003,Tissue specimen from ear
+258466008,Middle ear fluid sample
+309166000,Ear swab sample
+119398007,Specimen from brain
+445372002,Cerebrospinal fluid specimen from ventricle of brain
+110970007,Cerebroventricular fluid cytologic material
+443498007,Specimen from cerebellum
+432139004,Specimen from brain obtained by biopsy
+432983009,Specimen from pituitary gland obtained by fine needle aspiration biopsy
+446774006,Specimen from abscess of brain
+472893008,Swab from abscess of brain
+443241002,Specimen from pineal gland
+309154006,Pituitary sample
+128157004,Tissue specimen from brain
+440136004,Specimen from cranium
+309181006,Mastoid biopsy sample
+473400004,Swab from tooth
+431885000,Specimen from head and neck structure obtained by biopsy
+431886004,Specimen from head and neck structure obtained by fine needle aspiration biopsy
+432607005,Specimen from mouth obtained by fine needle aspiration biopsy
+434406008,Specimen from salivary gland obtained by fine needle aspiration biopsy
+441695007,Specimen from parotid gland obtained by fine needle aspiration biopsy
+441749007,Specimen from submandibular gland obtained by fine needle aspiration biopsy
+309188000,Mouth biopsy sample
+433119005,Specimen from salivary gland obtained by biopsy
+122602008,Tissue specimen from biopsy of upper aerodigestive tract
+399747006,Specimen from salivary gland
+309190004,Excised salivary gland sample
+309486005,Excised submandibular gland sample
+309484008,Parotidectomy sample
+399693002,Total parotidectomy sample
+399484009,Superficial parotidectomy sample
+309549006,Minor salivary gland sample
+399526005,Specimen from major salivary gland
+399645008,Tissue specimen from major salivary gland
+48469005,Cytologic material
+110927007,Liver cytologic material
+110958008,Urinary tract cytologic material
+110946008,Upper urinary tract cytologic material
+110943000,Renal pelvis cytologic material
+110960005,Ureter cytologic material
+440135000,Specimen from ureter obtained by brush biopsy
+430318008,Urine cytologic material
+110964001,Lower urinary tract cytologic material
+110950001,Urinary bladder cytologic material
+110965000,Urethra cytologic material
+110948009,Kidney cytologic material
+110969006,Cerebrospinal fluid cytologic material
+110913002,Pleural cytologic material
+110915009,Right pleural cytologic material
+430408004,Cytologic material obtained from pleural fluid
+110917001,Left pleural cytologic material
+110937002,Seminal vesicle cytologic material
+110945007,Vulva cytologic material
+116156001,Gastrointestinal tract cytologic material
+110962002,Esophageal cytologic material
+309210009,Esophageal brushings sample
+110954005,Small intestine cytologic material
+110966004,Jejunal cytologic material
+110938007,Duodenal cytologic material
+116155002,Ampulla of Vater cytologic material
+110940002,Ileal cytologic material
+110936006,Gastric cytologic material
+116158000,Large intestine cytologic material
+110942005,Rectal cytologic material
+110956007,Colonic cytologic material
+309261004,Sigmoid colon brushings sample
+110939004,Vas deferens cytologic material
+116157005,Heart cytologic material
+430386002,Spermatozoa cytologic material
+110968003,Fetal cytologic material
+110963007,Anal cytologic material
+432897002,Cytologic material obtained from joint fluid
+110947004,Vagina cytologic material
+430387006,"Combined specimen of cytologic material from endocervix, ectocervix, and vaginal fornix"
+110953004,Vaginal and cervical cytologic material
+430346005,Liquid based cytologic material
+110926003,Gallbladder cytologic material
+110944006,Peritoneal cytologic material
+431771004,Ascitic fluid cytologic material
+110929005,Pancreatic cytologic material
+110941003,Epididymis cytologic material
+110935005,Testis cytologic material
+110906002,Lower respiratory tract cytologic material
+110910004,Lung cytologic material
+110918006,Left upper lobe bronchus cytologic material
+110921008,Right middle lobe bronchus cytologic material
+110914008,Right upper lobe bronchus cytologic material
+110923006,Left lower lobe bronchus cytologic material
+110916005,Right lower lobe bronchus cytologic material
+110920009,Tracheal cytologic material
+110912007,Bronchial cytologic material
+110924000,Cytologic material from right main bronchus
+110922001,Cytologic material from left main bronchus
+309176002,Bronchial brushings sample
+430310001,Sputum cytologic material
+110933003,Prostate cytologic material
+110895009,Synovial cytologic material
+430312009,Cytologic material obtained from synovial fluid
+430297000,Cytologic material obtained from unspecified body site
+110957003,Fallopian tube cytologic material
+110928002,Bile duct cytologic material
+370108001,Extrahepatic bile duct cytologic material
+116213003,Ovary cytologic material
+110897001,Bone marrow cytological material
+430389009,Amniotic fluid cytologic material
+110959000,Placenta cytologic material
+110967008,Amnion cytologic material
+258563002,Amniotic cell sample
+110894008,Mammary cytologic material
+373101006,Breast cytologic material obtained by percutaneous core biopsy
+373103009,Breast cytologic material obtained by incisional biopsy
+110899003,Breast nipple cytologic material
+430309006,Breast nipple discharge cytologic material
+110919003,Pericardial cytologic material
+430379005,Cytologic material obtained from pericardial fluid
+430855004,Touch preparation cytologic material
+110931001,Penis cytologic material
+110898006,Lymph node cytologic material
+110961009,Chorion cytologic material
+110955006,Endometrium cytologic material
+110901007,Bone cytologic material
+110949001,Cervix cytologic material
+110951002,Endocervical cytologic material
+1.021E+12,Physical object specimen
+1.061E+12,Package specimen
+1.071E+12,Clothing specimen
+1.031E+12,Paper specimen
+1.041E+12,Writing paper specimen
+1.051E+12,Envelope specimen
+1.081E+12,Surface wipe specimen
+1.091E+12,Surface wet wipe specimen
+119302002,Mushroom specimen
+258541006,Cardiovascular sample
+309480004,Vein sample
+432061007,Specimen from vein obtained by biopsy
+127462005,Specimen from heart
+122623002,Specimen from heart obtained by biopsy
+122624008,Specimen from heart obtained by excisional biopsy of lesion
+122626005,Specimen from heart obtained by fine needle aspiration procedure
+122625009,Specimen from heart obtained by incisional biopsy
+258542004,Heart valve sample
+258544003,Native heart valve sample
+258543009,Prosthetic heart valve sample
+258424007,Heart valve tissue
+258437005,Vegetation from heart valve
+258545002,Vegetation from prosthetic heart valve
+258546001,Vegetation from native heart valve
+119378002,Endocardial specimen
+128166000,Tissue specimen from heart
+119377007,Myocardial specimen
+430244006,Specimen from pericardium
+699874006,Tissue specimen from pericardium
+397462000,Specimen from pericardium obtained by pericardial resection
+472869003,Swab from pericardial sac structure
+122571007,Pericardial fluid specimen
+434250007,Specimen from pericardium obtained by biopsy
+442524009,a.m. specimen
+442166002,a.m. serum specimen
+119333000,Fibroblast specimen
+309048008,Endocrine sample
+608868000,Specimen from endocrine gland
+309141004,Adrenal gland sample
+303247002,Adrenal tissue sample
+309143001,Excised adrenal gland sample
+396527000,Specimen from adrenal gland obtained by total adrenalectomy
+396526009,Specimen from adrenal gland obtained by partial adrenalectomy
+396525008,Specimen from adrenal gland obtained by needle biopsy
+441792002,Specimen from adrenal gland obtained by fine needle aspiration biopsy
+309142006,Adrenal biopsy sample
+446137003,Pharmaceutical product submitted as specimen
+608852006,Specimen from nervous system
+399436000,Specimen from central nervous system
+430157009,Specimen from meninges
+444936006,Fluid specimen from subdural space
+444965000,Fluid specimen from epidural space
+432145007,Specimen from meninges obtained by biopsy
+430221008,Specimen from spinal cord
+431697001,Specimen from spinal cord obtained by biopsy
+399551006,Specimen from central nervous system obtained by open biopsy
+399542003,Tissue specimen from central nervous system
+399614009,Specimen from central nervous system obtained by total resection of tumor
+399732002,Specimen from central nervous system obtained by partial excision of tumor
+399728008,Specimen from central nervous system obtained by stereotactically guided core needle biopsy
+258450006,Cerebrospinal fluid sample
+446861007,Cerebrospinal fluid specimen obtained via ventriculoperitoneal shunt
+473405009,Cerebrospinal fluid specimen obtained from Rickham reservoir
+703691002,Spun cerebrospinal fluid
+430236006,Specimen from nerve
+309129006,Nerve tissue sample
+433799002,Nerve ganglion specimen
+438542005,Specimen from vagus nerve
+309131002,Neuroma sample
+309130001,Nerve biopsy sample
+119324002,Specimen of unknown material
+445405002,Specimen obtained by surgical procedure
+396898008,Specimen from thymus gland obtained by thoracotomy
+396906004,Specimen from thymus gland obtained by video assisted thoracotomy
+396904001,Specimen from thymus gland obtained by limited thoracotomy
+258431006,Scrapings
+258429002,Rectal scrape sample
+258556002,Rectal scrapes
+258419009,Curettings
+447155001,Tissue specimen from uterus obtained by curettage
+399751008,Specimen from uterus obtained by dilation and curettage
+399396003,Trophoblastic tissue obtained from uterus by dilation and curettage
+309274005,Bladder curettings sample
+122703009,Specimen from endometrium obtained by curettage
+447098004,Specimen from nail obtained by scraping
+373193000,Lymph node from sentinel lymph node dissection
+384744003,Lymph node from sentinel lymph node dissection and axillary dissection
+373826004,Surgical excision sample
+439479000,Tissue specimen obtained by excision
+122719002,Specimen from fallopian tube obtained by hysterectomy with salpingo-oophorectomy
+309287004,Hysterectomy and bilateral salpingo-oophorectomy sample
+309500004,Hysterectomy and unilateral salpingo-oophorectomy sample
+397326000,Specimen from right fallopian tube obtained by hysterectomy with salpingo-oophorectomy
+399388008,Specimen from left fallopian tube obtained by hysterectomy with salpingo-oophorectomy
+309267000,Anal resection sample
+385338007,Specimen from anus obtained by transanal disk excision
+385339004,"Specimen from anus obtained by transanal disk excision, intact"
+385340002,"Specimen from anus obtained by transanal disk excision, fragmented"
+399752001,Specimen from anus obtained by abdominoperineal resection
+399731009,Specimen from anus obtained by excision of anal polyp
+399629006,Specimen from stomach obtained by gastrectomy
+122634004,Specimen from stomach obtained by total gastrectomy
+122632000,Specimen from stomach obtained by incisional biopsy
+122635003,Specimen from stomach obtained by partial gastrectomy
+122637006,Specimen from distal stomach obtained by partial gastrectomy
+122636002,Specimen from proximal stomach obtained by partial gastrectomy
+122633005,Polyp from stomach obtained by polypectomy
+421615004,Specimen from appendix obtained by appendectomy
+423696009,Specimen from appendix and colon obtained by appendectomy and right colectomy
+309108002,Excised tendon sample
+422991009,Specimen from appendix and right colon obtained by appendectomy and right hemicolectomy
+309103006,Excised cartilage sample
+122697008,Specimen from uterus obtained by pelvic exenteration
+122707005,Specimen from endometrium obtained by pelvic exenteration
+309264007,Excised rectum sample
+122653009,Specimen from rectum obtained by transanal disk excision
+122654003,"Specimen from rectum obtained by transanal disk excision, intact"
+122655002,"Specimen from rectum obtained by transanal disk excision, fragmented"
+309489003,Anterior resection of rectum sample
+122702004,Specimen from uterine cervix obtained by pelvic exenteration
+438352005,Specimen from trachea obtained by excision
+399658009,Trophoblastic tissue obtained by hysterectomy
+399447007,Trophoblastic tissue obtained by radical hysterectomy
+439034006,Tissue specimen from liver obtained by excision
+396480004,Specimen from liver obtained by total left lobectomy
+396478005,Specimen from liver obtained by medial segmentectomy
+438659007,Specimen from liver obtained by wedge biopsy
+396476009,Specimen from liver obtained by right lobectomy
+396477000,Specimen from liver obtained by extended right lobectomy
+396479002,Specimen from liver obtained by left lateral segmentectomy
+397132004,Specimen from vulva obtained by partial vulvectomy
+309060009,Mastectomy sample
+309546004,Lumpectomy breast sample
+122595009,Specimen from breast obtained by total mastectomy
+309547008,Segmentectomy breast sample
+122599003,Specimen from breast obtained by radical mastectomy
+122600000,Specimen from breast obtained by modified radical mastectomy
+397199005,Specimen from breast obtained by excision
+122598006,"Specimen from breast obtained by complete excision, less than total mastectomy, without axillary contents"
+122597001,"Specimen from breast obtained by complete excision, less than total mastectomy, with axillary contents"
+122596005,"Specimen from breast obtained by complete excision of lesion, less than total mastectomy"
+122739003,Specimen from breast obtained by incisional biopsy of breast mass
+309175003,Resected lung sample
+440472000,Specimen from transplanted lung obtained by excision
+122606006,Specimen from lung obtained by lobectomy
+122605005,Specimen from lung obtained by segmentectomy
+122607002,Specimen from lung obtained by pneumonectomy
+122604009,Specimen from lung obtained by wedge resection
+122630008,Specimen from esophagus obtained by esophageal resection
+122629003,Specimen from esophagus obtained by excisional biopsy of lesion
+122631007,Specimen from esophagus obtained by esophagogastrectomy
+122628006,Specimen from esophagus obtained by incisional biopsy
+122645001,Polyp from large intestine obtained by polypectomy
+309127008,Resected articular tissue sample
+397078009,Specimen obtained by excisional biopsy
+415563002,Specimen from pancreas obtained by excisional biopsy
+399713008,Specimen from uterine cervix obtained by cone biopsy
+122699006,Specimen from lesion of uterine cervix obtained by cone biopsy
+309285007,Cervical loop excision sample
+122692002,Specimen from vagina obtained by excisional biopsy of lesion
+369615004,Tissue specimen obtained from extrahepatic bile ducts by choledochal cyst resection
+399407000,Specimen from ureter obtained by ureterectomy
+399440009,Specimen from ureter obtained by nephroureterectomy
+309223002,Colectomy sample
+122651006,Specimen from colon obtained by sigmoidectomy
+309488006,Partial colectomy sample
+122648004,Specimen from colon obtained by right hemicolectomy
+122650007,Specimen from colon obtained by left hemicolectomy
+122649007,Specimen from colon obtained by transverse colectomy
+309487001,Total colectomy sample
+122647009,Specimen from large intestine obtained by total abdominal colectomy
+309501000,Hysterectomy sample
+122700007,Specimen from uterine cervix obtained by hysterectomy
+396273004,Specimen from uterine cervix obtained by excision of cervix
+122698003,Specimen from uterine cervix obtained by incisional biopsy
+122701006,Specimen from uterine cervix obtained by radical hysterectomy
+122705002,Specimen from endometrium obtained by hysterectomy
+122706001,Specimen from endometrium obtained by radical hysterectomy
+309289001,Endometrial resection sample
+122696004,Specimen from uterus obtained by radical hysterectomy
+309275006,Cystectomy sample
+122687004,Specimen from urinary bladder obtained by total cystectomy
+396685001,Specimen from urinary bladder obtained by radical cystectomy
+122688009,Specimen from urinary bladder obtained by radical cystoprostatectomy
+122686008,Specimen from urinary bladder obtained by partial cystectomy
+397436009,Specimen obtained by lymphadenectomy
+399649002,Specimen from regional lymph node obtained by lymphadenectomy
+397136001,Specimen from inguinofemoral lymphadenectomy
+396359006,Lymph node from regional lymph node dissection
+399661005,Specimen from pelvic lymphadenectomy
+309490007,Specimen from pancreas obtained by excision
+122667000,Specimen from pancreas obtained by incisional biopsy
+122657005,Specimen from ampulla of Vater obtained by incisional biopsy
+122664007,Specimen from pancreas obtained by total pancreatectomy
+122661004,Specimen from pancreas obtained by partial pancreatectomy
+122663001,Specimen from pancreatic tail obtained by partial resection
+122658000,Specimen from ampulla of Vater obtained by ampullectomy
+122662006,Specimen from pancreatic body obtained by partial resection
+122665008,Specimen from pancreas obtained by pancreaticoduodenectomy (Whipple resection)
+122666009,Specimen from pancreas obtained by pylorus sparing pancreaticoduodenectomy
+396804002,"Specimen from pancreas obtained by pylorus sparing pancreaticoduodenectomy, partial pancreatectomy"
+122660003,Specimen from ampulla of Vater obtained by pylorus-sparing pancreaticoduodenectomy
+396805001,"Specimen from pancreas obtained by pylorus sparing pancreaticoduodenectomy, total pancreatectomy"
+122659008,Specimen from ampulla of Vater obtained by pancreaticoduodenectomy
+396807009,"Specimen from pancreas obtained by pancreaticoduodenectomy, total pancreatectomy"
+396806000,"Specimen from pancreas obtained by pancreaticoduodenectomy, partial pancreatectomy"
+122642003,Specimen from distal ileum obtained by right hemicolectomy
+122723005,Specimen from left fallopian tube obtained by salpingo-oophorectomy
+309205005,Cholecystectomy sample
+369617007,Tissue specimen obtained from gallbladder by cholecystectomy with partial hepatectomy
+397482001,Specimen from extrahepatic bile duct obtained by pancreaticoduodenectomy
+122668005,Specimen from urinary tract obtained by transurethral excision
+309220004,Small bowel resection sample
+397056002,Specimen from small intestine obtained by Whipple resection
+122639009,Specimen from duodenum obtained by Whipple resection
+122640006,Specimen from jejunum obtained by segmental resection
+309218002,Ileal resection sample
+309221000,Terminal ileum resection sample
+122641005,Specimen from ileum obtained by segmental resection
+397055003,Specimen from small intestine obtained by segmental resection
+397053005,Specimen from small intestine obtained by polypectomy
+397333000,Specimen from right fallopian tube obtained by salpingectomy
+397130007,Specimen from vulva obtained by local excision
+438351003,Tissue specimen obtained by esophagogastrectomy
+309116006,Excised ligament sample
+309133004,Resected prostate sample
+122724004,Specimen from prostate obtained by enucleation
+122725003,Specimen from prostate obtained by radical prostatectomy
+122726002,Specimen from prostate obtained by retropubic resection
+122727006,Specimen from prostate obtained by suprapubic resection
+384820007,Specimen from prostate obtained by transurethral resection
+397334006,Specimen from left fallopian tube obtained by salpingectomy
+122652004,Specimen from colon obtained by rectal/rectosigmoid (low anterior) resection
+384746001,Specimen from lung obtained by wedge biopsy
+397133009,Specimen from vulva obtained by total vulvectomy
+397134003,Specimen from vulva obtained by radical vulvectomy
+122669002,Specimen from urinary bladder obtained by anterior exenteration
+397077004,Specimen obtained by incisional biopsy
+122627001,Specimen from gastrointestinal tract obtained by incisional biopsy
+122644002,Specimen from large intestine obtained by incisional biopsy
+122691009,Specimen from vagina obtained by incisional biopsy
+122709008,Specimen from ovary obtained by incisional biopsy
+122672009,Specimen from kidney obtained by incisional biopsy
+122710003,Specimen from ovary obtained by resection
+122712006,Specimen from ovary obtained by hysterectomy with salpingo-oophorectomy
+397246008,Specimen from ovary obtained by hysterectomy with left salpingo-oophorectomy
+397245007,Specimen from ovary obtained by hysterectomy with right salpingo-oophorectomy
+122716009,Specimen from left ovary obtained by oophorectomy
+309120005,Head of femur sample
+122718005,Specimen from left ovary obtained by salpingo-oophorectomy
+122714007,Specimen from right ovary obtained by oophorectomy
+122715008,Specimen from right ovary obtained by salpingo-oophorectomy
+122717000,Specimen from ovary obtained by subtotal left oophorectomy
+122713001,Specimen from ovary obtained by subtotal right oophorectomy
+122711004,Specimen from ovary obtained by removal of tumor in fragments
+122693007,Specimen from vagina obtained by vaginectomy
+122694001,Specimen from vagina obtained by radical vaginectomy
+397111007,Specimen from vagina obtained by partial vaginectomy
+399502008,Trophoblastic tissue obtained by pelvic exenteration
+397131006,Specimen from vulva obtained by wide excision
+127461003,Specimen from pleura obtained by pleurectomy
+122720008,Specimen from fallopian tube obtained by excision of tubal fragments
+397483006,Specimen from extrahepatic bile duct obtained by segmental resection of bile ducts
+309270001,Specimen from kidney obtained by excision
+309497005,Total nephrectomy sample
+399741007,Specimen from kidney obtained by radical nephrectomy
+122680002,Specimen from left kidney obtained by radical nephrectomy
+122681003,Specimen from left kidney obtained by adrenal sparing radical nephrectomy
+122690005,Specimen from left kidney obtained by radical nephrectomy and adrenalectomy
+122674005,Specimen from right kidney obtained by radical nephrectomy
+122675006,Specimen from right kidney obtained by adrenal sparing radical nephrectomy
+122689001,Specimen from right kidney obtained by radical nephrectomy and adrenalectomy
+122673004,Specimen from kidney obtained by wedge biopsy
+397232008,Specimen from renal pelvis obtained by nephroureterectomy
+397235005,Specimen from renal pelvis obtained by complete nephroureterectomy
+397234009,Specimen from renal pelvis obtained by partial nephroureterectomy
+309498000,Partial nephrectomy sample
+122676007,Specimen from right kidney obtained by partial nephrectomy
+122677003,"Specimen from right kidney, inferior pole obtained by partial nephrectomy"
+122679000,"Specimen from right kidney, superior pole obtained by partial nephrectomy"
+122678008,"Specimen from right kidney, middle pole obtained by partial nephrectomy"
+122682005,Specimen from left kidney obtained by partial nephrectomy
+122685007,"Specimen from left kidney, superior pole obtained by partial nephrectomy"
+122683000,"Specimen from left kidney, inferior pole obtained by partial nephrectomy"
+122684006,"Specimen from left kidney, middle pole obtained by partial nephrectomy"
+309138008,Orchidectomy sample
+122608007,Specimen from lung obtained by major airway resection
+122722000,Specimen from right fallopian tube obtained by salpingo-oophorectomy
+258585008,Bone marrow trephine sample
+122721007,Specimen from fallopian tube obtained by pelvic exenteration
+122730004,Specimen from testis obtained by transcrotal open biopsy
+309077009,Spleen resection sample
+408654003,Specimen obtained by amputation
+425804000,Specimen obtained by wide resection
+426815000,Specimen obtained by marginal resection
+396897003,Specimen from thymus gland obtained by transcervical thymectomy
+426924005,Specimen obtained by intralesional resection
+405902005,Specimen obtained by radical excision
+397458006,Specimen from thoracic mesothelium obtained by open thoracotomy
+446304007,Tissue specimen from harvested bone
+373192005,Lymph node from axillary dissection
+258548000,Dermatological sample
+258432004,Sebum sample
+119326000,Hair specimen
+258423001,Hair bulb sample
+119327009,Nail specimen
+122569007,Sweat specimen
+309104000,Musculoskeletal sample
+309125000,Joint sample
+309126004,Articular tissue sample
+438960000,Specimen from intervertebral disc
+440138003,Specimen containing crystals from synovial joint
+446675002,Specimen from knee joint obtained by aspiration
+431361003,Joint fluid specimen
+167873005,Hip joint synovial fluid
+167875003,Ankle joint synovial fluid
+167868004,Shoulder joint synovial fluid
+167876002,Foot joint synovial fluid
+167877006,Toe joint synovial fluid
+167874004,Knee joint synovial fluid
+167870008,Wrist joint synovial fluid
+167869007,Elbow joint synovial fluid
+167871007,Hand joint synovial fluid
+167872000,Finger joint synovial fluid
+309124001,Joint biopsy sample
+432419006,Specimen from joint obtained by fine needle aspiration biopsy
+258539005,Bone and joint sample
+258540007,Prosthetic joint sample
+432657002,Ganglion cyst specimen
+430268003,Specimen from bone
+258417006,Bone tissue sample
+309105004,Bone biopsy sample
+431404007,Specimen from bone obtained by fine needle aspiration biopsy
+371782000,Human bone for identification
+309101008,Cartilage sample
+309102001,Cartilage biopsy sample
+309107007,Tendon sample
+309113003,Tendon biopsy sample
+309507001,Muscle biopsy sample
+258415003,Biopsy sample
+309209004,Esophageal biopsy sample
+431889006,Specimen from upper limb obtained by biopsy
+441694006,Specimen from axillary lymph node obtained by fine needle aspiration biopsy
+431887008,Specimen from unspecified body site obtained by biopsy
+433117007,Specimen from lower limb obtained by biopsy
+431234000,Specimen from fetus obtained by biopsy
+427558003,Specimen obtained by core needle biopsy
+309134005,Prostate tru-cut biopsy sample
+122737001,Specimen from breast obtained by core needle biopsy
+122738006,Specimen obtained from breast by stereotactically guided core needle biopsy
+373102004,Specimen from breast obtained by image guided core biopsy
+309058007,Breast tru-cut biopsy sample
+122670001,Specimen from kidney obtained by (core) needle biopsy
+384747005,Specimen from lung obtained by needle biopsy using computed tomography guidance
+309070006,Vulval skin biopsy sample
+122550002,Specimen obtained by fine needle aspiration procedure
+431406009,Specimen from pancreas obtained by fine needle aspiration biopsy
+441906003,Specimen from pelvic structure obtained by fine needle aspiration biopsy
+432057001,Specimen from seminal vesicle obtained by fine needle aspiration biopsy
+432099000,Specimen from bladder obtained by fine needle aspiration biopsy
+432060008,Specimen from uterus obtained by fine needle aspiration biopsy
+441884004,Specimen from prostate obtained by fine needle aspiration biopsy
+431405008,Specimen from ovary obtained by fine needle aspiration biopsy
+431233006,Specimen from fallopian tube obtained by fine needle aspiration biopsy
+433116003,Specimen from liver obtained by fine needle aspiration biopsy
+431696005,Specimen from spermatic cord obtained by fine needle aspiration biopsy
+432383002,Specimen from spleen obtained by fine needle aspiration biopsy
+441750007,Specimen from abdominal cavity structure obtained by fine needle aspiration biopsy
+432098008,Specimen from bile duct obtained by fine needle aspiration biopsy
+122618002,Specimen from pleura obtained by fine needle aspiration procedure
+122614000,Specimen from lung obtained by fine needle aspiration procedure
+309061008,Breast fine needle aspirate sample
+433120004,Specimen from urethra obtained by fine needle aspiration biopsy
+431235004,Specimen from trachea obtained by fine needle aspiration biopsy
+432980007,Specimen from epididymis obtained by fine needle aspiration biopsy
+432136006,Specimen from vulva obtained by fine needle aspiration biopsy
+432144006,Specimen from mediastinum obtained by fine needle aspiration biopsy
+396899000,Specimen from thymus gland obtained by fine needle aspiration biopsy
+432382007,Specimen from lymph node obtained by fine needle aspiration biopsy
+432135005,Specimen from small intestine obtained by fine needle aspiration biopsy
+431888003,Specimen from unspecified body site obtained by fine needle aspiration
+432143000,Specimen from penis obtained by fine needle aspiration biopsy
+433118002,Specimen from retroperitoneum obtained by fine needle aspiration biopsy
+122671002,Specimen from kidney obtained by fine needle aspiration procedure
+431884001,Specimen from gallbladder obtained by fine needle aspiration biopsy
+432384008,Specimen from stomach obtained by fine needle aspiration biopsy
+432420000,Specimen from ureter obtained by fine needle aspiration biopsy
+432140002,Specimen from bronchus obtained by fine needle aspiration biopsy
+441710009,Specimen from testis obtained by fine needle aspiration biopsy
+432864003,Specimen from large intestine obtained by fine needle aspiration biopsy
+309073008,Lipoma biopsy sample
+258421004,Embryo biopsy sample
+309079007,Lymph node biopsy sample
+309293007,Placenta biopsy sample
+309169007,Tracheal biopsy sample
+431412004,Specimen from trunk obtained by biopsy
+309277003,Urethra biopsy sample
+309217007,Ileal biopsy sample
+309132009,Prostate biopsy sample
+384819001,Specimen from prostate obtained by needle biopsy
+369618002,Tissue specimen obtained from vulva by biopsy
+432142005,Specimen from penis obtained by biopsy
+309290005,Fallopian tube biopsy sample
+309225009,Colonic biopsy sample
+309260003,Sigmoid colon biopsy sample
+122610009,Specimen from lung obtained by biopsy
+309173005,Transbronchial lung biopsy sample
+122611008,Specimen from lung obtained by fiberoptic bronchoscopic biopsy
+438454007,Specimen from transplanted lung obtained by biopsy
+122613006,Specimen from lung obtained by mediastinoscopic biopsy
+309273004,Bladder biopsy sample
+369616003,Tissue specimen obtained from gallbladder by biopsy
+309137003,Testes biopsy sample
+122729009,Specimen from testis obtained by transscrotal needle biopsy
+122728001,Specimen from testis obtained by inguinal exposure with testicular isolation and biopsy
+431413009,Specimen from tunica of testis obtained by biopsy
+309280002,Vaginal biopsy sample
+309281003,Vaginal vault biopsy sample
+309206006,Pancreas biopsy sample
+309494003,Ampulla of Vater biopsy sample
+309211008,Gastric biopsy sample
+309214000,Gastric fundus biopsy sample
+309212001,Gastric antral biopsy sample
+309216003,Duodenal biopsy sample
+309174004,Bronchial biopsy sample
+309203003,Liver biopsy sample
+438543000,Specimen from transplanted liver obtained by biopsy
+309219005,Jejunal biopsy sample
+434014007,Specimen from mediastinum obtained by biopsy
+399633004,Specimen from thymus gland obtained by biopsy
+396902002,Specimen from thymus gland obtained by transthoracic needle biopsy
+396900005,Specimen from thymus gland obtained by needle biopsy using computed tomography guidance
+432059003,Specimen from uterus obtained by biopsy
+122704003,Specimen from endometrium obtained by biopsy
+309283000,Cervical biopsy sample
+309493009,Bile duct biopsy sample
+369614000,Tissue specimen obtained from extrahepatic bile ducts by biopsy
+309262006,Rectal biopsy sample
+433873002,Specimen from spermatic cord obtained by biopsy
+431205006,Specimen from epididymis obtained by biopsy
+309271002,Ureter biopsy sample
+309265008,Anal biopsy sample
+433760005,Specimen from spleen obtained by biopsy
+258468009,Edema fluid sample
+433854001,Specimen from seminal vesicle obtained by biopsy
+122708000,Specimen from ovary obtained by biopsy
+397456005,Specimen from thoracic mesothelium obtained by thoracoscopic biopsy
+309172000,Pleura biopsy sample
+122617007,Specimen from pleura obtained by percutaneous needle biopsy
+122616003,Specimen from pleura obtained by open thoracotomy and biopsy
+122622007,Specimen from pleura obtained by lymph node biopsy
+122621000,Specimen from pleura obtained by thoracoscopic biopsy
+369611008,Tissue specimen obtained from small intestine by biopsy
+122601001,Specimen from breast obtained by biopsy
+434244002,Specimen from retroperitoneum obtained by biopsy
+309269002,Kidney biopsy sample
+397221008,Specimen from renal pelvis obtained by biopsy
+438661003,Specimen from transplanted kidney obtained by biopsy
+309115005,Ligament biopsy sample
+397455009,Specimen from thoracic mesothelium obtained by percutaneous needle biopsy
+309213006,Gastric brushings sample
+440515008,Specimen of targeted lesion obtained by biopsy
+258442002,Fluid sample
+119316007,Non-biological fluid specimen
+258454002,Dialysate sample
+258572005,Ultrafiltrate sample
+119360007,Dialysis fluid specimen
+445516007,Dialysis fluid specimen obtained after dialysis
+258571003,Machine hemodialysate sample
+445529007,Hemodialysate specimen from hemodialysis machine using water distribution system
+444831002,Machine hemodialysate specimen obtained after mixing
+445384000,Hemodialysate specimen from hemodialysis machine using reverse osmosis system
+444623009,Machine hemodialysate specimen obtained before mixing
+122586001,Peritoneal dialysis fluid specimen
+447355008,Dialysis fluid specimen obtained after continuous ambulatory peritoneal dialysis
+444959000,Peritoneal dialysis fluid specimen obtained before dialysis
+258439008,Discharge specimen
+445069004,Peritoneal dialysis fluid specimen obtained after dialysis
+444946008,Dialysis fluid specimen obtained before dialysis
+168140004,Peritoneal dialysate sample
+258455001,Drainage fluid sample
+446562005,Body fluid specimen obtained via sump drain
+446211008,Drainage fluid specimen obtained after surgical placement of drain
+429832000,Biliary fluid specimen obtained by drainage
+446561003,Body fluid specimen obtained via cholecytosomy tube
+447375004,Body fluid specimen obtained via chest tube
+258649003,Intravenous infusion fluid sample
+258650003,Intravenous lipid infusion fluid sample
+256912003,Red blood cell fluid sample
+122581006,Erythrocyte specimen from blood donor
+122583009,Erythrocyte specimen from patient
+258599007,Contact lens solution sample
+258654007,Soya milk sample
+119318008,Water specimen
+309051001,Body fluid sample
+122554006,Capillary blood specimen
+122578001,Female genital fluid specimen
+258481002,Vaginal washout fluid sample
+258451005,Cervical secretion sample
+309292002,Ovarian fluid sample
+258577004,Vaginal secretion sample
+122579009,Genital lochia specimen
+258461003,Hydrocele fluid sample
+445745007,Fluid specimen from subphrenic space
+122551003,Peripheral blood specimen
+258458004,Fistula fluid sample
+119341000,Bile specimen
+446817004,Bile specimen from gall bladder
+447341000,Bile specimen obtained via biliary T-tube
+446129006,Bile specimen from common bile duct
+447158004,Bile specimen obtained by percutaneous transhepatic insertion of biliary drain
+119329007,Colostrum specimen
+309268005,Urological fluid sample
+122575003,Urine specimen
+446306009,Urine specimen obtained from urinary collection bag
+447104008,Urine specimen from urinary conduit
+445383006,Urine specimen obtained for Stamey test
+278020009,Spot urine sample
+445743000,Postejaculation urine specimen
+446907008,Urine specimen obtained from kidney
+442173007,Urine specimen from nephrostomy tube
+446277003,Urine specimen obtained from nephrostomy tube after percutaneous insertion
+699286004,Urine specimen obtained from kidney via aspiration
+122880004,Urine specimen obtained by clean catch procedure
+699284001,Early morning mid-stream urine specimen obtained by clean catch procedure
+409821005,Timed urine specimen
+276833005,24 hour urine sample
+442043001,2 hour urine specimen
+258575007,Early morning urine sample
+698276005,First stream urine sample
+4.37921E+14,First void urine specimen
+446130001,Urine specimen from bladder
+447488002,Suprapubic urine specimen
+258576008,Suprapubic aspirate sample
+699287008,Urine specimen obtained via suprapubic indwelling urinary catheter
+446846006,Urine specimen obtained via indwelling urinary catheter
+447589008,Urine specimen obtained by single catheterization of bladder
+699283007,Mid-stream urine specimen obtained by single catheterization of bladder
+699285000,Urine specimen obtained from bladder via cystoscopy
+258574006,Mid-stream urine sample
+122565001,Urinary catheter specimen
+445742005,Postcoital urine specimen
+446300003,Urine specimen from urethra
+444937002,Urine specimen from ureter
+258472008,Renal pelvis fluid sample
+410580001,Respiratory fluid specimen
+122877000,Upper respiratory fluid specimen obtained by tracheal aspiration
+119307008,Specimen from endotracheal tube
+258480001,Transtracheal aspirate sample
+415293009,Respiratory secretion
+309171007,Lower respiratory fluid sample
+258446004,Bronchial fluid sample
+447345009,Bronchial fluid specimen obtained from bronchial trap
+258607008,Bronchoalveolar lavage fluid sample
+441917002,Specimen obtained by bronchioloalveolar lavage procedure
+119334006,Sputum specimen
+258610001,Sputum specimen obtained by sputum induction
+258608003,Sputum specimen obtained by aspiration
+258609006,Sputum specimen obtained by aspiration from trachea
+119335007,Coughed sputum specimen
+404643001,Sputum smear specimen
+258611002,Sputum specimen obtained from sputum suction trap
+445744006,Fluid specimen from seroma
+168139001,Peritoneal fluid sample
+309201001,Ascitic fluid sample
+303248007,Blood film sample
+309055005,Breast fluid sample
+119328004,Mother's milk specimen
+4.30791E+14,Human breast milk specimen
+309503002,Breast nipple discharge sample
+256889002,Breast cyst fluid sample
+446676001,Expressed breast milk specimen
+444832009,Expressed breast milk specimen after breast cleansing
+444865001,Expressed breast milk specimen before breast cleansing
+119347001,Seminal fluid specimen
+119348006,Seminal plasma specimen
+258440005,Effusion sample
+4.35541E+14,Scab specimen
+418564007,Pleural fluid specimen
+122619005,Specimen from pleura obtained by thoracentesis
+119373006,Amniotic fluid specimen
+410729004,Amniocentesis fluid sample
+119332005,Synovial fluid specimen
+264380007,Synovial fluid cells
+4.33771E+14,Popliteal cyst fluid
+167867009,Multiple joint synovial fluid
+168145009,Lymph sample
+4.35971E+14,Body fluid specimen from peritoneal dialysis insertion site
+122552005,Arterial blood specimen
+122592007,Acellular blood (serum or plasma) specimen
+119361006,Plasma specimen
+119362004,Platelet poor plasma specimen
+122588000,Platelet poor plasma specimen from patient
+122587005,Platelet poor plasma specimen from control
+703432000,Venous plasma specimen
+119363009,Platelet rich plasma specimen
+119364003,Serum specimen
+122591000,Serum specimen from blood product
+4.29881E+14,Acute phase serum specimen
+4.29891E+14,Convalescent phase serum specimen
+122590004,Serum specimen from patient
+258590006,Acidified serum sample
+122589008,Serum specimen from blood donor
+442427000,p.m. serum specimen
+122555007,Venous blood specimen
+119298005,Mixed venous blood specimen
+258441009,Exudate sample
+122568004,Exudate specimen from wound
+119345009,Menstrual blood specimen
+258457009,Fecal fluid sample
+119340004,Meconium specimen
+258470000,Prostatic fluid sample
+258471001,Prostatic massage fluid sample
+446700001,Prostatic fluid specimen obtained for Stamey test
+309199003,Gastrointestinal fluid sample
+258459007,Gastric fluid sample
+168137004,Gastric aspirate sample
+258463000,Jejunal fluid sample
+446906004,Jejunal fluid specimen from jejunostomy
+122573005,Gastric contents specimen
+168138009,Gastric lavage aspirate sample
+122574004,Duodenal fluid specimen
+258452003,Chylous fluid sample
+168136008,Colostomy fluid sample
+258462005,Ileostomy fluid sample
+122572000,Vomitus specimen
+122566000,Fluid specimen from wound
+119343002,Pancreatic fluid specimen
+258538002,Transudate sample
+258482009,Vesicle fluid sample
+4.36651E+14,Swab of fluid from vesicle
+258453008,Cyst fluid sample
+438595008,Fluid specimen from sebaceous cyst
+438545007,Fluid specimen from spermatocele
+446128003,Fluid specimen from Bartholin gland cyst
+119323008,Pus specimen
+258502009,Pus swab
+258456000,Empyema fluid sample
+258479004,Interstitial fluid specimen
+258547005,Cardiac bypass pump fluid sample
+40511003,Eluate
+363311008,Specimen from digestive system
+363328006,Tissue specimen from digestive system
+127466008,Tissue specimen from gastrointestinal tract
+122638001,Tissue specimen from small intestine
+127468009,Tissue specimen from ampulla of Vater
+127464006,Tissue specimen from esophagus
+122643008,Tissue specimen from large intestine
+309200000,Rectal tissue sample
+258430007,Rectal snip sample
+258557006,Rectal snips
+309263001,Rectal polyp sample
+122646000,Specimen from large intestine obtained by abdominoperineal resection
+128159001,Tissue specimen from colon
+309226005,Colonic polyp sample
+309227001,Sigmoid colonic polyp sample
+309224008,Colon strip sample
+128171007,Tissue specimen from stomach
+309491006,Biliary tract tissue sample
+399541005,Tissue specimen from extrahepatic bile duct
+122656001,Tissue specimen from gall bladder
+128168004,Tissue specimen from liver
+396481000,Specimen from explanted liver
+127465007,Specimen from gastrointestinal tract
+608840004,Specimen from lower gastrointestinal tract
+119381007,Specimen from large intestine
+447955000,Specimen from rectum
+258528007,Rectal swab
+4.33791E+14,Vaginal and rectal swab
+119382000,Specimen from colon
+309222007,Appendix sample
+472890006,Swab from appendix
+119380008,Specimen from small intestine
+127467004,Specimen from ampulla of Vater
+258553005,Duodenal string
+608842007,Specimen from upper gastrointestinal tract
+122879002,Upper gastrointestinal contents specimen
+119379005,Specimen from stomach
+309215004,Gastric ulcer sample
+127463000,Specimen from esophagus
+472877004,Swab from esophagus
+447359002,Specimen from esophagus obtained by aspiration
+309202008,Gastrointestinal direct smear
+119383005,Specimen from liver
+446674003,Specimen from abscess of liver
+309204009,Liver direct smear sample
+447881000,Specimen from biliary system
+449446003,Specimen from gallbladder
+399460001,Specimen from extrahepatic bile duct
+440229008,Specimen from environment
+419695002,Environmental swab
+4.851E+12,Sand specimen
+119303007,Microbial isolate specimen
+417830001,Unidentified microbial isolate specimen
+4.29951E+14,Bacterial isolate specimen
+4.29971E+14,Mycobacterial isolate specimen
+4.30751E+14,Viral isolate specimen
+309049000,Lesion sample
+472896000,Swab from blister
+4.29941E+14,Lesion swab
+258497007,Abscess swab
+472871003,Swab from ulcer
+258531008,Wound swab
+472882006,Swab from superficial wound
+472870002,Swab from tracheostomy wound
+472884007,Swab from deep wound
+258506007,Swab of drain insertion site
+472883001,Swab from surgical wound
+258507003,Swab of line insertion site
+472876008,Swab from Bartholin cyst
+472875007,Swab from vesicle
+119370009,Specimen from fistula
+119371008,Specimen from abscess
+258407001,Abscess tissue
+444824001,Wall of abscess
+119366001,Specimen from wound abscess
+446972001,Specimen from abscess obtained by aspiration
+309135006,Hydrocele sample
+432441006,Specimen from hydrocele of tunica vaginalis
+432436003,Specimen from hydrocele of spermatic cord
+119367005,Specimen from burn injury
+258418001,Burn tissue
+447103002,Foreign body submitted as specimen
+420548004,Specimen from mass
+309266009,Anal polyp sample
+309288009,Endometrial polyp sample
+703475006,Tissue specimen from nodule
+309286008,Cervical polyp sample
+4.33781E+14,Tissue specimen from mass
+258420003,Cyst tissue
+258435002,Tumor tissue sample
+258588005,Hematoma sample
+119368000,Specimen from cyst
+309291009,Ovarian cyst sample
+423671006,Specimen from peritoneal tumor implant
+119369008,Specimen from ulcer
+122593002,Tissue specimen obtained from ulcer
+258582006,Blood clot sample
+309478005,Thrombus sample
+446951004,Specimen from granulation tissue
+447407009,Specimen from necrotic tissue
+119365002,Specimen from wound
+4.45621E+14,Specimen from scratch wound
+4.45611E+14,Specimen from bite wound
+119317003,Gaseous material specimen
+119337004,Inhaled gas specimen
+446302006,Air sample
+119336008,Exhaled air specimen
+119299002,Specimen from patient
+122561005,Blood specimen from patient
+440493002,Graft specimen from patient
+122584003,Leukocyte specimen from patient
+430304001,Specimen from unspecified body site
+119403008,Specimen from placenta
+122736005,Tissue specimen from placenta
+258426009,Placental membrane tissue sample
+258565009,Chorionic villi sample
+472879001,Swab from placenta
+119301009,Plant specimen
+4.35291E+14,Grain specimen
+258613004,Living sample
+258618008,Helminth sample
+258615006,Larva sample
+258616007,Maggot sample
+258617003,Parasite sample
+258614005,Insect sample
+371780008,Specimen for identification
+371783005,Human tissue for identification
+371784004,Body parts for identification
+119351004,Erythrocyte specimen
+122582004,Erythrocyte specimen from blood product
+258433009,Smear sample
+312494007,Vaginal vault smear sample
+258488008,Lymph node smear
+258487003,Fecal smear
+276446009,Cervical smear sample
+309057002,Breast direct smear sample
+309177006,Lung direct smear sample
+257261003,Swab
+445364004,Swab of axilla
+472889002,Swab from pelvis
+472874006,Swab from uterus
+445369009,Swab of endometrium
+258524009,Cervical swab
+444787003,Swab of endocervix
+431776009,Swab of surgical drain
+258508008,Genital swab
+258509000,Male genital swab
+258510005,Penis swab
+258511009,Penile urethral swab
+258514001,Subpreputial swab
+258512002,Glans penis swab
+258515000,Coronal sulcus of penis swab
+258517008,Shaft of penis swab
+472861000,Swab from testicle
+258518003,Scrotal swab
+258519006,Female genital swab
+258520000,Vaginal swab
+258521001,High vaginal swab
+258522008,Low vaginal swab
+472899007,Swab from vaginal introitus
+258523003,Vulval swab
+472878009,Swab from Bartholin gland
+472887000,Swab from labia
+258530009,Urethral swab
+472904006,Swab from abdomen
+472868006,Swab from peritoneal cavity structure
+445367006,Swab of umbilicus
+473399006,Swab from Tenckhoff catheter exit site
+472886009,Swab from gastrostomy stoma
+445444005,Swab of groin
+472873000,Swab from urethral meatus
+472864008,Swab from lower limb
+472897009,Swab from hip region
+472895001,Swab from buttock
+472865009,Swab from toe
+472863002,Swab from lower leg
+258525005,Perineal swab
+258527002,Anal swab
+258526006,Perianal swab
+472898004,Swab from hand
+472892003,Swab from digit of hand
+258532001,Swab of inanimate object
+258535004,Floor swab
+258537007,Surface swab
+431905001,Swab of building drain
+258536003,Incubator swab
+446577002,Swab obtained during autopsy
+472872005,Swab from ultrasonic nebulizer
+472880003,Swab from catheter
+472903000,Swab from central venous catheter
+258504005,BCG site swab
+472902005,Swab from chest tube insertion site
+258591005,White blood cell sample
+119352006,Macrophage specimen
+258587000,Buffy coat
+119355008,Polymorphonuclear neutrophil specimen
+122585002,Leukocyte specimen from control
+119357000,Basophil specimen
+119356009,Eosinophil specimen
+119353001,Lymphocyte specimen
+399411006,Specimen from trophoblast
+399657004,Tissue specimen from trophoblast
+440674008,Specimen obtained by lavage
+122609004,Specimen from lung obtained by bronchial washing procedure
+440675009,Specimen from upper urinary tract obtained by lavage
+440137008,Specimen obtained by peritoneal lavage
+309502007,Fetus specimen
+258589002,Lymph node sample
+397135002,Specimen from pelvic lymph node
+441709004,Specimen from sentinel lymph node
+397438005,Specimen from lymph node obtained by staging laparotomy
+309078004,Lymph node tissue sample
+309482007,Frozen section lymph node sample
+309476009,Neck block dissection sample
+302795002,Lymph node aspirate
+258603007,Respiratory sample
+127459007,Specimen from pleura
+127460002,Tissue specimen from pleura
+122620004,Specimen from pleura obtained by thoracoscopic procedure
+258606004,Lower respiratory sample
+119390000,Specimen from trachea
+128173005,Tissue specimen from trachea
+445447003,Specimen from trachea obtained by aspiration
+309170008,Lower respiratory tissue sample
+128158009,Tissue specimen from bronchus
+399492000,Tissue specimen from lung
+119391001,Specimen from bronchus
+441903006,Specimen obtained by bronchial aspiration
+446838005,Specimen obtained by bronchial trap
+127458004,Specimen from lung
+446305008,Specimen obtained by aspiration via tracheostomy
+363329003,Tissue specimen from respiratory system
+442219007,p.m. specimen
+119320006,Food specimen
+119321005,Milk specimen
+258659002,Sheep's milk sample
+4.871E+12,Whey specimen
+258655008,Cow's milk sample
+258658005,Skimmed milk sample
+258656009,Whole milk sample
+258657000,Semi-skimmed milk sample
+258660007,Goat's milk sample
+258653001,Formula milk sample
+258652006,Ice-cream sample
+119346005,Egg yolk specimen
+4.861E+12,Baby food specimen
+258651004,Cream sample
+4.841E+12,Seafood specimen
+4.36761E+14,Vegetable AND/OR fruit specimen
+430214008,Specimen from lower limb
+119358005,Platelet specimen
+119295008,Specimen obtained by aspiration
+447357000,Specimen from breast obtained by aspiration
+396997002,Specimen from bone marrow obtained by aspiration
+396998007,Specimen from bone marrow obtained by aspiration and biopsy
+446299006,Specimen obtained by transbronchial aspiration
+447358005,Specimen from endometrium obtained by aspiration
+302794003,Nasogastric aspirate
+447392008,Specimen from vagina obtained by aspiration
+168121005,Miscellaneous samples
+258661006,Slide
+258662004,Adhesive slide
+258664003,Scotch tape slide
+258663009,Sellotape slide
+430232008,Specimen from trunk
+127469001,Specimen from pancreas
+127470000,Tissue specimen from pancreas
+397457001,Specimen from thoracic mesothelium
+399672000,Tissue specimen from thoracic mesothelium
+258570002,Genitourinary sample
+119344008,Specimen from genital system
+258567001,Gonad sample
+128154006,Specimen from testis
+430228002,Specimen from tunica of testis
+127475005,Tissue specimen from testis
+258422006,Gonad tissue
+127482009,Tissue specimen from ovary
+128155007,Specimen from ovary
+122576002,Genital mucus specimen
+122577006,Cervical mucus specimen
+128165001,Tissue specimen from genital system
+309278008,Female genital tissue sample
+127483004,Tissue specimen from fallopian tube
+128175003,Tissue specimen from vagina
+127480001,Tissue specimen from uterus
+128163008,Tissue specimen from endometrium
+127481002,Tissue specimen from uterine cervix
+128170008,Tissue specimen from prostate
+128169007,Tissue specimen from penis
+309052008,Male genital sample
+119397002,Specimen from penis
+430234009,Specimen from spermatic cord
+309139000,Vas deferens sample
+309140003,Epididymis sample
+430131006,Specimen from seminal vesicle
+119349003,Spermatozoa specimen
+119386002,Specimen from prostate
+309053003,Female genital sample
+397129002,Specimen from vulva
+399486006,Tissue specimen from vulva
+608870009,Specimen from female genital tract
+127479004,Specimen from uterus
+119396006,Specimen from endometrium
+119395005,Specimen from uterine cervix
+702701006,Specimen from cervix or vagina
+119394009,Specimen from vagina
+127476006,Specimen from fallopian tube
+119384004,Specimen from right fallopian tube
+119385003,Specimen from left fallopian tube
+127471001,Specimen from urinary tract
+399402006,Specimen from ureter
+399624001,Tissue specimen from ureter
+127472008,Tissue specimen from urinary tract
+127474009,Tissue specimen from kidney
+438804005,Tissue specimen from transplanted kidney
+399532000,Tissue specimen from renal pelvis
+309272009,Urinary bladder tissue sample
+309276007,Frozen section bladder sample
+128174004,Tissue specimen from urethra
+450872001,Specimen from urinary bladder
+608860007,Specimen from perivesical tissue
+119393003,Specimen from urethra
+127473003,Specimen from kidney
+397233003,Specimen from renal pelvis
+122567009,Urine sediment specimen
+258434003,Spun urinary sediment
+127456000,Specimen from breast
+309548003,Breast duct sample
+443458005,Specimen from male breast
+127457009,Tissue specimen from breast
+309059004,Frozen section breast sample
+122553000,Blood specimen obtained from umbilicus
+433326001,Specimen from mediastinum
+396896007,Specimen from thymus gland
+399572009,Tissue specimen from thymus gland
+406101006,Tissue specimen from axilla
+433308004,Specimen from spleen
+443418008,Specimen from thoracic cavity
+258436001,Umbilical cord tissue sample
+433323009,Specimen from retroperitoneum
+438803004,Tissue specimen from retroperitoneum
+443654002,Specimen from abdominal cavity
+119392008,Specimen from anus
+128156008,Tissue specimen from anus
+127454002,Device specimen
+119306004,Drain device specimen
+444656005,Drainage tube submitted as specimen
+258647001,Drain tip
+438660002,Specimen from prosthetic device
+472919007,Device submitted as specimen
+119312009,Catheter tip specimen
+472924005,Pulmonary artery flotation catheter tip submitted as specimen
+472921002,Umbilical catheter tip submitted as specimen
+472941007,Intracranial ventricular catheter tip submitted as specimen
+472923004,Peripheral vascular catheter tip submitted as specimen
+472928008,Umbilical artery catheter tip submitted as specimen
+473403002,Percutaneous nephrostomy tube tip submitted as specimen
+472926007,Chest tube tip submitted as specimen
+472935000,Central venous catheter tip from subclavian vein submitted as specimen
+472929000,Central venous catheter tip submitted as specimen
+472931009,Arterial line tip submitted as specimen
+472936004,Tenckhoff catheter tip submitted as specimen
+472925006,Umbilical vein catheter tip submitted as specimen
+472927003,Contact lens case submitted as specimen
+473415003,Intrauterine contraceptive device submitted as specimen
+473432004,Settle culture plate submitted as specimen
+473416002,Nephrostomy tube submitted as specimen
+699868006,Suture material submitted as specimen
+472930005,Bottle submitted as specimen
+472933007,Shunt tip submitted as specimen
+472922009,Intracranial catheter submitted as specimen
+472940008,Intracranial ventricular catheter submitted as specimen
+446212001,Biological spore test strip submitted as specimen
+440473005,Contact lens submitted as specimen
+473433009,Protected specimen brush submitted as specimen
+440468004,Tampon submitted as specimen
+472944004,Peritoneal catheter submitted as specimen
+119314005,Electrode specimen
+473401000,Cotton wool ball submitted as specimen
+473411007,External ventricular drain tip submitted as specimen
+439580004,Urine collection pad submitted as specimen
+472938003,Tracheal tube submitted as specimen
+473412000,Endotracheal tube submitted as specimen
+472939006,Tracheostomy tube submitted as specimen
+439961009,Implant submitted as specimen
+473404008,Rickham reservoir submitted as specimen
+473417006,Cardiac pacemaker lead submitted as specimen
+473406005,Shunt submitted as specimen
+472942000,Ventriculoperitoneal shunt submitted as specimen
+472934001,Stent submitted as specimen
+472937008,Double J stent submitted as specimen
+472943005,Heyer-Pudenz valve submitted as specimen
+439628000,Urinary collection bag submitted as specimen
+473414004,Intracranial pressure catheter submitted as specimen
+472932002,Vascular catheter submitted as specimen
+473409003,Central venous catheter submitted as specimen
+473407001,Peripherally inserted central catheter submitted as specimen
+473413005,Central venous catheter from internal jugular vein submitted as specimen
+473410008,Peripheral vascular catheter submitted as specimen
+472920001,Umbilical catheter submitted as specimen
+473408006,Umbilical artery catheter submitted as specimen
+119300005,Specimen from blood product
+122558009,Blood specimen from blood product
+119311002,Catheter specimen
+119309006,Arterial line specimen
+119313004,Implantable venous catheter specimen
+119308003,Cannula specimen
+258627009,Cannula tip
+258628004,Vascular cannula tip
+258631003,Arteriovenous shunt tip
+258630002,Venous cannula tip
+258629007,Arterial cannula tip
+119304001,Blood bag specimen
+122563008,"Blood bag specimen, from patient"
+122564002,"Blood bag specimen, from blood product"
+472918004,Substance specimen obtained from device
+119310001,Tube specimen
+119305000,Plasma bag specimen
+119297000,Blood specimen
+122560006,Blood specimen from blood donor
+440500007,Blood spot specimen
+258581004,Clotted blood sample
+122559001,Blood specimen from control
+258580003,Whole blood sample
+122562003,Blood specimen from newborn
+119294007,Dried blood specimen
+441510007,Blood specimen with anticoagulant
+445295009,Blood specimen with EDTA
+446272009,Blood specimen submitted in heparinized collection tube
+446131002,Blood specimen obtained for blood culture
+309050000,Body substance sample
+119339001,Stool specimen
+4.29901E+14,Bloody stool specimen
+258554004,Fecal concretion sample
+4.29911E+14,Fluid feces specimen
+4.29921E+14,Bloody fluid feces specimen
+258555003,Hot stool sample
+697988001,Soft stool specimen
+432825001,Body secretion specimen
+258483004,Mucus sample
+119350003,Calculus specimen
+258495004,Renal stone sample
+258490009,Biliary stone sample
+258492001,Gallstone sample
+258493006,Bladder stone sample
+258496003,Ureteric stone sample
+258494000,Pancreatic stone sample
+119376003,Tissue specimen
+369613006,Tissue specimen obtained for Hodgkin's disease by biopsy
+431196006,Tissue spot
+440469007,Tissue specimen from ectopic pregnancy
+258428005,Products of conception tissue sample
+446837000,Tissue specimen from amniotic membrane
+430861001,Macroscopic tissue specimen
+430970004,Core sample of tissue block
+441652008,Formalin-fixed paraffin-embedded tissue specimen
+258484005,Postmortem tissue sample
+441479001,Fresh tissue specimen
+430856003,Tissue section
+446364005,Specimen from donor corneal storage medium
+309114009,Ligament sample
+119319000,Drug specimen
+430246008,Specimen from upper limb
+445421007,Fungal isolate specimen
+119359002,Bone marrow specimen
+167913002,Bone marrow source
+258584007,Bone marrow fragment sample
+258583001,Bone marrow clot sample
+271516005,Vertebral spinous process bone marrow sample
+271515009,Iliac crest bone marrow sample
+396999004,Specimen from bone marrow obtained by biopsy
+271518006,Rib bone marrow sample
+271514008,Sternal bone marrow sample
