@@ -16,9 +16,15 @@ The script then creates a case, sequencing run and informatics job on PierianDx.
 usage: cttso-ica-to-pieriandx.py [-h] [--ica-workflow-run-ids ICA_WORKFLOW_RUN_IDS] [--accession-json ACCESSION_JSON]
                                  [--accession-csv ACCESSION_CSV] [--verbose]
 
-Given a ica workflow run id, and an input.json file,
-pull the cttso files and upload to s3 for pieriandx,
-generate a case, run and informatics job.
+Given an input.json file, pull information from gds, upload to s3 for a single sample,
+ create a case, run and informatics job # Not yet supported
+
+Given an input csv, pull information from gds, upload to s3 and create a case, run and 
+ informatics job is for all samples in the csv.  
+ 
+One may also specify the ica workflow run ids. If these are not specified, the list of workflow runs are searched to find
+the workflow run on the bases of the library name.  
+
 The following environment variables are expected:
   * ICA_BASE_URL
   * ICA_ACCESS_TOKEN
@@ -40,6 +46,10 @@ optional arguments:
   --accession-csv ACCESSION_CSV
                         Path to accession csv containing redcap information for sample list
   --verbose             Set log level from info to debug
+  
+example usage:
+./cttso-ica-to-pieriandx.py --accession-csv samples.csv
+./cttso-ica-to-pieriandx.py --accession-json samples.json  # Not yet supported
 ```
 
 
