@@ -189,13 +189,13 @@ def read_input_csv(input_csv: Path) -> pd.DataFrame:
     input_df["study_identifier"] = input_df.apply(lambda x: x.study_identifier
                                                             if hasattr(x, "study_identifier")
                                                             and not pd.isna(x.study_identifier)
-                                                            else x.accession_number,
+                                                            else x.sample_type.value,
                                                   axis="columns")
 
     input_df["study_subject_identifier"] = input_df.apply(lambda x: x.study_subject_identifier
                                                                     if hasattr(x, "study_subject_identifier")
                                                                     and not pd.isna(x.study_subject_identifier)
-                                                                    else x.sample_type.value,
+                                                                    else x.accession_number,
                                                           axis="columns")
 
     # Coerce dates to date objects
