@@ -11,7 +11,7 @@ from libica.openapi import libgds
 from libica.openapi.libgds import FileResponse
 from typing import List, Optional
 from wget import download
-from utils.globals import CTTSO_FILE_SUFFIXES, ICA_GDS_MAX_PAGE_SIZE
+from utils.globals import CTTSO_FILE_SUFFIXES, ICA_GDS_MAX_PAGE_SIZE, CTTSO_COVERAGE_FILE_SUFFIX
 import gzip
 import shutil
 
@@ -179,7 +179,6 @@ def collect_and_download_cttso_files_from_ica_workflow_run(sample_name: str,
     :param ica_workflow_run_obj:
     :param output_dir:
     :param staging_dir:
-    :param basecalls_dir:
     :return:
     """
     from utils.ica_wes import get_output_directory_from_workflow_run_obj, get_working_directory_from_workflow_run_obj
@@ -255,7 +254,6 @@ def collect_and_download_cttso_files_from_ica_workflow_run(sample_name: str,
                 shutil.copyfileobj(f_in, f_out)
 
 
-
 def collect_and_download_cttso_samplesheet_from_ica_workflow_run(ica_workflow_run_obj: WorkflowRun, output_dir: Path):
     from utils.ica_wes import get_output_directory_from_workflow_run_obj, get_working_directory_from_workflow_run_obj
 
@@ -291,3 +289,46 @@ def collect_and_download_cttso_samplesheet_from_ica_workflow_run(ica_workflow_ru
     output_path: Path = output_dir / Path("SampleSheet.csv")
     logger.debug(f"Downloading gds://{samplesheet_file_obj.volume_name}/{samplesheet_file_obj.path} to {output_path}")
     download(url=samplesheet_file_obj.presigned_url, out=str(output_path))
+
+
+def collect_and_download_case_files(sample_name: str, ica_workflow_run_obj: WorkflowRun, output_dir: Path):
+    """
+    :param sample_name: str
+    :param ica_workflow_run_obj: WorkflowRun
+    :param output_dir: Path
+    :return:
+    """
+    from utils.ica_wes import get_output_directory_from_workflow_run_obj, get_working_directory_from_workflow_run_obj
+
+    # Get the output and working directories from the run object
+    output_directory = get_output_directory_from_workflow_run_obj(ica_workflow_run_obj)
+    working_directory = get_working_directory_from_workflow_run_obj(ica_workflow_run_obj)
+
+    # Check output directory exists first
+    if not output_dir.is_dir():
+        logger.error(f"Please create the directory {output_dir} before continuing")
+        raise NotADirectoryError
+
+    # Find the samplesheet in the output directory
+    logger.debug("Searching for ctTSO Suffix file in output directory")
+    case_file_obj: Optional[FileResponse] = find_files_in_gds_directory(gds_folder_path=output_directory,
+                                                                        file_list=[f"{sample_name}{CTTSO_COVERAGE_FILE_SUFFIX}"],
+                                                                        recursive=True)[0]
+
+    # Or the working directory
+    if case_file_obj is None:
+        logger.debug("Searching for case file object in working directory")
+        case_file_obj: Optional[FileResponse] = find_files_in_gds_directory(gds_folder_path=working_directory,
+                                                                            file_list=[f"{sample_name}{CTTSO_COVERAGE_FILE_SUFFIX}"],
+                                                                            recursive=True)[0]
+
+    # Reassure case file object is not none
+    if case_file_obj is None:
+        logger.error(f"Could not find the failed coverage file in either the "
+                     f"output directory {output_directory} or the working directory {working_directory}")
+        raise FileNotFoundError
+
+    # Download the samplesheet
+    output_path: Path = output_dir / Path("coverage_report_QC.txt")
+    logger.debug(f"Downloading gds://{case_file_obj.volume_name}/{case_file_obj.path} to {output_path}")
+    download(url=case_file_obj.presigned_url, out=str(output_path))

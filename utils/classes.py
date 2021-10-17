@@ -19,6 +19,7 @@ from utils.micro_classes import SpecimenType, Disease
 from utils.pieriandx_helper import get_pieriandx_client
 from utils.s3_uploader import get_s3_bucket, get_s3_key_prefix, pieriandx_file_uploader
 from utils.logging import get_logger
+from utils.errors import UploadCaseFileError
 
 # Load other classes inside class saves circular import errors
 
@@ -109,6 +110,7 @@ class PierianDXSequenceRun:
         self.run_dir: Optional[Path] = None
         self.staging_dir: Optional[Path] = None
         self.basecalls_dir: Optional[Path] = None
+        self.case_files_dir : Optional[Path] = None
         self.file_list: Optional[List[Path]] = None
 
         # Add specimens
@@ -182,9 +184,10 @@ class PierianDXSequenceRun:
         self.run_dir = self.tmp_directory / Path(self.run_name)
         self.staging_dir = self.tmp_directory / Path("staging")
         self.basecalls_dir = self.run_dir / Path("Data") / Path("Intensities") / Path("BaseCalls")
+        self.case_files_dir = self.tmp_directory / Path("case_files")
 
         # Iterate through directories
-        for dir_item in [self.run_dir, self.staging_dir, self.basecalls_dir]:
+        for dir_item in [self.run_dir, self.staging_dir, self.basecalls_dir, self.case_files_dir]:
             dir_item.mkdir(exist_ok=True, parents=True)
 
         # Add VcfWorkflow to top run directory
@@ -392,6 +395,36 @@ class Case:
 
         # Get the id
         self.informatics_job_id = response.get("jobId")
+
+    def upload_case_files(self):
+        """
+        Upload the case files for the case
+        :return:
+        """
+
+        for file_name in self.run_objs[0].case_files_dir.rglob("*"):
+            if not file_name.is_file():
+                continue
+
+            # Log this
+            logger.debug(f"Uploading {file_name.name} to url endpoint /case/{self.case_id}/caseFiles/{file_name.name}/")
+
+            # Get pieriandx client
+            pyriandx_client = get_pieriandx_client()
+
+            file_dict = {
+                "file": (file_name.name, open(str(file_name.absolute()), "rb"), "text/plain")
+            }
+
+            response = pyriandx_client._post_api(endpoint=f"/case/{self.case_id}/caseFiles/{file_name.name}/",
+                                                 files=file_dict)
+
+            logger.debug("Printing response")
+            if not response.status_code == 200:
+                logger.error(f"Received code {response.status_code} and {response.content} trying "
+                             f"to upload {file_name.name} to end point /case/{self.case_id}/caseFiles/{file_name.name}/")
+                raise UploadCaseFileError
+
 
     @classmethod
     def from_dict(cls, case_dict: Dict):

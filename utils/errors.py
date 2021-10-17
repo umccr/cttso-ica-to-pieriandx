@@ -38,3 +38,10 @@ class S3UploadError(Exception):
     Could not upload a file to s3
     """
     pass
+
+
+class UploadCaseFileError(Exception):
+    """
+    Could not upload a case file
+    """
+    pass

@@ -11,7 +11,7 @@ from utils.args import get_args, check_args
 from utils.globals import ICA_WES_CTTSO_RUN_NAME_REGEX, ICA_WES_CTTSO_RUN_NAME_REGEX_GROUPS
 from utils.samplesheet import read_samplesheet, update_samplesheet, write_samplesheet
 from utils.ica_gds import collect_and_download_cttso_samplesheet_from_ica_workflow_run, \
-    collect_and_download_cttso_files_from_ica_workflow_run
+    collect_and_download_cttso_files_from_ica_workflow_run, collect_and_download_case_files
 from utils.accession import log_informatics_job_by_case
 from libica.openapi.libwes import WorkflowRun
 
@@ -89,6 +89,9 @@ def main():
                                                                run.basecalls_dir,
                                                                run.staging_dir)
 
+        # And download the case files
+        collect_and_download_case_files(sample_id, ica_workflow_run_obj, run.case_files_dir)
+
         # Add samplesheet
         case.add_sample_id_to_specimen(sample_id)
 
@@ -110,6 +113,10 @@ def main():
 
         # Add the run id to the case object
         case.add_run_to_case([run])
+
+        # Get the case file
+        logger.info("Uploading failed exon coverage case file")
+        case.upload_case_files()
 
         # Upload files to s3
         logger.info(f"Uploading cttso files to PierianDx s3 bucket for case {case.case_accession_number}")

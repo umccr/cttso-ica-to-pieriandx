@@ -83,6 +83,8 @@ CTTSO_FILE_SUFFIXES = [
 
 CTTSO_SAMPLESHEET_NAME = "SampleSheet_Intermediate.csv"
 
+CTTSO_COVERAGE_FILE_SUFFIX = "_Failed_Exon_coverage_QC.txt"
+
 #################
 # OUTPUT GLOBALS
 #################
