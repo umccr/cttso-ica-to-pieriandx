@@ -7,7 +7,7 @@ Run sample on ICA to PierianDx
 from typing import Dict
 from pathlib import Path
 
-from utils.args import get_args, check_args
+from utils.args import get_ica_to_pieriandx_args, check_ica_to_pieriandx_args
 from utils.globals import ICA_WES_CTTSO_RUN_NAME_REGEX, ICA_WES_CTTSO_RUN_NAME_REGEX_GROUPS
 from utils.samplesheet import read_samplesheet, update_samplesheet, write_samplesheet
 from utils.ica_gds import collect_and_download_cttso_samplesheet_from_ica_workflow_run, \
@@ -36,8 +36,8 @@ def main():
         logger.setLevel(level=INFO)
 
     # Get / set check args
-    args = get_args()
-    args = check_args(args)
+    args = get_ica_to_pieriandx_args()
+    args = check_ica_to_pieriandx_args(args)
 
     # Collect files
     library: str

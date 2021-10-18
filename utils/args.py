@@ -20,11 +20,12 @@ from utils.classes import Case, PierianDXSequenceRun
 from utils.ica_wes import get_ica_workflow_run_objs_from_library_names
 
 from libica.openapi.libwes import WorkflowRun
+from os import getcwd
 
 logger = get_logger()
 
 
-def get_args():
+def get_ica_to_pieriandx_args():
     """
     Use the simple argument parse to return an argument object
     :return:
@@ -70,17 +71,113 @@ The following environment variables are expected:
     return parser.parse_args()
 
 
-def check_args(args):
+def get_case_status_args():
+    """
+    Get the case status
+    :param args:
+    :return:
+    """
+    parser = ArgumentParser(description="""
+Given a comma-separated list of case accession numbers or case accession ids, 
+return a list of informatics jobs, the informatics job ids and the status of each.  
+If both case ids and case accession numbers are provided, an outer-join is performed.
+    """,
+                            formatter_class=argparse.RawTextHelpFormatter)
+
+    parser.add_argument("--case-ids",
+                        required=False,
+                        help="List of case ids")
+
+    parser.add_argument("--case-accession-numbers",
+                        required=False,
+                        help="List of case accession numbers")
+
+    parser.add_argument("--verbose",
+                        action="store_true",
+                        default=False,
+                        help="Set logging level to DEBUG")
+
+    return parser.parse_args()
+
+
+def get_case_args(args):
+    """
+    Get the case status
+    :param args:
+    :return:
+    """
+    parser = ArgumentParser(description="""
+Given a comma-separated list of case accession numbers or case accession ids, 
+return a list of informatics jobs, the informatics job ids and the status of each.  
+If both case ids and case accession numbers are provided, an outer-join is performed.
+    """,
+                            formatter_class=argparse.RawTextHelpFormatter)
+
+    parser.add_argument("--case-ids",
+                        required=False,
+                        help="List of case ids")
+
+    parser.add_argument("--case-accession-numbers",
+                        required=False,
+                        help="List of case accession numbers")
+
+    return parser.parse_args()
+
+
+def get_download_reports_args():
+    """
+    Get download reports
+    :return:
+    """
+    parser = ArgumentParser(description="""
+    Given a comma-separated list of case accession numbers or case accession ids, 
+    download a list of reports to the zip file specified in --output-file 
+    If both case ids and case accession numbers are provided, an outer-join is performed.
+    Must specify one (and only one) of pdf and json. Parent directory of output file must exist.
+        """,
+                            formatter_class=argparse.RawTextHelpFormatter)
+
+    parser.add_argument("--case-ids",
+                        required=False,
+                        help="List of case ids")
+
+    parser.add_argument("--case-accession-numbers",
+                        required=False,
+                        help="List of case accession numbers")
+
+    parser.add_argument("--output-file",
+                        required=True,
+                        help="Path to output zip file")
+
+    parser.add_argument("--pdf",
+                        default=False,
+                        action='store_true',
+                        help="Download reports as pdfs")
+
+    parser.add_argument("--json",
+                        default=False,
+                        action='store_true',
+                        help="Download reports as jsons")
+
+    parser.add_argument("--verbose",
+                        default=False,
+                        action="store_true",
+                        help="Set logging level to debug")
+
+    return parser.parse_args()
+
+
+def check_ica_to_pieriandx_args(args):
     """
     Read through inputs and assign objects based on input types
     :return:
     """
 
     # Confirm input.json or input.csv is defined
-    if getattr(args,"accession_json", None) is not None and getattr(args,"accession_csv", None) is not None:
+    if getattr(args, "accession_json", None) is not None and getattr(args, "accession_csv", None) is not None:
         logger.error("Please specify either --accession-json OR --accession-csv")
         raise ArgumentError
-    elif getattr(args,"accession_json", None) is None and getattr(args,"accession_csv", None) is None:
+    elif getattr(args, "accession_json", None) is None and getattr(args, "accession_csv", None) is None:
         logger.error("Please specify either --accession-json OR --accession-csv")
         raise ArgumentError
 
@@ -95,7 +192,7 @@ def check_args(args):
     setattr(args, "sample_libraries", get_sample_libraries_from_input_df(input_df))
 
     # Check ica workflow run id is defined
-    if getattr(args,"ica-workflow-run-ids", None) is not None:
+    if getattr(args, "ica-workflow-run-ids", None) is not None:
         ica_workflow_run_ids: List[str] = getattr(args,"ica-workflow-run-ids").split(",")
         ica_workflow_run_id_objs: List[WorkflowRun] = get_ica_workflow_run_id_objs(ica_workflow_run_ids)
     else:
@@ -106,6 +203,70 @@ def check_args(args):
     # Read in case object
     setattr(args, "cases", get_cases_from_input_df(input_df))
     setattr(args, "runs", get_runs_from_input_df(input_df, args.cases))
+
+    return args
+
+
+def check_case_status_args(args):
+    """
+    Check the case status args
+    :param args:
+    :return:
+    """
+    case_id_args_str = getattr(args, "case_ids", None)
+    case_accession_numbers_str = getattr(args, "case_accession_numbers", None)
+
+    if case_id_args_str is None and case_accession_numbers_str is None:
+        logger.error("Must specify one of --case-ids and --case-accesion-numbers")
+        raise ArgumentError
+
+    if case_id_args_str is not None:
+        case_id_args_list = case_id_args_str.split(",")
+    else:
+        case_id_args_list = None
+    if case_accession_numbers_str is not None:
+        case_accession_numbers_list = case_accession_numbers_str.split(",")
+    else:
+        case_accession_numbers_list = None
+
+    setattr(args, "case_ids_list", case_id_args_list)
+    setattr(args, "case_accession_numbers_list", case_accession_numbers_list)
+
+    return args
+
+
+def check_download_reports_args(args):
+    """
+    Use the check-case args first, then make usre
+    :return:
+    """
+
+    # Check status args
+    args = check_case_status_args(args)
+
+    # Check parent of output file is specified
+    output_file_str = getattr(args, "output_file", None)
+    output_file_path = Path(output_file_str).absolute().resolve()
+    setattr(args, "output_file_path", output_file_path)
+
+    if not output_file_path.name.endswith(".zip"):
+        logger.error("--output-file must be a zip file")
+
+    if not output_file_path.parent.is_dir():
+        logger.error(f"Please create the parent directory to {output_file_str} before continuing")
+
+    # Check output file type
+    is_pdf = getattr(args, "pdf", None)
+    is_json = getattr(args, "json", None)
+
+    if not is_pdf and not is_json:
+        logger.error("Please specify one of --pdf or --json")
+        raise ArgumentError
+
+    if is_pdf:
+        setattr(args, "output_file_type", "pdf")
+    else:
+        setattr(args, "output_file_type", "json")
 
     return args
 

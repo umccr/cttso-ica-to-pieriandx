@@ -4,9 +4,12 @@
 Read in the accession csv or json
 """
 
-from typing import List
+from typing import List, Dict, Optional
 from pathlib import Path
 import pandas as pd
+import requests
+import gzip
+import json
 
 from utils.logging import get_logger
 from dateutil.parser import parse as date_parser
@@ -16,6 +19,7 @@ from utils.globals import MANDATORY_INPUT_COLUMNS, OPTIONAL_DEFAULTS, ACCESSION_
 from utils.micro_classes import Disease, SpecimenType
 from utils.classes import Case
 from utils.enums import SampleType, Ethnicity, Gender, Race
+from utils.pieriandx_helper import get_pieriandx_client
 
 import pytz
 
@@ -39,8 +43,179 @@ def log_informatics_job_by_case(cases: List[Case]):
 
     pd.DataFrame(cases_dict).to_csv(OUTPUT_STATS_FILE, index=False, header=True, line_terminator="\n")
 
+
 def read_input_json():
     raise NotImplementedError
+
+
+def get_cases_df() -> pd.DataFrame:
+    """
+    Return all cases in a dataframe with the following attributes:
+    * id
+    * accession_number
+    * date_created
+    * assignee
+    :return:
+    """
+
+    pyriandx_client = get_pieriandx_client()
+
+    logger.debug(f"Listing all cases")
+    response = requests.get(url=f"{pyriandx_client.baseURL}/case", headers=pyriandx_client.headers)
+
+    cases_df = pd.DataFrame(json.loads(response.text))
+
+    sanitised_columns = [change_case(column_name)
+                         for column_name in cases_df.columns.tolist()]
+
+    cases_df.columns = sanitised_columns
+
+    return cases_df
+
+
+def filter_cases_df(cases_df: pd.DataFrame, case_ids: List = None, case_accessions: List = None, merge_type: str = "inner") -> pd.DataFrame:
+    """
+    Given a list of cases merge case ids and case accessions
+    :param cases_df: 
+    :param case_ids: 
+    :param case_accessions:
+    :param merge_type: 
+    :return: 
+    """
+
+    # Check one has been specified
+    if case_ids is None and case_accessions is None:
+        logger.error("Please specify one of case_ids or case_accessions")
+        raise ValueError
+
+    # Check the merge type
+    if merge_type not in ["inner", "outer"]:
+        logger.error("Only 'inner' and 'outer' joins are supported for filtering the cases df by id and accession number")
+        raise ValueError
+
+    # Check the single use cases
+    if case_ids is not None and case_accessions is None:
+        return cases_df.query("id in @case_ids")
+    elif case_ids is None and case_accessions is not None:
+        return cases_df.query("accession_number in @case_accessions")
+
+    # Check the duplicate use cases
+    if merge_type == "inner":
+        # Need an ampersand between the two queries
+        return cases_df.query("id in @case_ids & accession_number in @case_accessions")
+    elif merge_type == "outer":
+        return cases_df.query("id in @case_ids | accession_number in @case_accessions")
+
+
+def get_cases_df_from_params(case_ids: List = None, case_accessions: List = None, merge_type: str = "inner") -> pd.DataFrame:
+    """
+    Get all cases, then filter by parameters
+    :param case_ids:
+    :param case_accessions:
+    :param merge_type:
+    :return:
+    """
+    return filter_cases_df(get_cases_df(), case_ids=case_ids, case_accessions=case_accessions, merge_type=merge_type)
+
+
+def get_case(case_id: str) -> Dict:
+    pyriandx_client = get_pieriandx_client()
+
+    logger.debug(f"Getting case object case {case_id}")
+    return json.loads(requests.get(url=f"{pyriandx_client.baseURL}/case/{case_id}", headers=pyriandx_client.headers).content)
+
+
+def get_report_ids_by_case_id(case_id) -> Optional[List[Dict]]:
+    """
+    :param case_id:
+    :return:
+    """
+    logger.debug(f"Getting the reports for the case {case_id}")
+    case_obj: Dict = get_case(case_id)
+
+    if "reports" not in case_obj.keys():
+        return None
+
+    report_list = []
+    for report_item in case_obj.get("reports"):
+        report_list.append({
+            "case_id": case_id,
+            "report_id": report_item.get("id"),
+            "report_status": report_item.get("status"),
+        })
+
+    return report_list
+
+
+def get_informatics_status_by_case_id(case_id: str) -> Optional[List[Dict]]:
+    """
+    Get the informatics status by the case id
+    :return:
+    """
+    case_obj = get_case(case_id)
+
+    # Make sure informatics job is in the response keys
+    if 'informaticsJobs' not in case_obj.keys():
+        return None
+
+    job_list = []
+    for job_item in case_obj.get("informaticsJobs"):
+        job_list.append({
+            "case_id": case_id,
+            "job_id": job_item.get("id"),
+            "job_status": job_item.get("status"),
+            "job_date_started": date_parser(job_item.get("dateStarted")),
+            "job_date_ended": date_parser(job_item.get("dateEnded"))
+        })
+
+    return job_list
+
+
+def get_reports_by_case_id(case_id: str) -> Optional[List[Dict]]:
+    """
+    Get list of reports from a given case id
+    :param case_id:
+    :return:
+    """
+    case_obj = get_case(case_id)
+
+    # Make sure reports is in the response keys
+    if 'reports' not in case_obj.keys():
+        return None
+
+    job_list = []
+    for report_item in case_obj.get("reports"):
+        job_list.append({
+            "id": report_item.get("id"),
+            "signed_out": report_item.get("signedOut"),
+            "status": date_parser(report_item.get("status"))
+        })
+
+    return job_list
+
+
+def download_report(case_id: str, report_id: str, output_file_type: str, output_file_path: Path):
+    """
+    Download the report to an output file path
+    :param case_id:
+    :param report_id:
+    :param output_file_path:
+    :return:
+    """
+    pyriandx_client = get_pieriandx_client()
+
+    logger.debug(f"Getting case object case {case_id}")
+
+    response = requests.get(url=f"{pyriandx_client.baseURL}/case/{case_id}/reports/{report_id}/",
+                            headers=pyriandx_client.headers,
+                            params=[("format", output_file_type)])
+
+    if not response.status_code == 200:
+        logger.error(f"Tried to download case report for case id {case_id} with report id {report_id} but was unsuccessful")
+
+    logger.debug(f"Writing report to {output_file_path}")
+    with open(output_file_path, "wb") as report_output_h:
+        report_output_h.write(gzip.decompress(response.content))
 
 
 def change_case(column_name: str) -> str:
@@ -177,7 +352,6 @@ def read_input_csv(input_csv: Path) -> pd.DataFrame:
             input_df[key] = value
         else:
             input_df[key].fillna(value, inplace=True)
-
 
     # Coerce to 'lower' for our enum types
     input_df["sample_type"] = input_df["sample_type"].apply(lambda x: SampleType(x.lower()))
