@@ -52,6 +52,63 @@ example usage:
 ./cttso-ica-to-pieriandx.py --accession-json samples.json  # Not yet supported
 ```
 
+## Check Status
+
+```
+usage: check-pieriandx-status.py [-h] [--case-ids CASE_IDS] [--case-accession-numbers CASE_ACCESSION_NUMBERS]
+                                 [--verbose]
+
+Given a comma-separated list of case accession numbers or case accession ids,
+return a list of informatics jobs, the informatics job ids and the status of each.
+If both case ids and case accession numbers are provided, an outer-join is performed.
+
+The following environment variables are expected:
+  * PIERIANDX_BASE_URL
+  * PIERIANDX_INSTITUTION
+  * PIERIANDX_USER_EMAIL
+  * PIERIANDX_USER_PASSWORD
+
+
+optional arguments:
+  -h, --help            show this help message and exit
+  --case-ids CASE_IDS   List of case ids
+  --case-accession-numbers CASE_ACCESSION_NUMBERS
+                        List of case accession numbers
+  --verbose             Set logging level to DEBUG
+```
+
+## Download reports
+
+```
+usage: download-pieriandx-reports.py [-h] [--case-ids CASE_IDS] [--case-accession-numbers CASE_ACCESSION_NUMBERS]
+                                     --output-file OUTPUT_FILE [--pdf] [--json] [--verbose]
+
+Given a comma-separated list of case accession numbers or case accession ids,
+download a list of reports to the zip file specified in --output-file
+If both case ids and case accession numbers are provided, an outer-join is performed.
+Must specify one (and only one) of pdf and json. Parent directory of output file must exist. 
+Output file must end in '.zip'.  
+
+The zip file will contain a directory which is the nameroot of the zip file,
+The naming convention of the reports is '<case_accession_number>_<report_id>.<output_file_type>'
+
+The following environment variables are expected:
+  * PIERIANDX_BASE_URL
+  * PIERIANDX_INSTITUTION
+  * PIERIANDX_USER_EMAIL
+  * PIERIANDX_USER_PASSWORD
+
+optional arguments:
+  -h, --help            show this help message and exit
+  --case-ids CASE_IDS   List of case ids
+  --case-accession-numbers CASE_ACCESSION_NUMBERS
+                        List of case accession numbers
+  --output-file OUTPUT_FILE
+                        Path to output zip file
+  --pdf                 Download reports as pdfs
+  --json                Download reports as jsons
+```
+
 
 ## Accession CSV format reference
 
