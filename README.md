@@ -52,7 +52,7 @@ example usage:
 ./cttso-ica-to-pieriandx.py --accession-json samples.json  # Not yet supported
 ```
 
-## Check Status
+### Check Status
 
 ```
 usage: check-pieriandx-status.py [-h] [--case-ids CASE_IDS] [--case-accession-numbers CASE_ACCESSION_NUMBERS]
@@ -77,7 +77,7 @@ optional arguments:
   --verbose             Set logging level to DEBUG
 ```
 
-## Download reports
+### Download reports
 
 ```
 usage: download-pieriandx-reports.py [-h] [--case-ids CASE_IDS] [--case-accession-numbers CASE_ACCESSION_NUMBERS]
