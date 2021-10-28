@@ -5,7 +5,6 @@ Enumerate globals
 """
 from enum import Enum
 
-
 class SampleType(Enum):
     PATIENTCARE = "patientcare"
     CLINICAL_TRIAL = "clinical_trial"

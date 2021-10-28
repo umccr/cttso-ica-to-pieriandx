@@ -1,0 +1,13 @@
+name: cttso-ica-to-pieriandx
+channels:
+  - conda-forge
+dependencies:
+  - pip
+  - pandas
+  - ca-certificates
+  - openssl
+  - pip:
+      - pyriandx==0.2.0
+      - libica==0.5.0
+      - python-dateutil==2.8.2
+      - wget==3.2

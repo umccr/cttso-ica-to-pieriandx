@@ -61,9 +61,9 @@ def get_cases_df() -> pd.DataFrame:
     pyriandx_client = get_pieriandx_client()
 
     logger.debug(f"Listing all cases")
-    response = requests.get(url=f"{pyriandx_client.baseURL}/case", headers=pyriandx_client.headers)
+    response = pyriandx_client._get_api(endpoint=f"/case").json()
 
-    cases_df = pd.DataFrame(json.loads(response.text))
+    cases_df = pd.DataFrame(response)
 
     sanitised_columns = [change_case(column_name)
                          for column_name in cases_df.columns.tolist()]
@@ -122,7 +122,7 @@ def get_case(case_id: str) -> Dict:
     pyriandx_client = get_pieriandx_client()
 
     logger.debug(f"Getting case object case {case_id}")
-    return json.loads(requests.get(url=f"{pyriandx_client.baseURL}/case/{case_id}", headers=pyriandx_client.headers).content)
+    return pyriandx_client._get_api(endpoint=f"/case/{case_id}").json()
 
 
 def get_report_ids_by_case_id(case_id) -> Optional[List[Dict]]:
@@ -206,16 +206,12 @@ def download_report(case_id: str, report_id: str, output_file_type: str, output_
 
     logger.debug(f"Getting case object case {case_id}")
 
-    response = requests.get(url=f"{pyriandx_client.baseURL}/case/{case_id}/reports/{report_id}/",
-                            headers=pyriandx_client.headers,
-                            params=[("format", output_file_type)])
-
-    if not response.status_code == 200:
-        logger.error(f"Tried to download case report for case id {case_id} with report id {report_id} but was unsuccessful")
+    response = pyriandx_client._get_api(endpoint=f"/case/{case_id}/reports/{report_id}/",
+                                        params=[("format", output_file_type)])
 
     logger.debug(f"Writing report to {output_file_path}")
     with open(output_file_path, "wb") as report_output_h:
-        report_output_h.write(gzip.decompress(response.content))
+        report_output_h.write(gzip.decompress(response))
 
 
 def change_case(column_name: str) -> str:
