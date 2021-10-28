@@ -3,7 +3,7 @@ from setuptools import setup
 setup(
     name='cttso-ica-to-pieriandx',
     version='1.0',
-    packages=['utils'],
+    packages=['utils', 'references'],
     url='',
     license='MIT',
     author='Alexis Lucattini',
