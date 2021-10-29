@@ -9,7 +9,7 @@ from pathlib import Path
 import pandas as pd
 import requests
 import gzip
-import json
+import requests
 
 from utils.logging import get_logger
 from dateutil.parser import parse as date_parser
@@ -61,7 +61,7 @@ def get_cases_df() -> pd.DataFrame:
     pyriandx_client = get_pieriandx_client()
 
     logger.debug(f"Listing all cases")
-    response = pyriandx_client._get_api(endpoint=f"/case").json()
+    response = pyriandx_client._get_api(endpoint=f"/case")
 
     cases_df = pd.DataFrame(response)
 
@@ -122,7 +122,7 @@ def get_case(case_id: str) -> Dict:
     pyriandx_client = get_pieriandx_client()
 
     logger.debug(f"Getting case object case {case_id}")
-    return pyriandx_client._get_api(endpoint=f"/case/{case_id}").json()
+    return pyriandx_client._get_api(endpoint=f"/case/{case_id}")
 
 
 def get_report_ids_by_case_id(case_id) -> Optional[List[Dict]]:
@@ -206,12 +206,14 @@ def download_report(case_id: str, report_id: str, output_file_type: str, output_
 
     logger.debug(f"Getting case object case {case_id}")
 
-    response = pyriandx_client._get_api(endpoint=f"/case/{case_id}/reports/{report_id}/",
-                                        params=[("format", output_file_type)])
+    response = requests.get(url=pyriandx_client.baseURL + f"/case/{case_id}/reports/{report_id}",
+                            stream=True,
+                            headers=pyriandx_client.headers,
+                            params=[("format", output_file_type)])
 
     logger.debug(f"Writing report to {output_file_path}")
     with open(output_file_path, "wb") as report_output_h:
-        report_output_h.write(gzip.decompress(response))
+        report_output_h.write(gzip.decompress(response.content))
 
 
 def change_case(column_name: str) -> str:
