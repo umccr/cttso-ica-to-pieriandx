@@ -8,6 +8,69 @@ pull down the data from ICA and transfer over to PierianDx's s3 bucket.
 
 The script then creates a case, sequencing run and informatics job on PierianDx.  
 
+## Installation:
+
+### Option 1: Recommended
+> No installation required - just run things
+
+Using the docker container:
+```bash
+docker run \
+  --rm -it \
+  --volume "$PWD:$PWD" \
+  --workdir "$PWD" \
+  --env "ICA_BASE_URL=${ICA_BASE_URL}" \
+  --env "ICA_ACCESS_TOKEN=${ICA_ACCESS_TOKEN}" \
+  --env "PIERIANDX_BASE_URL=${PIERIANDX_BASE_URL}" \
+  --env "PIERIANDX_INSTITUTION=${PIERIANDX_INSTITUTION}" \
+  --env "PIERIANDX_AWS_REGION=${PIERIANDX_AWS_REGION}" \
+  --env "PIERIANDX_AWS_S3_PREFIX=${PIERIANDX_AWS_S3_PREFIX}" \
+  --env "PIERIANDX_AWS_ACCESS_KEY_ID=${PIERIANDX_AWS_ACCESS_KEY_ID}" \
+  --env "PIERIANDX_AWS_SECRET_ACCESS_KEY=${PIERIANDX_AWS_SECRET_ACCESS_KEY}" \
+  --env "PIERIANDX_USER_EMAIL=${PIERIANDX_USER_EMAIL}" \
+  --env "PIERIANDX_USER_PASSWORD=${PIERIANDX_USER_PASSWORD}" \
+  quay.io/umccr/cttso-ica-to-pieriandx:1.0.0 \
+    cttso-ica-to-pieriandx.py ...
+```
+
+## Option 2: (Installation through conda)
+> Few hacky bits
+
+1. Clone this repo
+```bash
+git clone git@github.com:umccr/cttso-ica-to-pieriandx.git
+```
+
+2. Enter this repo and checkout version
+```bash
+cd cttso-ica-to-pieriandx
+git checkout v1.0.0
+```
+
+3. Create the conda env
+```bash
+conda env create \
+  --name 'cttso-ica-to-pieriandx' \
+  --file 'cttso-ica-to-pieriandx-conda-env.yaml'
+```
+
+4. Activate the conda env
+```bash
+conda activate cttso-ica-to-pieriandx
+```
+
+5. Run setup.py whilst inside conda env
+```bash
+python setup.py install
+```
+
+6. Copy across references whilst inside conda env to the right location
+```bash
+rsync --archive \
+  "references/" \
+  "$(find "${CONDA_PREFIX}" -type d -name "references")/"
+```
+
 ## Command usage
 
 ### ctTSO ICA to PierianDx
@@ -108,6 +171,45 @@ optional arguments:
   --pdf                 Download reports as pdfs
   --json                Download reports as jsons
 ```
+
+## Environment variable hints
+
+### ICA_BASE_URL
+* Base url to ica endpoint.
+* Set to `https://aps2.platform.illumina.com`
+
+### ICA_ACCESS_TOKEN
+* The access token for the project context that contains the files on ICA
+* Run `ica-context-switcher --scope read-only --project-name <project-name>` 
+to add `ICA_ACCESS_TOKEN` to your environment
+
+
+### PIERIANDX_BASE_URL
+* For prod this is `https://app.pieriandx.com/cgw-api/v2.0.0`.  
+* For dev this is `https://app.uat.pieriandx.com/cgw-api/v2.0.0`
+
+### PIERIANDX_INSTITUTION
+* For prod this is `melbourne`
+* For dev this is `melbournetest`
+
+### PIERIANDX_AWS_REGION
+* Set to `us-east-1` for both dev and prod accounts
+
+### PIERIANDX_AWS_S3_PREFIX
+* Set to `s3://pdx-xfer/melbourne` for prod
+* Set to `s3://pdx-cgwxfer-test/melbournetest` for dev
+
+### PIERIANDX_AWS_ACCESS_KEY_ID
+* Can be found in Keybase for both dev and prod accounts
+
+### PIERIANDX_AWS_SECRET_ACCESS_KEY
+* Can be found in Keybase for both dev and prod accounts
+
+### PIERIANDX_USER_EMAIL
+* Your email address used to log in to PierianDx
+
+### PIERIANDX_USER_PASSWORD
+* Your password used to log in to PierianDx
 
 
 ## Accession CSV format reference
