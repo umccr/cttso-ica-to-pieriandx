@@ -7,9 +7,9 @@ Read in the accession csv or json
 from typing import List, Dict, Optional
 from pathlib import Path
 import pandas as pd
-import requests
 import gzip
 import requests
+import json
 
 from utils.logging import get_logger
 from dateutil.parser import parse as date_parser
@@ -44,8 +44,9 @@ def log_informatics_job_by_case(cases: List[Case]):
     pd.DataFrame(cases_dict).to_csv(OUTPUT_STATS_FILE, index=False, header=True, line_terminator="\n")
 
 
-def read_input_json():
-    raise NotImplementedError
+def read_input_json(input_json: Path) -> pd.Series:
+    with open(input_json, "r") as json_h:
+        return pd.Series(json.load(json_h))
 
 
 def get_cases_df() -> pd.DataFrame:

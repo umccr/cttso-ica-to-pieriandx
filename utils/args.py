@@ -183,7 +183,7 @@ def check_ica_to_pieriandx_args(args):
 
     # Get
     if getattr(args, "accession_json", None) is not None:
-        input_df: pd.DataFrame = read_input_json(Path(getattr(args, "accession_json")))
+        input_df: pd.DataFrame = read_input_json(Path(getattr(args, "accession_json"))).to_frame().transpose()
     else:
         input_df: pd.DataFrame = read_input_csv(Path(getattr(args, "accession_csv")))
     setattr(args, "input_df", input_df)

@@ -112,7 +112,7 @@ optional arguments:
   
 example usage:
 ./cttso-ica-to-pieriandx.py --accession-csv samples.csv
-./cttso-ica-to-pieriandx.py --accession-json samples.json  # Not yet supported
+./cttso-ica-to-pieriandx.py --accession-json samples.json
 ```
 
 ### Check Status
