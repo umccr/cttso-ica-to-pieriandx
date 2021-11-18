@@ -1,0 +1,39 @@
+version: 0.2
+run-as: root
+env:
+  variables:
+    "CONTAINER_REPO": "843407916570.dkr.ecr.ap-southeast-2.amazonaws.com"
+    "CONTAINER_NAME": "cttso-ica-to-pieriandx"
+    "REGION": "ap-southeast-2"
+phases:
+  install:
+    runtime-versions:
+      docker: 19
+      python: 3.9
+  pre_build:
+    commands:
+      # Update
+      - apt-get update
+      # Install git, unzip and wget
+      - apt-get install -yqq git unzip wget
+      # Install aws v2
+      - wget --output-document "awscliv2.zip" "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip"
+      - unzip -qq awscliv2.zip
+      - ./aws/install
+      - rm "awscliv2.zip"
+  build:
+    commands:
+      # Convenience CODEBUILD VARS, need more? Check https://github.com/thii/aws-codebuild-extras
+      - export SHORT_COMMIT_HASH="$(echo "${CODEBUILD_RESOLVED_SOURCE_VERSION}" | cut -c 1-10)"
+      - export CTTSO_ICA_TO_PIERIANDX_GIT_TAG="$(git describe --tags --exact-match 2>/dev/null)"
+      - if [[ -z "${CTTSO_ICA_TO_PIERIANDX_GIT_TAG}" ]]; then export CTTSO_ICA_TO_PIERIANDX_GIT_TAG="NOTAG"; fi
+      - CONTAINER_VERSION="${CTTSO_ICA_TO_PIERIANDX_GIT_TAG}-${SHORT_COMMIT_HASH}"
+      - export CONTAINER_VERSION
+      - echo "Container version is ${CONTAINER_VERSION}" 1>&2
+      # Build and tag (-t) image
+      - docker build --tag "${CONTAINER_REPO}/${CONTAINER_NAME}:${CONTAINER_VERSION}" .
+  post_build:
+    commands:
+      # Login to aws and push Docker image to ECR
+      - aws ecr get-login-password --region "${REGION}" | docker login --username AWS --password-stdin "${CONTAINER_REPO}"
+      - docker push "${CONTAINER_REPO}/${CONTAINER_NAME}:${CONTAINER_VERSION}"
