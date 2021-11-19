@@ -5,6 +5,7 @@ env:
     "CONTAINER_REPO": "843407916570.dkr.ecr.ap-southeast-2.amazonaws.com"
     "CONTAINER_NAME": "cttso-ica-to-pieriandx"
     "REGION": "ap-southeast-2"
+    "SSM_TAG_PARAMETER_PATH": "/cdk/cttso-ica-to-pieriandx/batch/docker-image-tag"
 phases:
   install:
     runtime-versions:
@@ -37,3 +38,5 @@ phases:
       # Login to aws and push Docker image to ECR
       - aws ecr get-login-password --region "${REGION}" | docker login --username AWS --password-stdin "${CONTAINER_REPO}"
       - docker push "${CONTAINER_REPO}/${CONTAINER_NAME}:${CONTAINER_VERSION}"
+      # Add in to ssm
+      - aws ssm put-parameter --overwrite --name "${SSM_TAG_PARAMETER_PATH}" --value "${CONTAINER_REPO}/${CONTAINER_NAME}:${CONTAINER_VERSION}"
