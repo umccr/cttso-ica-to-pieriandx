@@ -12,10 +12,12 @@ phases:
       python: 3.9
   pre_build:
     commands:
+      # Set DEBIAN_FRONTEND env var to noninteractive
+      - export DEBIAN_FRONTEND=noninteractive
       # Update
-      - apt-get update
+      - apt-get update -y -qq
       # Install git, unzip and wget
-      - apt-get install -yqq git unzip wget
+      - apt-get install -y -qq git unzip wget
       # Install aws v2
       - wget --quiet --output-document "awscliv2.zip" "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip"
       - unzip -qq awscliv2.zip
@@ -25,7 +27,8 @@ phases:
     commands:
       # Convenience CODEBUILD VARS, need more? Check https://github.com/thii/aws-codebuild-extras
       - export CTTSO_ICA_TO_PIERIANDX_GIT_TAG="$(git describe --tags --exact-match 2>/dev/null)"
-      - if [[ -z "${CTTSO_ICA_TO_PIERIANDX_GIT_TAG}" ]]; then export CTTSO_ICA_TO_PIERIANDX_GIT_TAG="NOTAG"; fi
+      # Single brackets since running in shell
+      - if [ -z "${CTTSO_ICA_TO_PIERIANDX_GIT_TAG}" ]; then export CTTSO_ICA_TO_PIERIANDX_GIT_TAG="NOTAG"; fi
       - CONTAINER_VERSION="${CTTSO_ICA_TO_PIERIANDX_GIT_TAG}"
       - export CONTAINER_VERSION
       - echo "Container version is ${CONTAINER_VERSION}" 1>&2
