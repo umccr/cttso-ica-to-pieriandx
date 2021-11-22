@@ -1,4 +1,4 @@
-FROM docker.io/condaforge/mambaforge-pypy3:4.10.3-7
+FROM quay.io/condaforge/mambaforge:4.10.3-7
 
 # Set args
 ARG CONDA_GROUP_NAME="cttso_ica_to_pieriandx_group"
