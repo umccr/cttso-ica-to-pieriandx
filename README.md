@@ -80,7 +80,7 @@ usage: cttso-ica-to-pieriandx.py [-h] [--ica-workflow-run-ids ICA_WORKFLOW_RUN_I
                                  [--accession-csv ACCESSION_CSV] [--verbose]
 
 Given an input.json file, pull information from gds, upload to s3 for a single sample,
- create a case, run and informatics job # Not yet supported
+ create a case, run and informatics job
 
 Given an input csv, pull information from gds, upload to s3 and create a case, run and 
  informatics job is for all samples in the csv.  
