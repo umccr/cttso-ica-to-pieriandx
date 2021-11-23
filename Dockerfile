@@ -73,7 +73,7 @@ RUN echo "Installing utilities into conda env" 1>&2 && \
       python3 setup.py install \
     ) && \
     echo "Ensure scripts are executable" 1>&2 && \
-    chmod +x "/home/${CONDA_USER_NAME}/cttso-ica-to-pieriandx-src/scripts/*" && \
+    find "/home/${CONDA_USER_NAME}/cttso-ica-to-pieriandx-src/scripts/" -type f -name "*.py" -exec chmod +x {} \; && \
     echo "Adding reference csvs" 1>&2 && \
     rsync --archive \
       "/home/${CONDA_USER_NAME}/cttso-ica-to-pieriandx-src/references/" \
