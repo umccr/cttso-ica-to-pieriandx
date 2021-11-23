@@ -236,7 +236,7 @@ The accession csv will have the following columns (all columns are reduced to lo
 * Study ID / StudyID / study_id
   * Could be the name of the study
   * Leave blank and falls back to sample type attribute?
-* Participant ID
+* Participant ID / ParticipantID / participant_id
   * The subject ID
   * Leave blank and falls back to accession number
 * Specimen Label / specimen_label:  # Optional
