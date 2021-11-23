@@ -250,10 +250,12 @@ def read_input_csv(input_csv: Path) -> pd.DataFrame:
 
     # Read csv
     logger.debug(f"Reading {input_csv}")
-    input_df: pd.DataFrame = pd.read_csv(input_csv, header=0, comment="#")
+    return pd.read_csv(input_csv, header=0, comment="#")
 
+
+def sanitise_data_frame(input_df: pd.DataFrame) -> pd.DataFrame:
     # Convert blanks to nas
-    input_df.replace("", pd.NA, inplace=True)
+    input_df = input_df.replace("", pd.NA)
 
     # Drop all columns with blanks
     input_df.dropna(axis="columns", how="all")

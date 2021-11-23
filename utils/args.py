@@ -9,7 +9,7 @@ from argparse import ArgumentParser
 from utils.errors import ArgumentError
 from utils.ica_wes import get_ica_workflow_run_id_objs
 
-from utils.accession import read_input_json, read_input_csv
+from utils.accession import read_input_json, read_input_csv, sanitise_data_frame
 from typing import List
 import pandas as pd
 from pathlib import Path
@@ -186,6 +186,8 @@ def check_ica_to_pieriandx_args(args):
         input_df: pd.DataFrame = read_input_json(Path(getattr(args, "accession_json"))).to_frame().transpose()
     else:
         input_df: pd.DataFrame = read_input_csv(Path(getattr(args, "accession_csv")))
+
+    input_df = sanitise_data_frame(input_df)
     setattr(args, "input_df", input_df)
 
     # Get sample libraries
