@@ -358,6 +358,12 @@ def read_input_csv(input_csv: Path) -> pd.DataFrame:
     input_df["race"] = input_df["race"].apply(lambda x: Race(x.lower()))
     input_df["gender"] = input_df["gender"].apply(lambda x: Gender(x.lower()))
 
+    # Map 'study_id' to 'study_identifier'
+    input_df["study_identifier"] = input_df["study_id"]
+
+    # Map 'participant_id' to 'study_subject_identifier'
+    input_df["study_subject_identifier"] = input_df["participant_id"]
+
     # Set defaults for study identifier and study subject identifier
     input_df["study_identifier"] = input_df.apply(lambda x: x.study_identifier
                                                             if hasattr(x, "study_identifier")
