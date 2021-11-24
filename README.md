@@ -211,6 +211,69 @@ to add `ICA_ACCESS_TOKEN` to your environment
 ### PIERIANDX_USER_PASSWORD
 * Your password used to log in to PierianDx
 
+## Launching via AWS Lambda:
+
+### Assumptions:
+* Assumes you're in the development account (843407916570)
+  * You can run `aws sts get-caller-identity` to confirm
+  * This will collect the rolling ICA_ACCESS_TOKEN for the development project in ICA when running the batch command.  
+
+* Deployment in production coming soon :construction:
+  * This will collect the rolling ICA_ACCESS_TOKEN for the production project in ICA when running the batch command.  
+
+The AWS Lambda call expects two input parameter arguments:
+* ica_workflow_run_id
+  * This is the ica workflow run id for the cttso workflow
+* accession_json_base64_str
+  * This is a base64 encoded version of the accession json object
+
+The example below shows an example deployment of the lambda
+
+```bash
+#!/usr/bin/env bash
+
+# Set to fail
+set -euo pipefail
+
+## Set inputs
+ica_workflow_run_id="wfr.55ee9135cd88442b8810d7224c88c03f"
+accession_json_base64_str="$(jq \
+                             --raw-output \
+                             '@base64' <<< \
+                             '{
+                                 "sample_type":"Validation",
+                                 "indication":"CUP",
+                                 "disease":285645000,
+                                 "is_identified?":"No",
+                                 "accession_number":"SBJ00001_L2100001",
+                                 "study_id":"Validation",
+                                 "participant_id":"SBJ00001",
+                                 "specimen_type":119361006,
+                                 "external_specimen_id":"pDNA_Super_1085",
+                                 "date_accessioned":"2021-10-04t09:00:00+1000",
+                                 "date_collected":"2021-10-02t09:00:00+1000",
+                                 "date_received":"2021-10-03t09:00:00+1000",
+                             }')"
+
+# Get payload
+payload="$(jq --raw-output \
+              --arg ica_workflow_run_id "${ica_workflow_run_id}" \
+              --arg accession_json_base64_str "${accession_json_base64_str}" \
+              '{
+                 parameters: {
+                   ica_workflow_run_id: $ica_workflow_run_id,
+                   accession_json_base64_str: $accession_json_base64_str
+                 }
+               }' <<< {})"
+
+# Call lambda - write output to stdout
+aws lambda invoke \
+  --cli-binary-format "raw-in-base64-out" \
+  --function-name "ctTSOICAToPierianDx_batch_lambda" \
+  --payload "${payload}" \
+  /dev/stdout
+```
+
 
 ## Accession CSV format reference
 
