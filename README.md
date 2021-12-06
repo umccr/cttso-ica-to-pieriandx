@@ -286,7 +286,7 @@ The accession csv will have the following columns (all columns are reduced to lo
   * The SNOMED disease id
 * Disease Name / DiseaseName / disease_name  # Optional (you can just set the 'disease_id' instead)
   * The SNOMED disease name
-* Is Identified?
+* Is Identified? / is_identified?
   > Deprecated - always set to false anyway.
   * `True | False`
 * Requesting Physicians First Name / requesting_physicians_first_name  # Optional (not used)
