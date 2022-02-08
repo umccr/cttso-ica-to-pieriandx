@@ -226,7 +226,9 @@ The AWS Lambda call expects two input parameter arguments:
   * This is the ica workflow run id for the cttso workflow
 * accession_json_base64_str
   * This is a base64 encoded version of the accession json object
+  
 
+### Single sample example
 The example below shows an example deployment of the lambda
 
 ```bash
@@ -274,6 +276,10 @@ aws lambda invoke \
   /dev/stdout
 ```
 
+### Multi-sample example
+
+Please see [examples/launch_bulk_csv](examples/launch_bulk_csv) 
+for examples of launching multiple samples through the pipeline.
 
 ## Accession CSV format reference
 

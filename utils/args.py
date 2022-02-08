@@ -194,8 +194,8 @@ def check_ica_to_pieriandx_args(args):
     setattr(args, "sample_libraries", get_sample_libraries_from_input_df(input_df))
 
     # Check ica workflow run id is defined
-    if getattr(args, "ica-workflow-run-ids", None) is not None:
-        ica_workflow_run_ids: List[str] = getattr(args,"ica-workflow-run-ids").split(",")
+    if getattr(args, "ica_workflow_run_ids", None) is not None:
+        ica_workflow_run_ids: List[str] = getattr(args, "ica_workflow_run_ids").split(",")
         ica_workflow_run_id_objs: List[WorkflowRun] = get_ica_workflow_run_id_objs(ica_workflow_run_ids)
     else:
         ica_workflow_run_id_objs: List[WorkflowRun] = get_ica_workflow_run_objs_from_library_names(args.sample_libraries)
