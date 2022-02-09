@@ -83,6 +83,9 @@ CTTSO_SAMPLESHEET_NAME = "SampleSheet_Intermediate.csv"
 
 CTTSO_COVERAGE_FILE_SUFFIX = "_Failed_Exon_coverage_QC.txt"
 
+MAX_CASE_FILE_UPLOAD_ATTEMPTS = 50
+CASE_FILE_RETRY_TIME = 20
+
 #################
 # OUTPUT GLOBALS
 #################

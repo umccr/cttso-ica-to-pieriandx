@@ -11,10 +11,11 @@ from tempfile import TemporaryDirectory
 from typing import Dict, Optional, List
 
 import pandas as pd
+import time
 
 from utils.enums import Ethnicity, Race, Gender, SampleType
 from utils.errors import RunNotFoundError, CaseNotFoundError, RunExistsError
-from utils.globals import DAG, PANEL_NAME
+from utils.globals import DAG, PANEL_NAME, MAX_CASE_FILE_UPLOAD_ATTEMPTS, CASE_FILE_RETRY_TIME
 from utils.micro_classes import SpecimenType, Disease
 from utils.pieriandx_helper import get_pieriandx_client
 from utils.s3_uploader import get_s3_bucket, get_s3_key_prefix, pieriandx_file_uploader
@@ -403,28 +404,41 @@ class Case:
         """
 
         for file_name in self.run_objs[0].case_files_dir.rglob("*"):
-            if not file_name.is_file():
-                continue
+            # Set iter count
+            iter_count = 0
+            while True:
+                # Add iter
+                iter_count += 1
+                if iter_count == MAX_CASE_FILE_UPLOAD_ATTEMPTS:
+                    logger.error("Tried to upload the case file fifty times and failed!")
+                    raise UploadCaseFileError
+                # Check file is real
+                if not file_name.is_file():
+                    continue
 
-            # Log this
-            logger.debug(f"Uploading {file_name.name} to url endpoint /case/{self.case_id}/caseFiles/{file_name.name}/")
+                # Log this
+                logger.debug(f"Uploading {file_name.name} to url endpoint /case/{self.case_id}/caseFiles/{file_name.name}/")
 
-            # Get pieriandx client
-            pyriandx_client = get_pieriandx_client()
+                # Get pieriandx client
+                pyriandx_client = get_pieriandx_client()
 
-            file_dict = {
-                "file": (file_name.name, open(str(file_name.absolute()), "rb"), "text/plain")
-            }
+                # Initialise file input
+                file_dict = {
+                    "file": (file_name.name, open(str(file_name.absolute()), "rb"), "text/plain")
+                }
 
-            response = pyriandx_client._post_api(endpoint=f"/case/{self.case_id}/caseFiles/{file_name.name}/",
-                                                 files=file_dict)
+                # Call end point
+                response = pyriandx_client._post_api(endpoint=f"/case/{self.case_id}/caseFiles/{file_name.name}/",
+                                                     files=file_dict)
 
-            logger.debug("Printing response")
-            if not response.status_code == 200:
-                logger.error(f"Received code {response.status_code} and {response.content} trying "
-                             f"to upload {file_name.name} to end point /case/{self.case_id}/caseFiles/{file_name.name}/")
-                raise UploadCaseFileError
-
+                logger.debug("Printing response")
+                if not response.status_code == 200:
+                    logger.warning(f"Received code {response.status_code} and {response.content} trying "
+                                   f"to upload {file_name.name} to end point /case/{self.case_id}/caseFiles/{file_name.name}/")
+                    logger.warning(f"Trying upload again - attempt {iter_count}")
+                    time.sleep(CASE_FILE_RETRY_TIME)
+                else:
+                    break
 
     @classmethod
     def from_dict(cls, case_dict: Dict):
