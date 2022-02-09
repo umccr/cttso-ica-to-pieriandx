@@ -104,7 +104,7 @@ def main():
 
         # Update the run name to include the runs flowcell id (from the ica workflow object)
         run_flowcell_id = ICA_WES_CTTSO_RUN_NAME_REGEX.match(ica_workflow_run_obj.name).\
-            group(ICA_WES_CTTSO_RUN_NAME_REGEX_GROUPS.get("flowcell"))
+            group(ICA_WES_CTTSO_RUN_NAME_REGEX_GROUPS.get("date_stamp"))
         run.rename_run(new_run_name=f"{case.case_accession_number}_{run_flowcell_id}")
 
         # Create the run in pierian

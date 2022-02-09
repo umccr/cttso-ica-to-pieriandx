@@ -42,14 +42,12 @@ ACCESSION_FORMAT_REGEX = re.compile(r"(SBJ\d{5})_(L\d{7})")
 # ICA GLOBALS
 #####################
 
-ICA_WES_CTTSO_RUN_NAME_REGEX = re.compile(r"umccr__automated__dragen_tso_ctdna__"
-                                          r"(\d{6})_(\w{6})_(\d{4})_(\w+)__\S+__(L\d{7})__\d+")
+ICA_WES_CTTSO_RUN_NAME_REGEX = re.compile(r"umccr__automated__tso_ctdna_tumor_only__"
+                                          r"(\w+)__(\w+)__(\w+)")
 ICA_WES_CTTSO_RUN_NAME_REGEX_GROUPS = {
-    "date": 1,
-    "machine_id": 2,
-    "run_number": 3,
-    "flowcell": 4,
-    "library": 5
+    "subject": 1,
+    "library": 2,
+    "date_stamp": 3,
 }
 
 ICA_WES_MAX_PAGE_SIZE = 1000
