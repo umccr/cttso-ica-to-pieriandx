@@ -8,8 +8,14 @@ ARG CONDA_USER_ID=1000
 ARG CONDA_ENV_NAME="cttso-ica-to-pieriandx"
 ARG SRC_TEMP_DIR="/cttso-ica-to-pieriandx-src-temp"
 
-# Copy over for user
-COPY . "${SRC_TEMP_DIR}/"
+# Copy references, utils, scripts over for user
+COPY "references/." "${SRC_TEMP_DIR}/references/"
+COPY "scripts/." "${SRC_TEMP_DIR}/scripts/"
+COPY "utils/." "${SRC_TEMP_DIR}/utils/"
+
+# Copy setup script and conda env file for user
+COPY setup.py "${SRC_TEMP_DIR}/setup.py"
+COPY cttso-ica-to-pieriandx-conda-env.yaml "${SRC_TEMP_DIR}/cttso-ica-to-pieriandx-conda-env.yaml"
 
 RUN export DEBIAN_FRONTEND=noninteractive && \
     echo "Updating apt" 1>&2 && \
