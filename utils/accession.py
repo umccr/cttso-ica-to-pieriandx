@@ -10,6 +10,7 @@ import pandas as pd
 import gzip
 import requests
 import json
+import time
 
 from utils.logging import get_logger
 from dateutil.parser import parse as date_parser
@@ -20,6 +21,7 @@ from utils.micro_classes import Disease, SpecimenType
 from utils.classes import Case
 from utils.enums import SampleType, Ethnicity, Gender, Race
 from utils.pieriandx_helper import get_pieriandx_client
+from utils.errors import CaseNotFoundError
 
 import pytz
 
@@ -153,7 +155,19 @@ def get_informatics_status_by_case_id(case_id: str) -> Optional[List[Dict]]:
     Get the informatics status by the case id
     :return:
     """
-    case_obj = get_case(case_id)
+    iter_count = 0
+    while iter_count < 10:
+        case_obj = get_case(case_id)
+        if case_obj is None:
+            logger.warning(f"Could not get case object for case {case_id}, retrying")
+            iter_count += 1
+            time.sleep(5)
+            continue
+
+        break
+    else:
+        logger.error("Tried 10 times to download the case files and failed!")
+        raise CaseNotFoundError
 
     # Make sure informatics job is in the response keys
     if 'informaticsJobs' not in case_obj.keys():
@@ -178,7 +192,19 @@ def get_reports_by_case_id(case_id: str) -> Optional[List[Dict]]:
     :param case_id:
     :return:
     """
-    case_obj = get_case(case_id)
+    iter_count = 0
+    while iter_count < 10:
+        case_obj = get_case(case_id)
+        if case_obj is None:
+            logger.warning(f"Could not get case object for case {case_id}, retrying")
+            iter_count += 1
+            time.sleep(5)
+            continue
+
+        break
+    else:
+        logger.error("Tried 10 times to download the case files and failed!")
+        raise CaseNotFoundError
 
     # Make sure reports is in the response keys
     if 'reports' not in case_obj.keys():
@@ -215,6 +241,9 @@ def download_report(case_id: str, report_id: str, output_file_type: str, output_
     logger.debug(f"Writing report to {output_file_path}")
     with open(output_file_path, "wb") as report_output_h:
         report_output_h.write(gzip.decompress(response.content))
+
+    # In case this script is run in a for loop
+    time.sleep(3)
 
 
 def change_case(column_name: str) -> str:
