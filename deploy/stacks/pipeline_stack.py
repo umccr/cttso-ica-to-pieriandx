@@ -25,7 +25,8 @@ Much of this work is from this stackoverflow answer: https://stackoverflow.com/a
 
 
 class CttsoIcaToPieriandxDockerBuildStage(Stage):
-    def __init__(self, scope: Construct, construct_id: str, props: Dict, code_pipeline_source, **kwargs) -> None:
+    def __init__(self, scope: Construct, construct_id: str, code_pipeline_source, **kwargs) -> None:
+        props = kwargs.pop("props")
         super().__init__(scope, construct_id, **kwargs)
 
         # Create stack defined on stacks folder
@@ -40,7 +41,8 @@ class CttsoIcaToPieriandxDockerBuildStage(Stage):
 
 
 class CttsoIcaToPieriandxStage(Stage):
-    def __init__(self, scope: Construct, construct_id: str, props, **kwargs) -> None:
+    def __init__(self, scope: Construct, construct_id: str, **kwargs) -> None:
+        props = kwargs.pop("props")
         super().__init__(scope, construct_id, **kwargs)
 
         # Create stack defined on stacks folder
@@ -54,15 +56,13 @@ class CttsoIcaToPieriandxStage(Stage):
 
 
 class PipelineStack(Stack):
-    def __init__(self, scope: Construct, construct_id: str, props: Dict, codebuild_props: Dict, batch_props: Dict, **kwargs) -> None:
+    def __init__(self, scope: Construct, construct_id: str, props: Dict, **kwargs) -> None:
         super().__init__(scope, construct_id, **kwargs)
 
         # Get env
         env = kwargs.get("env")
-
-        # Get props for each pipeline stage
-        codebuild_props = codebuild_props
-        batch_props = batch_props
+        account_id = env.get("account")
+        aws_region = env.get("region")
 
         # As taken from https://github.com/umccr/samplesheet-check-frontend
         codestar_arn = ssm.\
@@ -76,10 +76,29 @@ class PipelineStack(Stack):
                                                              "artifactsBucketName",
                                                              parameter_name="/cdk/cttso-ica-to-pieriandx/artifacts/pipeline_artifact_bucket_name").string_value
 
+        # Get branch source
         branch_source = ssm.\
             StringParameter.from_string_parameter_attributes(self,
                                                              "branchSource",
                                                              parameter_name="/cdk/cttso-ica-to-pieriandx/branch_source").string_value
+
+        # Set props for codebuild
+        codebuild_props = {
+            'namespace': 'CttsoIcaToPieriandxDockerBuildStack',
+            'repository_source': 'umccr/cttso-ica-to-pieriandx',
+            'pipeline_name': 'cttso-ica-to-pieriandx',
+            'container_repo': f'{account_id}.dkr.ecr.{aws_region}.amazonaws.com',
+            'codebuild_project_name': 'cttso-ica-to-pieriandx-codebuild',
+            'container_name': 'cttso-ica-to-pieriandx',
+            'region': aws_region
+        }
+
+        # Set props for batch
+        batch_props = {
+            'namespace': "CttsoIcaToPieriandxStack",
+            #'compute_env_ami': ec2_ami,  # Should be Amazon ECS optimised Linux 2 AMI
+            #"image_name": image_name
+        }
 
         # Create S3 bucket for artifacts
         pipeline_artifact_bucket = s3.Bucket(
@@ -152,3 +171,5 @@ class PipelineStack(Stack):
                 env=env
             )
         )
+
+        self_mutate_pipeline.build_pipeline()

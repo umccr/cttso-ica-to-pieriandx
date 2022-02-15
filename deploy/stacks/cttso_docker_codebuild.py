@@ -23,15 +23,14 @@ Much of this work is from this stackoverflow answer: https://stackoverflow.com/a
 
 class CttsoIcaToPieriandxDockerBuildStack(Stack):
 
-    def __init__(self, scope: Construct, construct_id: str, props: Dict, code_pipeline_source, **kwargs) -> None:
+    def __init__(self, scope: Construct, construct_id: str, props: Dict, **kwargs) -> None:
+        code_pipeline_source = kwargs.pop("code_pipeline_source")
         super().__init__(scope, construct_id, **kwargs)
 
         # Defining app stage
 
         # Set a prefix - rather than writing cttso-ica-to-pieriandx many times
         cdk_attribute_prefix = "ctTSOICAToPierianDx"
-
-        code_pipeline_source = code_pipeline_source
 
         # Grab code_pipeline_source artifact
         artifact_map = pipelines.ArtifactMap()

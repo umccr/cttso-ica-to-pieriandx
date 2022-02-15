@@ -11,6 +11,7 @@ from stacks.pipeline_stack import PipelineStack
 ssm_client = boto3.client('ssm')
 
 # Get ssm parameters
+# TODO - move ssm parameters to inside app - use ssm get rather than boto client
 ec2_ami = ssm_client.get_parameter(Name='/cdk/cttso-ica-to-pieriandx/batch/ami')['Parameter']['Value']
 # rw_bucket = ssm_client.get_parameter(Name='/cdk/cttso-ica-to-pieriandx/batch/rw_buckets')['Parameter']['Value']
 image_name = ssm_client.get_parameter(Name='/cdk/cttso-ica-to-pieriandx/batch/docker-image-tag')['Parameter']['Value']
@@ -51,8 +52,6 @@ batch_props = {
 PipelineStack(app, codepipeline_props.get("namespace"),
               stack_name=codepipeline_props.get("namespace").lower(),
               props=codepipeline_props,
-              codebuild_props=codebuild_props,
-              batch_props=batch_props,
               env=aws_env)
 
 

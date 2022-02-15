@@ -5,6 +5,7 @@ from aws_cdk import (
     aws_ec2 as ec2,
     aws_ecs as ecs,
     aws_iam as iam,
+    aws_ssm as ssm,
     aws_lambda,
     aws_s3_assets as assets,
     Fn,
@@ -26,6 +27,19 @@ class CttsoIcaToPieriandxStack(Stack):
 
         # Set a prefix - rather than writing cttso-ica-to-pieriandx many times
         cdk_attribute_prefix = "ctTSOICAToPierianDx"
+
+        # Get ssm values
+        # AMI
+        compute_env_ami = ssm.\
+            StringParameter.from_string_parameter_attributes(self,
+                                                             "ec2Ami",
+                                                             parameter_name="/cdk/cttso-ica-to-pieriandx/batch/ami").string_value
+
+        # Image Name
+        image_name = ssm.\
+            StringParameter.from_string_parameter_attributes(self,
+                                                             "imageName",
+                                                             parameter_name="/cdk/cttso-ica-to-pieriandx/batch/docker-image-tag'").string_value
 
         # Add batch service role
         batch_service_role = iam.Role(
@@ -214,7 +228,7 @@ class CttsoIcaToPieriandxStack(Stack):
             desiredv_cpus=0,
             maxv_cpus=32,
             minv_cpus=0,
-            image=ec2.MachineImage.generic_linux(ami_map={'ap-southeast-2': props['compute_env_ami']}),
+            image=ec2.MachineImage.generic_linux(ami_map={'ap-southeast-2': compute_env_ami}),
             launch_template=launch_template_spec,
             spot_fleet_role=spotfleet_role,
             instance_role=batch_instance_profile.instance_profile_name,
@@ -261,10 +275,10 @@ class CttsoIcaToPieriandxStack(Stack):
                     self,
                     id="ECR",
                     repository_arn='arn:aws:ecr:{0}:{1}:{2}'.format(
-                        env['region'], env['account'], props['image_name'].split(":")[0]),
-                    repository_name=props['image_name'].split(":")[0]
+                        env['region'], env['account'], image_name.split(":")[0]),
+                    repository_name=image_name.split(":")[0]
                 ),
-                tag=props["image_name"].split(":", 1)[-1]),
+                tag=image_name.split(":", 1)[-1]),
             vcpus=1,
             user="cttso_ica_to_pieriandx_user:cttso_ica_to_pieriandx_group",
             memory_limit_mib=1024,
