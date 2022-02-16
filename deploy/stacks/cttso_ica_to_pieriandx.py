@@ -39,7 +39,7 @@ class CttsoIcaToPieriandxStack(Stack):
         image_name = ssm.\
             StringParameter.from_string_parameter_attributes(self,
                                                              "imageName",
-                                                             parameter_name="/cdk/cttso-ica-to-pieriandx/batch/docker-image-tag'").string_value
+                                                             parameter_name="/cdk/cttso-ica-to-pieriandx/batch/docker-image-tag").string_value
 
         # Add batch service role
         batch_service_role = iam.Role(

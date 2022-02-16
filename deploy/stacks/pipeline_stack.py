@@ -6,6 +6,7 @@ from aws_cdk import (
     pipelines,
     RemovalPolicy,
     Stage,
+    aws_iam as iam
 
 )
 
@@ -137,11 +138,11 @@ class PipelineStack(Stack):
                 input=code_pipeline_source,
                 commands=[
                     "cdk synth",
-                    "mkdir -p ./cfnnag_output",
-                    "while IFS= read -r -d'' file; do",
-                    "  cp $template ./cfnnag_output/",
-                    "done < <(find ./cdk.out -type f -maxdepth 2 -name '*.template.json')",
-                    "cfn_nag_scan --input-path ./cfnnag_output/"
+                    # "mkdir -p ./cfnnag_output",
+                    # "while IFS= read -r -d'' file; do",
+                    # "  cp $template ./cfnnag_output/",
+                    # "done < <(find ./cdk.out -type f -maxdepth 2 -name '*.template.json')",
+                    # "cfn_nag_scan --input-path ./cfnnag_output/"
                 ],
                 install_commands=[
                     "cd deploy",
@@ -150,6 +151,14 @@ class PipelineStack(Stack):
                     "pip install -r requirements.txt"
                 ],
                 primary_output_directory="deploy/cdk.out"
+            ),
+            code_build_defaults=pipelines.CodeBuildOptions(
+                role_policy=[
+                    iam.PolicyStatement(
+                        actions=["ec2:Describe*", "ec2:Get*"],
+                        resources=["*"]
+                    )
+                ]
             )
         )
 
