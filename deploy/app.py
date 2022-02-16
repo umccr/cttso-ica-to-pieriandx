@@ -7,8 +7,6 @@ from stacks.cttso_ica_to_pieriandx import CttsoIcaToPieriandxStack
 from stacks.cttso_docker_codebuild import CttsoIcaToPieriandxDockerBuildStack
 from stacks.pipeline_stack import PipelineStack
 
-# Get ssm client
-ssm_client = boto3.client('ssm')
 
 # Call app
 app = cdk.App()
