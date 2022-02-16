@@ -34,7 +34,7 @@ class CttsoIcaToPieriandxDockerBuildStage(Stage):
         CttsoIcaToPieriandxDockerBuildStack(
             self,
             "CttsoIcaToPieriandx",
-            stack_name="cttso-ica-to-pieriandx-stack",
+            stack_name="cttso-ica-to-pieriandx-docker-build-stack",
             props=props,
             code_pipeline_source=code_pipeline_source,
             env=kwargs.get("env")
