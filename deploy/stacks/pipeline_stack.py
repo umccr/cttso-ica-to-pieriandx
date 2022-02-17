@@ -196,7 +196,6 @@ class PipelineStack(Stack):
             "phases": {
                 "install": {
                     "runtime-versions": {
-                        "docker": "19",
                         "python": "3.9"
                     }
                 },
@@ -250,7 +249,8 @@ class PipelineStack(Stack):
             description="Pipline project from codebuild to build docker container",
             project_name=f"{cdk_attribute_prefix}CodeBuildPipelineProject",
             environment=codebuild.BuildEnvironment(
-                build_image=codebuild.LinuxBuildImage.STANDARD_4_0
+                build_image=codebuild.LinuxBuildImage.STANDARD_5_0,
+
             ),
             build_spec=build_spec_object,
             timeout=Duration.hours(3)
