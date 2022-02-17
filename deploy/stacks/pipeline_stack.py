@@ -234,11 +234,11 @@ class PipelineStack(Stack):
                 "post_build": {
                     "commands": [
                         # Login to aws and push Docker image to ECR
-                        "aws ecr get-login-password --region \"${REGION}\" | docker login --username AWS --password-stdin \"${CONTAINER_REPO}\""
-                        "docker push \"${CONTAINER_REPO}/${CONTAINER_NAME}:latest\""
+                        "aws ecr get-login-password --region \"${REGION}\" | docker login --username AWS --password-stdin \"${CONTAINER_REPO}\"",
+                        "docker push \"${CONTAINER_REPO}/${CONTAINER_NAME}:latest\"",
                         "if [ -n \"${CTTSO_ICA_TO_PIERIANDX_GIT_TAG}\" ]; then",
-                        "  docker push \"${CONTAINER_REPO}/${CONTAINER_NAME}:${CTTSO_ICA_TO_PIERIANDX_GIT_TAG}\""
-                        "fi",
+                        "  docker push \"${CONTAINER_REPO}/${CONTAINER_NAME}:${CTTSO_ICA_TO_PIERIANDX_GIT_TAG}\"",
+                        "fi"
                     ]
                 }
             }
