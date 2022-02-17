@@ -17,7 +17,7 @@ from aws_cdk import (
 
 from constructs import Construct
 from stacks.cttso_ica_to_pieriandx import CttsoIcaToPieriandxStack
-from stacks.cttso_docker_codebuild import CttsoIcaToPieriandxDockerBuildStack
+#from stacks.cttso_docker_codebuild import CttsoIcaToPieriandxDockerBuildStack
 
 from pathlib import Path
 from typing import Dict
@@ -250,7 +250,7 @@ class PipelineStack(Stack):
             description="Pipline project from codebuild to build docker container",
             project_name=f"{cdk_attribute_prefix}CodeBuildPipelineProject",
             environment=codebuild.BuildEnvironment(
-                build_image=codebuild.LinuxBuildImage.STANDARD_5_0
+                build_image=codebuild.LinuxBuildImage.STANDARD_4_0
             ),
             build_spec=build_spec_object,
             timeout=Duration.hours(3)
