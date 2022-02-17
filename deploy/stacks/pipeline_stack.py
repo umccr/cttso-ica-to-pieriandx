@@ -225,7 +225,7 @@ class PipelineStack(Stack):
                         "docker build --tag \"${CONTAINER_REPO}/${CONTAINER_NAME}:latest\" ./",
                         # Also add in tag if applicable
                         "if [ -n \"${CTTSO_ICA_TO_PIERIANDX_GIT_TAG-}\" ]; then "
-                        "  docker tag \"${CONTAINER_REPO}/${CONTAINER_NAME}:latest\" \"${CONTAINER_REPO}/${CONTAINER_NAME}:${CTTSO_ICA_TO_PIERIANDX_GIT_TAG}\" " 
+                        "  docker tag \"${CONTAINER_REPO}/${CONTAINER_NAME}:latest\" \"${CONTAINER_REPO}/${CONTAINER_NAME}:${CTTSO_ICA_TO_PIERIANDX_GIT_TAG}\"; " 
                         "fi",
                         "export \"CTTSO_ICA_TO_PIERIANDX_GIT_TAG\"",
                         "echo \"Container version is ${CTTSO_ICA_TO_PIERIANDX_GIT_TAG-latest}\" 1>&2"
@@ -237,7 +237,7 @@ class PipelineStack(Stack):
                         "aws ecr get-login-password --region \"${REGION}\" | docker login --username AWS --password-stdin \"${CONTAINER_REPO}\"",
                         "docker push \"${CONTAINER_REPO}/${CONTAINER_NAME}:latest\"",
                         "if [ -n \"${CTTSO_ICA_TO_PIERIANDX_GIT_TAG-}\" ]; then  "
-                        "  docker push \"${CONTAINER_REPO}/${CONTAINER_NAME}:${CTTSO_ICA_TO_PIERIANDX_GIT_TAG}\"  "
+                        "  docker push \"${CONTAINER_REPO}/${CONTAINER_NAME}:${CTTSO_ICA_TO_PIERIANDX_GIT_TAG}\";  "
                         "fi"
                     ]
                 }
