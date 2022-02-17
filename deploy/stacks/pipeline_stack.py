@@ -252,7 +252,7 @@ class PipelineStack(Stack):
             project_name=f"{cdk_attribute_prefix}CodeBuildPipelineProject",
             environment=codebuild.BuildEnvironment(
                 build_image=codebuild.LinuxBuildImage.STANDARD_5_0,
-
+                privileged=True
             ),
             build_spec=build_spec_object,
             timeout=Duration.hours(3)
