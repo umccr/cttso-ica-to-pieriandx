@@ -204,11 +204,13 @@ class PipelineStack(Stack):
                         # Set DEBIAN_FRONTEND env var to noninteractive
                         "export DEBIAN_FRONTEND=noninteractive",
                         # Update
-                        "apt-get update -y -qq"
+                        "apt-get update -y -qq",
                         # Install git, unzip and wget
-                        "apt-get install -y -qq git unzip wget"
+                        "apt-get install -y -qq git unzip wget",
                         # Install aws v2
-                        "wget --quiet --output-document \"awscliv2.zip\" \"https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip\"",
+                        "wget --quiet "
+                        "  --output-document \"awscliv2.zip\" "
+                        "  https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip\"",
                         "unzip -qq \"awscliv2.zip\"",
                         "./aws/install",
                         # Clean up
