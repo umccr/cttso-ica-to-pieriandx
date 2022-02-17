@@ -210,7 +210,7 @@ class PipelineStack(Stack):
                         # Install aws v2
                         "wget --quiet "
                         "  --output-document \"awscliv2.zip\" "
-                        "  https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip\"",
+                        "  \"https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip\"",
                         "unzip -qq \"awscliv2.zip\"",
                         "./aws/install",
                         # Clean up
