@@ -212,7 +212,7 @@ class PipelineStack(Stack):
                         "  --output-document \"awscliv2.zip\" "
                         "  \"https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip\"",
                         "unzip -qq \"awscliv2.zip\"",
-                        "./aws/install",
+                        "./aws/install --update",
                         # Clean up
                         "rm -rf \"awscliv2.zip\" \"aws/\""
                     ]
