@@ -271,11 +271,9 @@ class CttsoIcaToPieriandxStack(Stack):
 
         job_container = batch.JobDefinitionContainer(
             image=ecs.ContainerImage.from_ecr_repository(
-                repository=ecr.Repository.from_repository_attributes(
+                repository=ecr.Repository.from_repository_name(
                     self,
-                    id="ECR",
-                    repository_arn='arn:aws:ecr:{0}:{1}:{2}'.format(
-                        env['region'], env['account'], image_name.split(":")[0]),
+                    "cttso_ica_to_pieriandx_repository",
                     repository_name=image_name.split(":")[0]
                 ),
                 tag=image_name.split(":", 1)[-1]),
