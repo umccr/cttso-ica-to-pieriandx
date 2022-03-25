@@ -1,6 +1,7 @@
 {
   "/cdk/cttso-ica-to-pieriandx/batch/ami": "ami-09fb62624e1ab3e2c",
-  "/cdk/cttso-ica-to-pieriandx/batch/docker-image-tag": "cttso-ica-to-pieriandx:1.1.1",
+  "/cdk/cttso-ica-to-pieriandx/batch/docker-image-name": "cttso-ica-to-pieriandx",
+  "/cdk/cttso-ica-to-pieriandx/batch/docker-image-tag": "latest",
   "/cdk/cttso-ica-to-pieriandx/env_vars/ica_base_url": "https://aps2.platform.illumina.com",
   "/cdk/cttso-ica-to-pieriandx/env_vars/pieriandx_base_url": "https://app.uat.pieriandx.com/cgw-api/v2.0.0",
   "/cdk/cttso-ica-to-pieriandx/env_vars/pieriandx_institution": "melbournetest",
