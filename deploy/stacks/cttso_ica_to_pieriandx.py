@@ -39,6 +39,11 @@ class CttsoIcaToPieriandxStack(Stack):
         image_name = ssm.\
             StringParameter.from_string_parameter_attributes(self,
                                                              "imageName",
+                                                             parameter_name="/cdk/cttso-ica-to-pieriandx/batch/docker-image-name").string_value
+
+        image_tag = ssm.\
+            StringParameter.from_string_parameter_attributes(self,
+                                                             "imageName",
                                                              parameter_name="/cdk/cttso-ica-to-pieriandx/batch/docker-image-tag").string_value
 
         # Add batch service role
@@ -274,9 +279,10 @@ class CttsoIcaToPieriandxStack(Stack):
                 repository=ecr.Repository.from_repository_name(
                     self,
                     "cttso_ica_to_pieriandx_repository",
-                    repository_name=image_name.split(":")[0]
+                    repository_name=image_name
                 ),
-                tag=image_name.split(":", 1)[-1]),
+                tag=image_tag
+            ),
             vcpus=1,
             user="cttso_ica_to_pieriandx_user:cttso_ica_to_pieriandx_group",
             memory_limit_mib=1024,
