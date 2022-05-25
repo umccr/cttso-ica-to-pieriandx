@@ -15,13 +15,14 @@ import time
 from utils.logging import get_logger
 from dateutil.parser import parse as date_parser
 from datetime import datetime, timezone
-from utils.globals import MANDATORY_INPUT_COLUMNS, OPTIONAL_DEFAULTS, ACCESSION_FORMAT_REGEX, OUTPUT_STATS_FILE
+from utils.globals import MANDATORY_INPUT_COLUMNS, OPTIONAL_DEFAULTS, ACCESSION_FORMAT_REGEX, OUTPUT_STATS_FILE, \
+    MAX_ATTEMPTS_GET_CASES, LIST_CASES_RETRY_TIME
 
 from utils.micro_classes import Disease, SpecimenType
 from utils.classes import Case
 from utils.enums import SampleType, Ethnicity, Gender, Race
 from utils.pieriandx_helper import get_pieriandx_client
-from utils.errors import CaseNotFoundError
+from utils.errors import CaseNotFoundError, ListCasesError
 
 import pytz
 
@@ -64,7 +65,28 @@ def get_cases_df() -> pd.DataFrame:
     pyriandx_client = get_pieriandx_client()
 
     logger.debug(f"Listing all cases")
-    response = pyriandx_client._get_api(endpoint=f"/case")
+
+    iter_count = 0
+
+    while True:
+        # Add iter_count
+        iter_count += 1
+
+        if iter_count >= MAX_ATTEMPTS_GET_CASES:
+            logger.error(f"Tried to get all cases {str(MAX_ATTEMPTS_GET_CASES)} times and failed")
+            raise ListCasesError
+
+        # Attempt to get cases
+        response = pyriandx_client._get_api(endpoint=f"/case")
+
+        logger.debug("Printing response")
+        if not response.status_code == 200:
+            logger.warning(f"Received code {response.status_code} and {response.content} trying "
+                           f"to get cases")
+            logger.warning(f"Trying again - attempt {iter_count}")
+            time.sleep(LIST_CASES_RETRY_TIME)
+        else:
+            break
 
     cases_df = pd.DataFrame(response)
 

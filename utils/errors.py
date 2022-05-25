@@ -19,6 +19,13 @@ class CaseNotFoundError(Exception):
     pass
 
 
+class CaseExistsError(Exception):
+    """
+    Case already exists
+    """
+    pass
+
+
 class RunNotFoundError(Exception):
     """
     Run has not been registered on PierianDx
@@ -43,5 +50,33 @@ class S3UploadError(Exception):
 class UploadCaseFileError(Exception):
     """
     Could not upload a case file
+    """
+    pass
+
+
+class CaseCreationError(Exception):
+    """
+    Could not create case
+    """
+    pass
+
+
+class SequencingRunCreationError(Exception):
+    """
+    Could not create sequencing run
+    """
+    pass
+
+
+class JobCreationError(Exception):
+    """
+    Could not create job
+    """
+    pass
+
+
+class ListCasesError(Exception):
+    """
+    Couldn't list all of the cases
     """
     pass

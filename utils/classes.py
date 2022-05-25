@@ -12,15 +12,22 @@ from typing import Dict, Optional, List
 
 import pandas as pd
 import time
+from datetime import datetime
 
 from utils.enums import Ethnicity, Race, Gender, SampleType
-from utils.errors import RunNotFoundError, CaseNotFoundError, RunExistsError
-from utils.globals import DAG, PANEL_NAME, MAX_CASE_FILE_UPLOAD_ATTEMPTS, CASE_FILE_RETRY_TIME
+from utils.errors import RunNotFoundError, \
+    CaseNotFoundError, RunExistsError, CaseCreationError, \
+    SequencingRunCreationError, JobCreationError
+from utils.globals import DAG, PANEL_NAME, \
+    MAX_CASE_FILE_UPLOAD_ATTEMPTS, CASE_FILE_RETRY_TIME, \
+    MAX_CASE_CREATION_ATTEMPTS, CASE_CREATION_RETRY_TIME, \
+    MAX_RUN_CREATION_ATTEMPTS, RUN_CREATION_RETRY_TIME, \
+    MAX_JOB_CREATION_ATTEMPTS, JOB_CREATION_RETRY_TIME
 from utils.micro_classes import SpecimenType, Disease
 from utils.pieriandx_helper import get_pieriandx_client
 from utils.s3_uploader import get_s3_bucket, get_s3_key_prefix, pieriandx_file_uploader
 from utils.logging import get_logger
-from utils.errors import UploadCaseFileError
+from utils.errors import UploadCaseFileError, CaseExistsError
 
 # Load other classes inside class saves circular import errors
 
@@ -101,7 +108,6 @@ class PierianDXSequenceRun:
     This sequence run imports a list of cases and sample files
     """
 
-
     def __init__(self, run_name: str, cases):
         # Set initial inputs
         self.run_name = run_name
@@ -128,14 +134,60 @@ class PierianDXSequenceRun:
         Create the run
         :return:
         """
-
-        pyriandx_client = get_pieriandx_client()
-
         data = self.get_run_creation_request_data()
 
+        self.create_run(data)
+
+    @staticmethod
+    def get_timestamp():
+        """
+        Get epoch timestamp to append to run name
+        :return:
+        """
+        return \
+            str(
+                int(
+                    datetime.timestamp(
+                        datetime.utcnow().replace(microsecond=0)
+                    )
+                )
+            )
+
+    def create_run(self, data):
+        """
+        Create the run
+        :param data:
+        :return:
+        """
+
+        # Get the pyriandx client
+        pyriandx_client = get_pieriandx_client()
+
         logger.debug(f"Creating a sequencing run with the following data requests {data}")
-        response = pyriandx_client._post_api(endpoint="/sequencerRun",
-                                             data=data).json()
+
+        iter_count = 0
+        while True:
+            # Add iter
+            iter_count += 1
+            if iter_count >= MAX_RUN_CREATION_ATTEMPTS:
+                logger.error(f"Tried to create the run {str(MAX_CASE_CREATION_ATTEMPTS)} times and failed!")
+                raise SequencingRunCreationError
+
+            # Log this
+            logger.debug(f"Creating sequencing run {self.run_dir} with attempt {str(iter_count)}")
+
+            # Call end point
+            response = pyriandx_client._post_api(endpoint="/sequencerRun",
+                                                 data=data).json()
+
+            logger.debug("Printing response")
+            if not response.status_code == 200:
+                logger.warning(f"Received code {response.status_code} and {response.content} trying "
+                               f"to create a sequencer run entrance")
+                logger.warning(f"Trying upload again - attempt {iter_count}")
+                time.sleep(RUN_CREATION_RETRY_TIME)
+            else:
+                break
 
         # Get the id
         self.run_id = response.get("id")
@@ -262,20 +314,69 @@ class Case:
         self.informatics_job_id = None
         self.run_objs: Optional[List[PierianDXSequenceRun]] = None
 
+        # Check case exists
+        self.check_case_exists()
+
     def __call__(self):
         """
         Create the case object on PierianDx
         :return:
         """
-        pyriandx_client = get_pieriandx_client()
 
         # Get data response
         data = self.get_case_creation_request_data()
 
+        self.create_case(data)
+
+    def check_case_exists(self):
+        """
+        Check the case doesn't already exist
+        :param accession_number:
+        :return:
+        """
+        from utils.accession import get_cases_df
+
+        cases_df = get_cases_df()
+
+        if self.case_accession_number in cases_df["accession_number"].tolist():
+            case_id = cases_df.query(f"accession_number=='{self.case_accession_number}'")["id"].item()
+            logger.error(f"This accession number already exists with case id {case_id}")
+            raise CaseExistsError
+
+    def create_case(self, data):
+        """
+        Get data, and create case
+        :param data:
+        :return:
+        """
+        pyriandx_client = get_pieriandx_client()
+
         # Debug logger
         logger.debug(f"Launching the case creation data endpoint with following data inputs {data}")
+
         # Create the case and get the response
-        response = pyriandx_client._post_api(endpoint="/case", data=data).json()
+        iter_count = 0
+        while True:
+            # Iter
+            iter_count += 1
+            if iter_count >= MAX_CASE_CREATION_ATTEMPTS:
+                logger.error(f"Tried to create the case {str(MAX_CASE_CREATION_ATTEMPTS)} times and failed!")
+                raise CaseCreationError
+
+            # Log this
+            logger.debug(f"Creating case {self.case_accession_number} with attempt {str(iter_count)}")
+
+            # Generate response
+            response = pyriandx_client._post_api(endpoint="/case", data=data).json()
+
+            logger.debug("Printing response")
+            if not response.status_code == 200:
+                logger.warning(f"Received code {response.status_code} and {response.content} trying "
+                               f"to create case {self.case_accession_number}")
+                logger.warning(f"Trying case creation again - attempt {iter_count}")
+                time.sleep(CASE_CREATION_RETRY_TIME)
+            else:
+                break
 
         # Get the id
         self.case_id = response.get("id")
@@ -384,24 +485,56 @@ class Case:
             logger.error("No run objects exist yet")
             raise RunNotFoundError
 
-        # Launch informatics job
-        pyriandx_client = get_pieriandx_client()
-
         # Create the informatics job and collect the response
         data = self.get_informatics_job_creation_request_data()
 
-        logger.debug(f"Creating informatics job for case {self.case_id} with data {data}")
-        response = pyriandx_client._post_api(endpoint=f"/case/{self.case_id}/informaticsJobs",
-                                             data=data).json()
+        self.launch_informatics_job_with_retries(data)
+
+    def launch_informatics_job_with_retries(self, data):
+        """
+        Continuously try to launch the informatics job
+        :param data:
+        :return:
+        """
+
+        # Launch informatics job
+        pyriandx_client = get_pieriandx_client()
+
+        # Set iter count
+        iter_count = 0
+        while True:
+            # Add iter
+            iter_count += 1
+            if iter_count >= MAX_JOB_CREATION_ATTEMPTS:
+                logger.error(f"Tried to upload the case file {str(MAX_JOB_CREATION_ATTEMPTS)} times and failed!")
+                raise JobCreationError
+
+            # Call end point
+            response = pyriandx_client._post_api(endpoint=f"/case/{self.case_id}/informaticsJobs",
+                                                 data=data).json()
+
+            logger.debug("Printing response")
+            if not response.status_code == 200:
+                logger.warning(f"Received code {response.status_code} and {response.content} trying "
+                               f"create the informatics job")
+                logger.warning(f"Trying job creation again - attempt {iter_count}")
+                time.sleep(JOB_CREATION_RETRY_TIME)
+            else:
+                break
 
         # Get the id
         self.informatics_job_id = response.get("jobId")
+
+        logger.debug(f"Created informatics job for case {self.case_id} with "
+                     f"data {data} and retrieved job id {str(self.informatics_job_id)}")
 
     def upload_case_files(self):
         """
         Upload the case files for the case
         :return:
         """
+        # Get pieriandx client
+        pyriandx_client = get_pieriandx_client()
 
         for file_name in self.run_objs[0].case_files_dir.rglob("*"):
             # Set iter count
@@ -409,8 +542,8 @@ class Case:
             while True:
                 # Add iter
                 iter_count += 1
-                if iter_count == MAX_CASE_FILE_UPLOAD_ATTEMPTS:
-                    logger.error("Tried to upload the case file fifty times and failed!")
+                if iter_count >= MAX_CASE_FILE_UPLOAD_ATTEMPTS:
+                    logger.error(f"Tried to upload the case file {str(MAX_CASE_CREATION_ATTEMPTS)} times and failed!")
                     raise UploadCaseFileError
                 # Check file is real
                 if not file_name.is_file():
@@ -418,9 +551,6 @@ class Case:
 
                 # Log this
                 logger.debug(f"Uploading {file_name.name} to url endpoint /case/{self.case_id}/caseFiles/{file_name.name}/")
-
-                # Get pieriandx client
-                pyriandx_client = get_pieriandx_client()
 
                 # Initialise file input
                 file_dict = {
