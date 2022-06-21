@@ -111,8 +111,8 @@ export class CttsoIcaToPieriandxCodeBuildStack extends Stack {
 
         // Set codebuild source
         const github_source = Source.gitHub({
-            owner: REPO_NAME.split("/")[0],
-            repo: REPO_NAME.split("/")[-1]
+            owner: REPO_NAME.split("/").splice(0, 1)[0],
+            repo: REPO_NAME.split("/").splice(-1, 1)[0]
         })
 
         // Create codebuild from object
