@@ -1,7 +1,7 @@
 // Names
 export const STACK_PREFIX: string = "cttso-ica-to-pieriandx"
 
-export const DEPLOYMENT_DIR: string = "deploy/cttso-ica-to-pieriandx"
+export const DEPLOYMENT_DIR: string = "deploy/cttso-ica-to-pieriandx-cdk"
 
 export const ECR_REPOSITORY_NAME: string = "cttso-ica-to-pieriandx"
 
