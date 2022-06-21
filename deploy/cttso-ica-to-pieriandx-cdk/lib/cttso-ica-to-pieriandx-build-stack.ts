@@ -6,6 +6,7 @@ import {
     ECR_REPOSITORY_NAME
 } from "../constants";
 import {BuildSpec, LinuxBuildImage, Project, Source} from "aws-cdk-lib/aws-codebuild";
+import {ManagedPolicy, Role, ServicePrincipal} from "aws-cdk-lib/aws-iam";
 
 
 interface CttsoIcaToPieriandxCodeBuildStackProps extends StackProps {
@@ -116,6 +117,18 @@ export class CttsoIcaToPieriandxCodeBuildStack extends Stack {
             branchOrRef: props.github_branch_name
         })
 
+        // Set up role for codebuild
+        const codebuild_role = new Role(
+            this,
+            `${props.stack_prefix}-codebuild-role`,
+            {
+                assumedBy: new ServicePrincipal("codebuild.amazonaws.com"),
+                managedPolicies: [
+                    ManagedPolicy.fromAwsManagedPolicyName("AmazonEC2ContainerRegistryFullAccess ")
+                ]
+            }
+        )
+
         // Create codebuild from object
         const codebuild_obj = new Project(
             this,
@@ -127,7 +140,9 @@ export class CttsoIcaToPieriandxCodeBuildStack extends Stack {
                     buildImage: LinuxBuildImage.STANDARD_5_0,
                     privileged: true
                 },
-                timeout: Duration.hours(3)
+                timeout: Duration.hours(3),
+                // Need to be able to push to ecr
+                role: codebuild_role
             }
         )
 
