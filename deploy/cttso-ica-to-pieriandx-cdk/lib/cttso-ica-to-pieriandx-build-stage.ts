@@ -9,6 +9,7 @@ interface CttsoIcaToPieriandxCodeBuildStageProps extends StackProps {
         account: string
         region: string
     }
+    github_branch_name: string
 }
 
 export class CttsoIcaToPieriandxCodeBuildStage extends Stage {

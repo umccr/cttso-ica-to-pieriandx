@@ -60,7 +60,8 @@ export class CttsoIcaToPieriandxPipelineStack extends Stack {
         account: props.aws_account_id,
         region: props.aws_region
       },
-      stack_prefix: props.stack_prefix
+      stack_prefix: props.stack_prefix,
+      github_branch_name: props.github_branch_name
     })
 
     // Add the build stage to the pipeline

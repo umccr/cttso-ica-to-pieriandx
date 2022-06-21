@@ -5,8 +5,7 @@ import {
     REPO_NAME,
     ECR_REPOSITORY_NAME
 } from "../constants";
-import {BuildSpec, LinuxBuildImage, Project, Source, CfnProjectProps} from "aws-cdk-lib/aws-codebuild";
-import {IRepository} from "aws-cdk-lib/aws-ecr";
+import {BuildSpec, LinuxBuildImage, Project, Source} from "aws-cdk-lib/aws-codebuild";
 
 
 interface CttsoIcaToPieriandxCodeBuildStackProps extends StackProps {
@@ -15,6 +14,7 @@ interface CttsoIcaToPieriandxCodeBuildStackProps extends StackProps {
         account: string
         region: string
     }
+    github_branch_name: string
 }
 
 export class CttsoIcaToPieriandxCodeBuildStack extends Stack {
@@ -112,7 +112,8 @@ export class CttsoIcaToPieriandxCodeBuildStack extends Stack {
         // Set codebuild source
         const github_source = Source.gitHub({
             owner: REPO_NAME.split("/").splice(0, 1)[0],
-            repo: REPO_NAME.split("/").splice(-1, 1)[0]
+            repo: REPO_NAME.split("/").splice(-1, 1)[0],
+            branchOrRef: props.github_branch_name
         })
 
         // Create codebuild from object
