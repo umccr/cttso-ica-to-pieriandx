@@ -239,8 +239,7 @@ export class CttsoIcaToPieriandxBatchStack extends Stack {
                         },
                     ),
                     launchTemplate: {
-                        // @ts-ignore
-                        launchTemplateName: launch_template.launchTemplateName,
+                        launchTemplateName: `${props.stack_prefix}-batch-compute-launch-template`,
                         version: launch_template.versionNumber
                     },
                     spotFleetRole: spotfleet_role,
@@ -250,7 +249,7 @@ export class CttsoIcaToPieriandxBatchStack extends Stack {
                         subnetType: SubnetType.PRIVATE_WITH_NAT,
                         availabilityZones: this.availabilityZones
                     },
-                    security_groups: [
+                    securityGroups: [
                         batch_security_group
                     ],
                     computeResourcesTags: {
