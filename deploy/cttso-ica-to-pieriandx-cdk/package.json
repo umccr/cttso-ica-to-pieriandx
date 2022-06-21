@@ -2,7 +2,7 @@
   "name": "cttso-ica-to-pieriandx-cdk",
   "version": "0.1.0",
   "bin": {
-    "cttso-ica-to-pieriandx-cdk": "bin/cttso-ica-to-pieriandx-cdk.js"
+    "cttso-ica-to-pieriandx-cdk": "bin/cttso-ica-to-pieriandx-pipeline-stack.js"
   },
   "scripts": {
     "build": "tsc",
