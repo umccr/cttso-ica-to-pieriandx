@@ -124,7 +124,7 @@ export class CttsoIcaToPieriandxCodeBuildStack extends Stack {
             {
                 assumedBy: new ServicePrincipal("codebuild.amazonaws.com"),
                 managedPolicies: [
-                    ManagedPolicy.fromAwsManagedPolicyName("AmazonEC2ContainerRegistryFullAccess ")
+                    ManagedPolicy.fromAwsManagedPolicyName("AmazonEC2ContainerRegistryFullAccess")
                 ]
             }
         )
