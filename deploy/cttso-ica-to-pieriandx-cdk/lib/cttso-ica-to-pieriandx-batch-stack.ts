@@ -10,7 +10,14 @@ import {
     JobDefinition,
     JobQueue
 } from "@aws-cdk/aws-batch-alpha";
-import {CfnInstanceProfile, CompositePrincipal, ManagedPolicy, Role, ServicePrincipal} from "aws-cdk-lib/aws-iam";
+import {
+    CfnInstanceProfile,
+    CompositePrincipal,
+    ManagedPolicy,
+    PolicyStatement,
+    Role,
+    ServicePrincipal
+} from "aws-cdk-lib/aws-iam";
 import {
     BlockDeviceVolume,
     EbsDeviceVolumeType,
@@ -24,7 +31,7 @@ import {
 import {Asset} from "aws-cdk-lib/aws-s3-assets";
 import {readFileSync} from "fs";
 import {Runtime, Function as LambdaFunction, Code} from "aws-cdk-lib/aws-lambda";
-import {ECR_REPOSITORY_NAME, REPO_NAME} from "../constants";
+import {ECR_REPOSITORY_NAME, REDCAP_LAMBDA_FUNCTION_SSM_KEY, REPO_NAME} from "../constants";
 
 
 interface CttsoIcaToPieriandxBatchStackProps extends StackProps {
@@ -337,6 +344,25 @@ export class CttsoIcaToPieriandxBatchStack extends Stack {
                     ManagedPolicy.fromAwsManagedPolicyName("AmazonSSMReadOnlyAccess")
                 ]
             }
+        )
+
+        // Get redcap lambda arn
+        const redcap_lambda_arn = StringParameter.valueFromLookup(
+            this,
+            REDCAP_LAMBDA_FUNCTION_SSM_KEY
+        )
+
+        // Add ability to call lambda function
+        lambda_role.addToPolicy(
+            new PolicyStatement({
+                actions: [
+                    "lambda:InvokeFunction"
+                ],
+                resources:[
+                    redcap_lambda_arn
+                ]
+                }
+            )
         )
 
         // Set up lambda function

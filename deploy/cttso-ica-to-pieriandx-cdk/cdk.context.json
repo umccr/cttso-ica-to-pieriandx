@@ -84,5 +84,6 @@
     "ap-southeast-2b",
     "ap-southeast-2c"
   ],
-  "ssm:account=383856791668:parameterName=codestar_github_arn:region=ap-southeast-2": "arn:aws:codestar-connections:ap-southeast-2:383856791668:connection/06d41586-46ac-4905-8403-c98d61f63530"
+  "ssm:account=383856791668:parameterName=codestar_github_arn:region=ap-southeast-2": "arn:aws:codestar-connections:ap-southeast-2:383856791668:connection/06d41586-46ac-4905-8403-c98d61f63530",
+  "ssm:account=843407916570:parameterName=redcap-apis-lambda-function:region=ap-southeast-2": "arn:aws:lambda:ap-southeast-2:843407916570:function:redcap-apis-dev-lambda-function"
 }

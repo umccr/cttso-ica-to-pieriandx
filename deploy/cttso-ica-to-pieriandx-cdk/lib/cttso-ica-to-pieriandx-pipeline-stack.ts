@@ -4,11 +4,9 @@ import {REPO_NAME, DEPLOYMENT_DIR, ECR_REPOSITORY_NAME} from "../constants";
 import {StringParameter} from "aws-cdk-lib/aws-ssm";
 import {pipelines} from "aws-cdk-lib";
 import {ManagedPolicy, PolicyStatement, Role, ServicePrincipal} from "aws-cdk-lib/aws-iam";
-import {CttsoIcaToPieriandxCodeBuildStage} from "./cttso-ica-to-pieriandx-build-stage";
 import {CttsoIcaToPieriandxBatchStage} from "./cttso-ica-to-pieriandx-batch-stage"
-import {Artifact} from "aws-cdk-lib/aws-codepipeline";
-import {BuildSpec, LinuxBuildImage} from "aws-cdk-lib/aws-codebuild";
-import {CodeBuildStep} from "aws-cdk-lib/pipelines";
+import { LinuxBuildImage } from "aws-cdk-lib/aws-codebuild";
+import { CodeBuildStep } from "aws-cdk-lib/pipelines";
 
 
 interface CttsoIcaToPieriandxPipelineStackProps extends StackProps {
@@ -73,21 +71,6 @@ export class CttsoIcaToPieriandxPipelineStack extends Stack {
             }
         )
 
-        // // Generate the build stage
-        // const build_stage = new CttsoIcaToPieriandxCodeBuildStage(this, props.stack_prefix + "-CodeBuildStage", {
-        //     env: {
-        //         account: props.aws_account_id,
-        //         region: props.aws_region
-        //     },
-        //     stack_prefix: props.stack_prefix,
-        //     github_branch_name: props.github_branch_name,
-        // })
-        //
-        // // Add the build stage to the pipeline
-        // pipeline.addStage(
-        //     build_stage
-        // )
-
         // Generate the batch stage
         const batch_stage = new CttsoIcaToPieriandxBatchStage(this, props.stack_prefix + "-BatchStage", {
             env: {
@@ -103,6 +86,7 @@ export class CttsoIcaToPieriandxPipelineStack extends Stack {
         )
     }
 
+    // Create the build stage
     private createBuildStage(stack_prefix: string, container_name: string, aws_account_id: string, aws_region: string): CodeBuildStep {
         // Set up role for codebuild
         const codebuild_role = new Role(
