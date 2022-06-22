@@ -1,6 +1,7 @@
 import {CfnOutput, StackProps, Stage, StageProps, Tags} from "aws-cdk-lib";
 import { Construct } from "constructs";
 import { CttsoIcaToPieriandxCodeBuildStack } from "./cttso-ica-to-pieriandx-build-stack"
+import {IBucket} from "aws-cdk-lib/aws-s3";
 
 
 interface CttsoIcaToPieriandxCodeBuildStageProps extends StackProps {

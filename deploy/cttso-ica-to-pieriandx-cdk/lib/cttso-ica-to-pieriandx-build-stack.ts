@@ -7,6 +7,7 @@ import {
 } from "../constants";
 import {BuildSpec, LinuxBuildImage, Project, Source} from "aws-cdk-lib/aws-codebuild";
 import {ManagedPolicy, Role, ServicePrincipal} from "aws-cdk-lib/aws-iam";
+import {IBucket} from "aws-cdk-lib/aws-s3";
 
 
 interface CttsoIcaToPieriandxCodeBuildStackProps extends StackProps {
