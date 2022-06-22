@@ -64,8 +64,6 @@ export class CttsoIcaToPieriandxPipelineStack extends Stack {
                     this.createBuildStage(
                         props.stack_prefix,
                         ECR_REPOSITORY_NAME,
-                        props.aws_account_id,
-                        props.aws_region
                     )
                 ]
             }
@@ -87,7 +85,7 @@ export class CttsoIcaToPieriandxPipelineStack extends Stack {
     }
 
     // Create the build stage
-    private createBuildStage(stack_prefix: string, container_name: string, aws_account_id: string, aws_region: string): CodeBuildStep {
+    private createBuildStage(stack_prefix: string, container_name: string): CodeBuildStep {
         // Set up role for codebuild
         const codebuild_role = new Role(
             this,
@@ -110,16 +108,10 @@ export class CttsoIcaToPieriandxPipelineStack extends Stack {
                     privileged: true
                 },
                 env: {
-                    ["CONTAINER_REPO"]: `${aws_account_id}.dkr.ecr.${aws_region}.amazonaws.com`,
+                    ["CONTAINER_REPO"]: `${this.account}.dkr.ecr.${this.region}.amazonaws.com`,
                     ["CONTAINER_NAME"]: container_name,
-                    ["REGION"]: aws_region
+                    ["REGION"]: this.region
                 },
-                rolePolicyStatements: [
-                    new PolicyStatement({
-                        actions: ["sts:AssumeRole"],
-                        resources: [`arn:aws:iam::${aws_account_id}:role/*`],
-                    }),
-                ],
                 role: codebuild_role
             }
         )

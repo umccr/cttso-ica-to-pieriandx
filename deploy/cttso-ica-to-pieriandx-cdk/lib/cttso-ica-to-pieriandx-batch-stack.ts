@@ -28,10 +28,10 @@ import {
     UserData,
     Vpc
 } from "aws-cdk-lib/aws-ec2";
-import {Asset} from "aws-cdk-lib/aws-s3-assets";
-import {readFileSync} from "fs";
-import {Runtime, Function as LambdaFunction, Code} from "aws-cdk-lib/aws-lambda";
-import {ECR_REPOSITORY_NAME, REDCAP_LAMBDA_FUNCTION_SSM_KEY, REPO_NAME} from "../constants";
+import { Asset } from "aws-cdk-lib/aws-s3-assets";
+import { readFileSync } from "fs";
+import { Runtime, Function as LambdaFunction, Code } from "aws-cdk-lib/aws-lambda";
+import { ECR_REPOSITORY_NAME, REDCAP_LAMBDA_FUNCTION_SSM_KEY, AWS_BUILD_ACCOUNT_ID, AWS_REGION } from "../constants";
 
 
 interface CttsoIcaToPieriandxBatchStackProps extends StackProps {
@@ -62,7 +62,7 @@ export class CttsoIcaToPieriandxBatchStack extends Stack {
         )
 
         // Get the container repo
-        const container_repo: string = `${env.account}.dkr.ecr.${env.region}.amazonaws.com`
+        const container_repo: string = `${AWS_BUILD_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com`
 
 
         // Get the image repo
@@ -118,7 +118,7 @@ export class CttsoIcaToPieriandxBatchStack extends Stack {
             }
         )
 
-        // Turn the instance role into a Instance Profile
+        // Turn the instance role into an Instance Profile
         const batch_instance_profile = new CfnInstanceProfile(
             this,
             `${props.stack_prefix}-batch-instance-profile`,
