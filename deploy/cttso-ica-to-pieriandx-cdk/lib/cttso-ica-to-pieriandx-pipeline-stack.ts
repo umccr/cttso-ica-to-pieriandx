@@ -119,7 +119,7 @@ export class CttsoIcaToPieriandxPipelineStack extends Stack {
             `${stack_prefix}-build-docker-image-codebuild-step`,
             {
                 commands: [
-                    "bash", `./${DEPLOYMENT_DIR}/build-and-deploy-docker-image.sh`
+                    `bash "./${DEPLOYMENT_DIR}/build-and-deploy-docker-image.sh"`
                 ],
                 buildEnvironment: {
                     buildImage: LinuxBuildImage.STANDARD_5_0,
