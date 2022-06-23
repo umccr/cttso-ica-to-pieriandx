@@ -358,7 +358,8 @@ export class CttsoIcaToPieriandxBatchStack extends Stack {
                     "batch:SubmitJob"
                 ],
                 resources: [
-                    job_definition.jobDefinitionArn
+                    job_definition.jobDefinitionArn,
+                    job_queue.jobQueueArn
                 ]
             })
         ))
