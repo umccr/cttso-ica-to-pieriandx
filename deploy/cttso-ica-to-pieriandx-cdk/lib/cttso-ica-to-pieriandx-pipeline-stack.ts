@@ -23,10 +23,19 @@ export class CttsoIcaToPieriandxPipelineStack extends Stack {
         super(scope, id, props);
 
         // Step one, collect the codestar arn
-        const code_star_arn = StringParameter.valueFromLookup(
+        const codestar_arn = StringParameter.valueFromLookup(
             this,
             "codestar_github_arn"
         )
+
+        // Get the codestar connection
+        const codestar_connection = pipelines.CodePipelineSource.connection(REPO_NAME, props.github_branch_name, {
+                connectionArn: codestar_arn
+            }
+        )
+
+        // Collect the commit id - to check if there exists a tag
+        const commit_id: string = codestar_connection.sourceAttribute("commitId")
 
         // Step two, generate pipeline
         // Much taken from https://github.com/umccr/holmes/blob/main/holmes-pipeline-stack.ts#L38
@@ -35,9 +44,7 @@ export class CttsoIcaToPieriandxPipelineStack extends Stack {
             dockerEnabledForSynth: true,
             dockerEnabledForSelfMutation: true,
             synth: new pipelines.CodeBuildStep("Synth", {
-                input: pipelines.CodePipelineSource.connection(REPO_NAME, props.github_branch_name, {
-                    connectionArn: code_star_arn
-                }),
+                input: codestar_connection,
                 commands: [
                     `cd ${DEPLOYMENT_DIR}`,
                     "npm ci",
@@ -65,7 +72,8 @@ export class CttsoIcaToPieriandxPipelineStack extends Stack {
                     this.createBuildStage(
                         props.stack_prefix,
                         ECR_REPOSITORY_NAME,
-                        props.stack_suffix
+                        props.stack_suffix,
+                        commit_id
                     )
                 ]
             }
@@ -90,7 +98,7 @@ export class CttsoIcaToPieriandxPipelineStack extends Stack {
     }
 
     // Create the build stage
-    private createBuildStage(stack_prefix: string, container_name: string, stack_suffix: string): CodeBuildStep {
+    private createBuildStage(stack_prefix: string, container_name: string, stack_suffix: string, commit_id: string): CodeBuildStep {
         // Set up role for codebuild
         const codebuild_role = new Role(
             this,
@@ -116,7 +124,8 @@ export class CttsoIcaToPieriandxPipelineStack extends Stack {
                     ["CONTAINER_REPO"]: `${this.account}.dkr.ecr.${this.region}.amazonaws.com`,
                     ["CONTAINER_NAME"]: container_name,
                     ["REGION"]: this.region,
-                    ["STACK_SUFFIX"]: stack_suffix
+                    ["STACK_SUFFIX"]: stack_suffix,
+                    ["GIT_COMMIT_ID"]: commit_id
                 },
                 role: codebuild_role
             }
