@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 # Set up to fail
-set -euo pipefail
+set -euxo pipefail
 
 # Set DEBIAN_FRONTEND env var to noninteractive
 export DEBIAN_FRONTEND=noninteractive
@@ -21,6 +21,8 @@ unzip -qq "awscliv2.zip"
 
 # Clean up installation
 rm -rf "awscliv2.zip" "aws/"
+
+printenv
 
 # Convenience CODEBUILD VARS, need more? Check https://github.com/thii/aws-codebuild-extras
 CTTSO_ICA_TO_PIERIANDX_GIT_TAG="$(git describe --tags --exact-match 2>/dev/null)"
