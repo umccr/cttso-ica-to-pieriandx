@@ -291,7 +291,7 @@ accession_json_base64_str="$(
       "last_name": "Doe",
       "mrn": "pDNA_Super_1085",
       "hospital_number": "99",
-      "institution": "PeterMac",
+      "facility": "PeterMac",
       "requesting_physicians_first_name": "Dr",
       "requesting_physicians_last_name": "DoLittle"
     }

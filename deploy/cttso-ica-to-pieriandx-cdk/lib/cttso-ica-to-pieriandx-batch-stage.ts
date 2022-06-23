@@ -10,6 +10,7 @@ interface CttsoIcaToPieriandxBatchStageProps extends StackProps {
         account: string
         region: string
     }
+    stack_suffix: string
 }
 
 export class CttsoIcaToPieriandxBatchStage extends Stage {
@@ -24,7 +25,7 @@ export class CttsoIcaToPieriandxBatchStage extends Stage {
     ) {
         super(scope, id, props);
 
-        const lambda_batch_stack = new CttsoIcaToPieriandxBatchStack(this, props.stack_prefix, props);
+        const lambda_batch_stack = new CttsoIcaToPieriandxBatchStack(this, `${props.stack_prefix}-batch-stack`, props);
 
         Tags.of(lambda_batch_stack).add(`${props.stack_prefix}-Stack`, props.stack_prefix);
 

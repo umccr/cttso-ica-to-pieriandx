@@ -31,7 +31,13 @@ import {
 import { Asset } from "aws-cdk-lib/aws-s3-assets";
 import { readFileSync } from "fs";
 import { Runtime, Function as LambdaFunction, Code } from "aws-cdk-lib/aws-lambda";
-import { ECR_REPOSITORY_NAME, REDCAP_LAMBDA_FUNCTION_SSM_KEY, AWS_BUILD_ACCOUNT_ID, AWS_REGION } from "../constants";
+import {
+    ECR_REPOSITORY_NAME,
+    REDCAP_LAMBDA_FUNCTION_SSM_KEY,
+    AWS_BUILD_ACCOUNT_ID,
+    AWS_REGION,
+    SSM_LAMBDA_FUNCTION_ARN_VALUE
+} from "../constants";
 
 
 interface CttsoIcaToPieriandxBatchStackProps extends StackProps {
@@ -40,6 +46,7 @@ interface CttsoIcaToPieriandxBatchStackProps extends StackProps {
         account: string
         region: string
     },
+    stack_suffix: string
 }
 
 
@@ -339,12 +346,22 @@ export class CttsoIcaToPieriandxBatchStack extends Stack {
                 assumedBy: new ServicePrincipal("lambda.amazonaws.com"),
                 managedPolicies: [
                     ManagedPolicy.fromAwsManagedPolicyName("service-role/AWSLambdaBasicExecutionRole"),
-                    // TODO - do we need this?
-                    // ManagedPolicy.fromAwsManagedPolicyName("AWSBatchFullAccess"),
                     ManagedPolicy.fromAwsManagedPolicyName("AmazonSSMReadOnlyAccess")
                 ]
             }
         )
+
+        // Set up policy for submitting job to batch
+        lambda_role.addToPolicy((
+            new PolicyStatement({
+                actions: [
+                    "batch:SubmitJob"
+                ],
+                resources: [
+                    job_definition.jobDefinitionArn
+                ]
+            })
+        ))
 
         // Get redcap lambda arn
         const redcap_lambda_arn = StringParameter.valueFromLookup(
@@ -355,12 +372,12 @@ export class CttsoIcaToPieriandxBatchStack extends Stack {
         // Add ability to call lambda function
         lambda_role.addToPolicy(
             new PolicyStatement({
-                actions: [
-                    "lambda:InvokeFunction"
-                ],
-                resources:[
-                    redcap_lambda_arn
-                ]
+                    actions: [
+                        "lambda:InvokeFunction"
+                    ],
+                    resources: [
+                        redcap_lambda_arn
+                    ]
                 }
             )
         )
@@ -389,6 +406,16 @@ export class CttsoIcaToPieriandxBatchStack extends Stack {
             }
         )
 
+        // Update the ssm parameter to the new function arn
+        const ssm_parameter = new StringParameter(
+            this,
+            props.stack_prefix + "ssm-cdk-lambda-parameter",
+            {
+                stringValue: aws_lambda_function.functionArn,
+                parameterName: SSM_LAMBDA_FUNCTION_ARN_VALUE,
+            }
+        )
+
         // Return the batch arn as an output
         this.BatchJobDefinitionArn = new CfnOutput(this, "BatchJobDefinitionArn", {
             value: job_definition.jobDefinitionArn,
@@ -398,6 +425,9 @@ export class CttsoIcaToPieriandxBatchStack extends Stack {
         this.LambdaFunctionArn = new CfnOutput(this, "LambdaFunctionArn", {
             value: aws_lambda_function.functionArn,
         });
+
+        // Set this lambda function arn as an output
+        // TODO
 
     }
 }

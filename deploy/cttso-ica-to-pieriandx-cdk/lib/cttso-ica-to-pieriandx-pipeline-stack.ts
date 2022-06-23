@@ -81,11 +81,12 @@ export class CttsoIcaToPieriandxPipelineStack extends Stack {
 
         // Generate the batch stage
         const batch_stage = new CttsoIcaToPieriandxBatchStage(this, props.stack_prefix + "-BatchStage", {
+            stack_prefix: props.stack_prefix,
             env: {
                 account: props.aws_account_id,
                 region: props.aws_region
             },
-            stack_prefix: props.stack_prefix
+            stack_suffix: props.stack_suffix
         })
 
         // Add the batch stage to the pipeline

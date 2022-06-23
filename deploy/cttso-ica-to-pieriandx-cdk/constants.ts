@@ -22,3 +22,6 @@ export const PROD_STACK_SUFFIX: string = "prod"
 
 // Redcap connection things
 export const REDCAP_LAMBDA_FUNCTION_SSM_KEY: string = "redcap-apis-lambda-function"
+
+// Output things
+export const SSM_LAMBDA_FUNCTION_ARN_VALUE: string = "cttso-ica-to-pieriandx-lambda-function"

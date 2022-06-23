@@ -56,6 +56,15 @@ batch_job_container_props = {
 
 def lambda_handler(event, context):
     # Log the received event
+    """
+    Example payload is something like:
+    {
+      "parameters": {
+        "accession_json_base64_str": "eyJzYW1wbGVfdHlwZSI6IlBhdGllbnQgQ2FyZSBTYW1wbGUiLCJkaXNlYXNlIjo3MDA0MjMwMDMsImlzX2lkZW50aWZpZWQiOnRydWUsImFjY2Vzc2lvbl9udW1iZXIiOiJTQkowMTE1OF9MMjEwMTUxM18wMDEiLCJzcGVjaW1lbl90eXBlIjoiMTIyNTYxMDA1IiwiZXh0ZXJuYWxfc3BlY2ltZW5faWQiOiIxMTUwIFNVUEVSIiwiZGF0ZV9hY2Nlc3Npb25lZCI6IjIwMjItMDYtMjNUMjE6MzI6MzYrMTAwMCIsImRhdGVfY29sbGVjdGVkIjoiMjAyMi0wMS0wMSIsImRhdGVfcmVjZWl2ZWQiOm51bGwsImRhdGVfb2ZfYmlydGgiOiIyMDIyLTA2LTIzVDIxOjMyOjM2KzEwMDAiLCJmaXJzdF9uYW1lIjoiSm9obiIsImxhc3RfbmFtZSI6IkRvZSIsImdlbmRlciI6bnVsbCwibXJuIjoiU05fMTE1MCIsImZhY2lsaXR5IjoiUGV0ZXIgTWFjQ2FsbHVtIENhbmNlciBDZW50cmUiLCJob3NwaXRhbF9udW1iZXIiOjEsInJlcXVlc3RpbmdfcGh5c2ljaWFuc19maXJzdF9uYW1lIjoiQWxleGlzIiwicmVxdWVzdGluZ19waHlzaWNpYW5zX2xhc3RfbmFtZSI6IlNhbmNoZXoifQ==",
+        "ica_workflow_run_id": "wfr.dd235d749b6d4d2db63e36864febc341"
+      }
+    }
+    """
     print(f"Received event: {event}")
 
     print(f"Using jobDefinition: {JOB_DEF}")
