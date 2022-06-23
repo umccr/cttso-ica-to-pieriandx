@@ -69,17 +69,17 @@ export class CttsoIcaToPieriandxBatchStack extends Stack {
         )
 
         // Get the container repo
-        const container_repo: string = `${AWS_BUILD_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com`
+        const container_registry: string = `${AWS_BUILD_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com`
 
 
         // Get the image repo
         const image_repo = ContainerImage.fromEcrRepository(
-            Repository.fromRepositoryName(
+            Repository.fromRepositoryArn(
                 this,
                 "fromrepo",
-                container_repo
+                `${container_registry}/${ECR_REPOSITORY_NAME}`
             ),
-            `${ECR_REPOSITORY_NAME}:latest`
+            `latest-dev`
         )
 
         // Add batch service role
