@@ -35,7 +35,7 @@ export class CttsoIcaToPieriandxPipelineStack extends Stack {
         )
 
         // Collect the commit id - to check if there exists a tag
-        const commit_id: string = codestar_connection.sourceAttribute("commitId")
+        const commit_id: string = codestar_connection.sourceAttribute("CommitId")
 
         // Step two, generate pipeline
         // Much taken from https://github.com/umccr/holmes/blob/main/holmes-pipeline-stack.ts#L38
