@@ -7,7 +7,7 @@ Disease and Specimen classes
 from utils.globals import DISEASE_CSV, SPECIMEN_TYPE_CSV
 import pandas as pd
 from pathlib import Path
-from typing import Dict
+from typing import Dict, Optional
 
 from utils.logging import get_logger
 
@@ -101,3 +101,90 @@ class SpecimenType(SnowMedObject):
     The specimen object
     """
     REFERENCE_DF = SnowMedObject.read_csv(SPECIMEN_TYPE_CSV)
+
+
+class MedicalFacility:
+    """
+    A Medical facility has two objects, facility and hospital number
+    """
+    def __init__(self, facility: Optional[str] = None, hospital_number: Optional[int] = None):
+        self.facility: str = facility
+        self.hospital_number: int = hospital_number
+
+    def to_dict(self):
+        """
+        Return dictionary
+        :return:
+        """
+        return {
+            "facility": self.facility,
+            "hospitalNumber": self.hospital_number
+        }
+
+    @classmethod
+    def from_dict(cls, medical_facility_dict: Dict):
+        """
+        Get value from dictionary
+        :return:
+        """
+        return cls(
+            facility=medical_facility_dict.get("facility", None),
+            hospital_number=medical_facility_dict.get("hospital_number", None)
+        )
+
+
+class MedicalRecordNumber:
+    def __init__(self, mrn: int = None, medical_facility: MedicalFacility = None):
+        self.mrn: int = mrn
+        self.medical_facility: MedicalFacility = medical_facility
+
+    def to_dict(self):
+        """
+        Return dictionary
+        :return:
+        """
+        return {
+            "mrn": self.mrn,
+            "medicalFacility": self.medical_facility.to_dict()
+        }
+
+    @classmethod
+    def from_dict(cls, medical_record_number_dict: Dict):
+        """
+        Get value from dictionary
+        :return:
+        """
+        return cls(
+            mrn=medical_record_number_dict.get("mrn", None),
+            medical_facility=MedicalFacility.from_dict(medical_record_number_dict)
+        )
+
+
+class Physician:
+    """
+    The physician of the patient
+    """
+    def __init__(self, first_name: str, last_name: str):
+        self.first_name: str = first_name
+        self.last_name: str = last_name
+
+    def to_dict(self) -> Dict:
+        """
+        Return dictionary
+        :return:
+        """
+        return {
+            "firstName": self.first_name,
+            "lastName": self.last_name
+        }
+
+    @classmethod
+    def from_dict(cls, physician_dict: Dict):
+        """
+        Get object from dictionary
+        :return:
+        """
+        return cls(
+            first_name=physician_dict.get("first_name", None),
+            last_name=physician_dict.get("last_name", None)
+        )

@@ -16,7 +16,8 @@ from utils.logging import get_logger
 from dateutil.parser import parse as date_parser
 from datetime import datetime, timezone
 from utils.globals import MANDATORY_INPUT_COLUMNS, OPTIONAL_DEFAULTS, ACCESSION_FORMAT_REGEX, OUTPUT_STATS_FILE, \
-    MAX_ATTEMPTS_GET_CASES, LIST_CASES_RETRY_TIME
+    MAX_ATTEMPTS_GET_CASES, LIST_CASES_RETRY_TIME, \
+    MANDATORY_INPUT_COLUMNS_FOR_DEIDENTIFIED_SAMPLES, MANDATORY_INPUT_COLUMNS_FOR_IDENTIFIED_SAMPLES
 
 from utils.micro_classes import Disease, SpecimenType
 from utils.classes import Case
@@ -305,8 +306,8 @@ def read_input_csv(input_csv: Path) -> pd.DataFrame:
 
 
 def sanitise_data_frame(input_df: pd.DataFrame) -> pd.DataFrame:
-    # Convert blanks to nas
-    input_df = input_df.replace("", pd.NA)
+    # Copy dataframe and convert blanks to nas
+    input_df = input_df.copy().replace("", pd.NA)
 
     # Drop all columns with blanks
     input_df.dropna(axis="columns", how="all")
@@ -411,31 +412,126 @@ def sanitise_data_frame(input_df: pd.DataFrame) -> pd.DataFrame:
     input_df["race"] = input_df["race"].apply(lambda x: Race(x.lower()))
     input_df["gender"] = input_df["gender"].apply(lambda x: Gender(x.lower()))
 
-    # Map 'study_id' to 'study_identifier'
-    input_df["study_identifier"] = input_df["study_id"]
+    # Check if identified column set, if not set, set to false
+    input_df["is_identified"] = input_df.apply(lambda x: x.is_identified
+                                                         if hasattr(x, "is_identified")
+                                                         else False,
+                                               axis="columns")
+
+    # Check if any deidentified samples and make sure all the columns are there for them
+    if input_df.query("is_identified==False").shape[0] > 0:
+        missing_columns = list(set(MANDATORY_INPUT_COLUMNS_FOR_DEIDENTIFIED_SAMPLES) -
+                               set(list(input_df.query("is_identified==False").dropna(axis="columns", how="all").columns)))
+        if not len(missing_columns) == 0:
+            logger.error(f"Missing inputs in the following mandatory columns: {', '.join(missing_columns)}")
+            raise ValueError
+
+    # Check if any identified samples and make sure all the columns are there for them
+    if input_df.query("is_identified==True").shape[0] > 0:
+        missing_columns = list(set(MANDATORY_INPUT_COLUMNS_FOR_IDENTIFIED_SAMPLES) -
+                               set(list(input_df.query("is_identified==True").dropna(axis="columns", how="all").columns)))
+        if not len(missing_columns) == 0:
+            logger.error(f"Missing inputs in the following mandatory columns: {', '.join(missing_columns)}")
+            raise ValueError
+
+    # De-Identified columns only
+    # Map 'study_id' to 'study_identifier' but check identified status first
+    input_df["study_identifier"] = input_df.apply(
+        lambda x: x.study_id
+        if hasattr(x, "study_id")
+        else pd.NA,
+        axis="columns")
 
     # Map 'participant_id' to 'study_subject_identifier'
-    input_df["study_subject_identifier"] = input_df["participant_id"]
+    input_df["study_subject_identifier"] = input_df.apply(
+        lambda x: x.participant_id
+        if hasattr(x, "participant_id")
+        else pd.NA,
+        axis="columns")
 
     # Set defaults for study identifier and study subject identifier
-    input_df["study_identifier"] = input_df.apply(lambda x: x.study_identifier
-                                                            if hasattr(x, "study_identifier")
-                                                            and not pd.isna(x.study_identifier)
-                                                            else x.sample_type.value,
-                                                  axis="columns")
+    input_df["study_identifier"] = input_df.apply(
+        lambda x: x.study_identifier
+        if hasattr(x, "study_identifier")
+           and not pd.isna(x.study_identifier)
+        else x.sample_type.value,
+        axis="columns")
 
-    input_df["study_subject_identifier"] = input_df.apply(lambda x: x.study_subject_identifier
-                                                                    if hasattr(x, "study_subject_identifier")
-                                                                    and not pd.isna(x.study_subject_identifier)
-                                                                    else x.accession_number,
-                                                          axis="columns")
+    input_df["study_subject_identifier"] = input_df.apply(
+        lambda x: x.study_subject_identifier
+        if hasattr(x, "study_subject_identifier")
+           and not pd.isna(x.study_subject_identifier)
+        else x.accession_number,
+        axis="columns")
+
+    # Identified columns only
+    input_df["date_of_birth"] = input_df.apply(
+        lambda x: x.date_of_birth
+        if hasattr(x, "date_of_birth")
+        else pd.NAT,
+        axis="columns"
+    )
+    input_df["first_name"] = input_df.apply(
+        lambda x: x.first_name
+        if hasattr(x, "first_name")
+        else pd.NA,
+        axis="columns"
+    )
+    input_df["last_name"] = input_df.apply(
+        lambda x: x.last_name
+        if hasattr(x, "last_name")
+        else pd.NA,
+        axis="columns"
+    )
+    input_df["mrn"] = input_df.apply(
+        lambda x: x.mrns
+        if hasattr(x, "mrn")
+        else pd.NA,
+        axis="columns"
+    )
+    input_df["hospital_number"] = input_df.apply(
+        lambda x: x.hospital_number
+        if hasattr(x, "hospital_number")
+        else pd.NA,
+        axis="columns"
+    )
+    input_df["institution"] = input_df.apply(
+        lambda x: x.institution
+        if hasattr(x, "institution")
+        else pd.NA,
+        axis="columns"
+    )
+
+    # Set medical record number as a list of dicts
+    input_df["medical_record_numbers"] = input_df.apply(
+        lambda x: [
+            {
+                "mrn": x.get("mrn", None),
+                "facility": x.get("facility", None),
+                "hospital_number": x.get("hospital_number", None)
+            }
+        ],
+        axis="columns"
+    )
+
+    # Set physician as a list of dicts
+    input_df["requesting_physicians"] = input_df.apply(
+        lambda x: [
+            {
+                "first_name": x.get("requesting_physicians_first_name", None),
+                "last_name": x.get("requesting_physicians_last_name", None)
+            }
+        ]
+    )
 
     # Coerce dates to date objects
     for date_column in ["date_accessioned", "date_received", "date_collected"]:
         # Get the input df date column as a utc date object
-        input_df[date_column] = input_df[date_column].apply(lambda x: date_parser(x).
-                                                            replace(tzinfo=timezone.utc).
-                                                            astimezone(pytz.utc).replace(microsecond=0))
+        input_df[date_column] = input_df[date_column].apply(
+            lambda x: date_parser(x).
+                      replace(tzinfo=timezone.utc).
+                      astimezone(pytz.utc).replace(microsecond=0)
+        )
 
     # Confirm dates are not later than now
     current_datetime = datetime.utcnow().astimezone(pytz.utc)
@@ -446,6 +542,3 @@ def sanitise_data_frame(input_df: pd.DataFrame) -> pd.DataFrame:
                 raise ValueError
 
     return input_df
-
-
-

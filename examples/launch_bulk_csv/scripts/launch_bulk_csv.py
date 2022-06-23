@@ -40,6 +40,8 @@ METADATA_PAYLOAD_COLUMNS = [
                              "ethnicity",
                              "race"
                            ]
+
+
 LAMBDA_FUNCTION_NAME = "ctTSOICAToPierianDx_batch_lambda"
 
 

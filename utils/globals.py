@@ -13,16 +13,28 @@ from utils.enums import Gender, Ethnicity, Race
 
 MANDATORY_INPUT_COLUMNS = [
     "sample_type",
-    "indication",
-    # "disease",  Removed since we check for disease_name too
+    #  "disease",  Removed since we check for disease_name too
     "accession_number",
-    "study_id",
-    "participant_id",
-    # "specimen_type",  Removed since we check for specimen_type_name too
     "external_specimen_id",
     "date_accessioned",
     "date_collected",
     "date_received"
+]
+
+MANDATORY_INPUT_COLUMNS_FOR_DEIDENTIFIED_SAMPLES = [
+    "study_id",
+    "participant_id"
+]
+
+MANDATORY_INPUT_COLUMNS_FOR_IDENTIFIED_SAMPLES = [
+    "date_of_birth",
+    "first_name",
+    "last_name",
+    "mrn",
+    "hospital_number",
+    "institution",
+    "requesting_physicians_first_name",
+    "requesting_physicians_last_name"
 ]
 
 DISEASE_CSV = Path(__file__).parent.parent.absolute() / Path("references") / Path("disease.csv")
