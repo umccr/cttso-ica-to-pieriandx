@@ -22,5 +22,6 @@ const dev_stack = new CttsoIcaToPieriandxPipelineStack(app, 'CttsoIcaToPieriandx
     env: {
         account: AWS_BUILD_ACCOUNT_ID,
         region: AWS_REGION
-    }
+    },
+    stack_suffix: DEV_STACK_SUFFIX
 });

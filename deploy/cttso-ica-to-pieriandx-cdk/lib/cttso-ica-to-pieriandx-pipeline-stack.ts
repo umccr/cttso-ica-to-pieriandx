@@ -14,6 +14,7 @@ interface CttsoIcaToPieriandxPipelineStackProps extends StackProps {
     github_branch_name: string
     aws_account_id: string
     aws_region: string
+    stack_suffix: string
 }
 
 
@@ -64,6 +65,7 @@ export class CttsoIcaToPieriandxPipelineStack extends Stack {
                     this.createBuildStage(
                         props.stack_prefix,
                         ECR_REPOSITORY_NAME,
+                        props.stack_suffix
                     )
                 ]
             }
@@ -75,17 +77,20 @@ export class CttsoIcaToPieriandxPipelineStack extends Stack {
                 account: props.aws_account_id,
                 region: props.aws_region
             },
-            stack_prefix: props.stack_prefix,
+            stack_prefix: props.stack_prefix
         })
 
         // Add the batch stage to the pipeline
         pipeline.addStage(
             batch_stage
         )
+
+        // TODO - Add the redcap / metadata lambda stage to the pipeline
+
     }
 
     // Create the build stage
-    private createBuildStage(stack_prefix: string, container_name: string): CodeBuildStep {
+    private createBuildStage(stack_prefix: string, container_name: string, stack_suffix: string): CodeBuildStep {
         // Set up role for codebuild
         const codebuild_role = new Role(
             this,
@@ -110,7 +115,8 @@ export class CttsoIcaToPieriandxPipelineStack extends Stack {
                 env: {
                     ["CONTAINER_REPO"]: `${this.account}.dkr.ecr.${this.region}.amazonaws.com`,
                     ["CONTAINER_NAME"]: container_name,
-                    ["REGION"]: this.region
+                    ["REGION"]: this.region,
+                    ["STACK_SUFFIX"]: stack_suffix
                 },
                 role: codebuild_role
             }
