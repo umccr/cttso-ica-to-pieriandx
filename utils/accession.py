@@ -11,6 +11,8 @@ import gzip
 import requests
 import json
 import time
+import re
+from requests import Response
 
 from utils.logging import get_logger
 from dateutil.parser import parse as date_parser
@@ -78,13 +80,11 @@ def get_cases_df() -> pd.DataFrame:
             raise ListCasesError
 
         # Attempt to get cases
-        response = pyriandx_client._get_api(endpoint=f"/case")
+        response: Response = pyriandx_client._get_api(endpoint=f"/case")
 
         logger.debug("Printing response")
-        if not response.status_code == 200:
-            logger.warning(f"Received code {response.status_code} and {response.content} trying "
-                           f"to get cases")
-            logger.warning(f"Trying again - attempt {iter_count}")
+        if response is None:
+            logger.warning(f"Trying again to get cases - attempt {iter_count}")
             time.sleep(LIST_CASES_RETRY_TIME)
         else:
             break
@@ -148,7 +148,27 @@ def get_case(case_id: str) -> Dict:
     pyriandx_client = get_pieriandx_client()
 
     logger.debug(f"Getting case object case {case_id}")
-    return pyriandx_client._get_api(endpoint=f"/case/{case_id}")
+    iter_count = 0
+
+    while True:
+        # Add iter_count
+        iter_count += 1
+
+        if iter_count >= MAX_ATTEMPTS_GET_CASES:
+            logger.error(f"Tried to get all cases {str(MAX_ATTEMPTS_GET_CASES)} times and failed")
+            raise ListCasesError
+
+        # Attempt to get cases
+        response: Optional[Dict] = pyriandx_client._get_api(endpoint=f"/case/{case_id}")
+
+        logger.debug("Printing response")
+        if response is None:
+            logger.warning(f"Trying again to get cases - attempt {iter_count}")
+            time.sleep(LIST_CASES_RETRY_TIME)
+        else:
+            break
+
+    return response
 
 
 def get_report_ids_by_case_id(case_id) -> Optional[List[Dict]]:
@@ -407,7 +427,11 @@ def sanitise_data_frame(input_df: pd.DataFrame) -> pd.DataFrame:
             input_df[key].fillna(value, inplace=True)
 
     # Coerce to 'lower' for our enum types
-    input_df["sample_type"] = input_df["sample_type"].apply(lambda x: SampleType(x.lower()))
+    # Coerce patient care sample to patientcare
+    input_df["sample_type"] = input_df["sample_type"].apply(lambda x:
+                                                            SampleType(
+                                                                re.sub(r"sample$", "", x.lower().replace(" ", ""))
+                                                            ))
     input_df["ethnicity"] = input_df["ethnicity"].apply(lambda x: Ethnicity(x.lower()))
     input_df["race"] = input_df["race"].apply(lambda x: Race(x.lower()))
     input_df["gender"] = input_df["gender"].apply(lambda x: Gender(x.lower()))
@@ -484,7 +508,7 @@ def sanitise_data_frame(input_df: pd.DataFrame) -> pd.DataFrame:
         axis="columns"
     )
     input_df["mrn"] = input_df.apply(
-        lambda x: x.mrns
+        lambda x: x.mrn
         if hasattr(x, "mrn")
         else pd.NA,
         axis="columns"
@@ -495,9 +519,9 @@ def sanitise_data_frame(input_df: pd.DataFrame) -> pd.DataFrame:
         else pd.NA,
         axis="columns"
     )
-    input_df["institution"] = input_df.apply(
-        lambda x: x.institution
-        if hasattr(x, "institution")
+    input_df["facility"] = input_df.apply(
+        lambda x: x.facility
+        if hasattr(x, "facility")
         else pd.NA,
         axis="columns"
     )
@@ -521,21 +545,29 @@ def sanitise_data_frame(input_df: pd.DataFrame) -> pd.DataFrame:
                 "first_name": x.get("requesting_physicians_first_name", None),
                 "last_name": x.get("requesting_physicians_last_name", None)
             }
-        ]
+        ],
+        axis="columns"
     )
 
     # Coerce dates to date objects
-    for date_column in ["date_accessioned", "date_received", "date_collected"]:
+    for date_column in ["date_accessioned", "date_received", "date_collected", "date_of_birth"]:
+        # Don't care if not here
+        if date_column not in input_df.columns:
+            continue
         # Get the input df date column as a utc date object
         input_df[date_column] = input_df[date_column].apply(
             lambda x: date_parser(x).
                       replace(tzinfo=timezone.utc).
                       astimezone(pytz.utc).replace(microsecond=0)
+                      if not pd.isnull(x)
+                      else x
         )
 
     # Confirm dates are not later than now
     current_datetime = datetime.utcnow().astimezone(pytz.utc)
-    for date_column in ["date_accessioned", "date_received", "date_collected"]:
+    for date_column in ["date_accessioned", "date_received", "date_collected", "date_of_birth"]:
+        if date_column not in input_df.columns:
+            continue
         for date_time_obj in input_df[date_column]:
             if date_time_obj > current_datetime:
                 logger.error(f"Got date {date_time_obj} which is in the future")

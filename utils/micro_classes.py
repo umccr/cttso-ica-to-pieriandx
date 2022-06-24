@@ -107,19 +107,27 @@ class MedicalFacility:
     """
     A Medical facility has two objects, facility and hospital number
     """
-    def __init__(self, facility: Optional[str] = None, hospital_number: Optional[int] = None):
+    def __init__(self, facility: Optional[str] = None, hospital_number: Optional[str] = None):
         self.facility: str = facility
-        self.hospital_number: int = hospital_number
+        self.hospital_number: str = hospital_number
 
     def to_dict(self):
         """
         Return dictionary
         :return:
         """
-        return {
+        output_dict = {
             "facility": self.facility,
             "hospitalNumber": self.hospital_number
         }
+
+        # Remove unspecified items
+        for key, item in output_dict.copy().items():
+            if pd.isna(item):
+                output_dict.pop(key)
+
+        # Return output dict
+        return output_dict
 
     @classmethod
     def from_dict(cls, medical_facility_dict: Dict):

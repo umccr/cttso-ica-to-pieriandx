@@ -12,6 +12,8 @@ from typing import Dict, Optional, List
 import pandas as pd
 import time
 from datetime import datetime
+from requests import Response
+import json
 
 from utils.enums import Ethnicity, Race, Gender, SampleType
 from utils.errors import RunNotFoundError, \
@@ -180,7 +182,10 @@ class IdentifiedSpecimen(Specimen):
             date_of_birth=specimen_dict.get("date_of_birth", None),
             first_name=specimen_dict.get("first_name", None),
             last_name=specimen_dict.get("last_name", None),
-            medical_record_numbers=[MedicalRecordNumber(mrn) for mrn in specimen_dict.get("medical_record_numbers", None)]
+            medical_record_numbers=[
+                MedicalRecordNumber.from_dict(mrn)
+                for mrn in specimen_dict.get("medical_record_numbers", None)
+            ]
         )
 
     def to_dict(self) -> Dict:
@@ -200,10 +205,13 @@ class IdentifiedSpecimen(Specimen):
             "race": self.race.value,
             "type": self.specimen_type.to_dict(),
             # De-identified specific fields
-            "date_of_birth": self.date_of_birth,
-            "first_name": self.first_name,
-            "last_name": self.last_name,
-            "medical_record_numbers": [mrn.to_dict() for mrn in self.medical_record_numbers]
+            "dateOfBirth": str(self.date_of_birth.date()),
+            "firstName": self.first_name,
+            "lastName": self.last_name,
+            "medicalRecordNumbers": [
+                mrn.to_dict()
+                for mrn in self.medical_record_numbers
+            ]
         }
 
 
@@ -287,8 +295,8 @@ class PierianDXSequenceRun:
             logger.debug(f"Creating sequencing run {self.run_dir} with attempt {str(iter_count)}")
 
             # Call end point
-            response = pyriandx_client._post_api(endpoint="/sequencerRun",
-                                                 data=data).json()
+            response: Response = pyriandx_client._post_api(endpoint="/sequencerRun",
+                                                           data=data)
 
             logger.debug("Printing response")
             if not response.status_code == 200:
@@ -297,10 +305,11 @@ class PierianDXSequenceRun:
                 logger.warning(f"Trying upload again - attempt {iter_count}")
                 time.sleep(RUN_CREATION_RETRY_TIME)
             else:
+                response_json: Dict = response.json()
                 break
 
         # Get the id
-        self.run_id = response.get("id")
+        self.run_id = response_json.get("id")
 
     def get_run_creation_request_data(self):
         """
@@ -473,7 +482,7 @@ class Case:
         pyriandx_client = get_pieriandx_client()
 
         # Debug logger
-        logger.debug(f"Launching the case creation data endpoint with following data inputs {data}")
+        logger.debug(f"Launching the case creation data endpoint with following data inputs {json.dumps(data)}")
 
         # Create the case and get the response
         iter_count = 0
@@ -488,19 +497,21 @@ class Case:
             logger.debug(f"Creating case {self.case_accession_number} with attempt {str(iter_count)}")
 
             # Generate response
-            response = pyriandx_client._post_api(endpoint="/case", data=data).json()
+            response: Response = pyriandx_client._post_api(endpoint="/case", data=data)
 
             logger.debug("Printing response")
             if not response.status_code == 200:
+                print(response)
                 logger.warning(f"Received code {response.status_code} and {response.content} trying "
                                f"to create case {self.case_accession_number}")
                 logger.warning(f"Trying case creation again - attempt {iter_count}")
                 time.sleep(CASE_CREATION_RETRY_TIME)
             else:
+                response_json: Dict = response.json()
                 break
 
         # Get the id
-        self.case_id = response.get("id")
+        self.case_id = response_json.get("id")
 
     def add_sample_id_to_specimen(self, sample_id):
         """
@@ -610,8 +621,8 @@ class Case:
                 raise JobCreationError
 
             # Call end point
-            response = pyriandx_client._post_api(endpoint=f"/case/{self.case_id}/informaticsJobs",
-                                                 data=data).json()
+            response: Response = pyriandx_client._post_api(endpoint=f"/case/{self.case_id}/informaticsJobs",
+                                                 data=data)
 
             logger.debug("Printing response")
             if not response.status_code == 200:
@@ -620,10 +631,11 @@ class Case:
                 logger.warning(f"Trying job creation again - attempt {iter_count}")
                 time.sleep(JOB_CREATION_RETRY_TIME)
             else:
+                response_json: Dict = response.json()
                 break
 
         # Get the id
-        self.informatics_job_id = response.get("jobId")
+        self.informatics_job_id = response_json.get("jobId")
 
         logger.debug(f"Created informatics job for case {self.case_id} with "
                      f"data {data} and retrieved job id {str(self.informatics_job_id)}")
@@ -661,8 +673,8 @@ class Case:
                 }
 
                 # Call end point
-                response = pyriandx_client._post_api(endpoint=f"/case/{self.case_id}/caseFiles/{file_name.name}/",
-                                                     files=file_dict)
+                response: Response = pyriandx_client._post_api(endpoint=f"/case/{self.case_id}/caseFiles/{file_name.name}/",
+                                                               files=file_dict)
 
                 logger.debug("Printing response")
                 if not response.status_code == 200:
@@ -745,7 +757,10 @@ class IdentifiedCase(Case):
             "disease": self.disease.to_dict(),
             "identified": self.identified,
             "indication": self.indication,
-            "physicians": self.requesting_physicians,
+            "physicians": [
+                physician.to_dict()
+                for physician in self.requesting_physicians
+            ],
             "panelName": PANEL_NAME,
             "sampleType": self.sample_type.value,
             "specimens": [
@@ -766,7 +781,7 @@ class IdentifiedCase(Case):
                    disease=case_dict.get("disease_obj"),
                    sample_type=SampleType(case_dict.get("sample_type")),
                    requesting_physicians=[Physician.from_dict(physician)
-                                          for physician in case_dict.get("physicians")],
+                                          for physician in case_dict.get("requesting_physicians")],
                    # Still need to load this
                    specimen=IdentifiedSpecimen.from_dict(case_dict),
                    indication=case_dict.get("indication"))

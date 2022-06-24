@@ -32,14 +32,18 @@ print_help(){
         Usage: cttso-ica-to-pieriandx-wrapper.sh (--ica-workflow-run-id wfr....)
                                                  (--accession-json-str {'accession_name': ...})
                                                  (--sample-name SBJ0000_L21000000)
+                                                 [--dryrun]
+                                                 [--verbose]
 
         Description:
-          Run cttso-ica-to-pieriandx through docker
+          Run cttso-ica-to-pieriandx in docker
 
         Options:
             --ica-workflow-run-id:             Required: The ica workflow run id for a given sample
             --accession-json-base64-str:       Required: The accession information json as a base64 string
             --sample-name:                     Required: The name of the sample (used to create the tempdir)
+            --dryrun:                          Optional: If set, adds --dryrun parameter to pieriandx command
+            --verbose:                         Optional: Turn on debugging
 
         Requirements:
           * docker
@@ -66,6 +70,8 @@ print_help(){
 ica_workflow_run_id=""
 accession_json_base64_str=""
 sample_name=""
+dryrun=""
+verbose=""
 
 # Get args from command line
 while [ $# -gt 0 ]; do
@@ -81,6 +87,12 @@ while [ $# -gt 0 ]; do
     --sample-name)
       sample_name="$2"
       shift 1
+      ;;
+    --dryrun)
+      dryrun="--dryrun"
+      ;;
+    --verbose)
+      verbose="--verbose"
       ;;
     -h | --help)
       print_help
@@ -166,7 +178,9 @@ export PIERIANDX_USER_PASSWORD
   # Run the python script
   cttso-ica-to-pieriandx.py \
     --ica-workflow-run-ids "${ica_workflow_run_id}" \
-    --accession-json "${accession_json}"
+    --accession-json "${accession_json}" \
+    "${dryrun}" \
+    "${verbose}"
 )
 
 echo_stderr "Cleaning up..."

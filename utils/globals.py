@@ -14,6 +14,7 @@ from utils.enums import Gender, Ethnicity, Race
 MANDATORY_INPUT_COLUMNS = [
     "sample_type",
     #  "disease",  Removed since we check for disease_name too
+    "indication",
     "accession_number",
     "external_specimen_id",
     "date_accessioned",
@@ -32,7 +33,6 @@ MANDATORY_INPUT_COLUMNS_FOR_IDENTIFIED_SAMPLES = [
     "last_name",
     "mrn",
     "hospital_number",
-    "institution",
     "requesting_physicians_first_name",
     "requesting_physicians_last_name"
 ]
