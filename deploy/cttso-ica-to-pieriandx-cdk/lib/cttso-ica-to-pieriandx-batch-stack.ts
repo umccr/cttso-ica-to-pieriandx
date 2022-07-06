@@ -125,6 +125,19 @@ export class CttsoIcaToPieriandxBatchStack extends Stack {
             }
         )
 
+        // Add portal access to batch run policy
+        batch_instance_role.addToPolicy(
+            new PolicyStatement({
+                    actions: [
+                        "execute-api:Invoke"
+                    ],
+                    resources: [
+                        "*"
+                    ]
+                }
+            )
+        )
+
         // Turn the instance role into an Instance Profile
         const batch_instance_profile = new CfnInstanceProfile(
             this,

@@ -59,7 +59,7 @@ ICA_WES_CTTSO_RUN_NAME_REGEX = re.compile(r"umccr__automated__tso_ctdna_tumor_on
 ICA_WES_CTTSO_RUN_NAME_REGEX_GROUPS = {
     "subject": 1,
     "library": 2,
-    "date_stamp": 3,
+    "portal_run_id": 3,
 }
 
 ICA_WES_MAX_PAGE_SIZE = 1000
@@ -106,6 +106,10 @@ RUN_CREATION_RETRY_TIME = 20
 JOB_CREATION_RETRY_TIME = 20
 LIST_CASES_RETRY_TIME = 20
 
+#########################
+# RunInfo.xml
+#########################
+RUN_INFO_XML_REGEX = re.compile(r"gds:/bssh\.\S+/Runs/([\w+|_]+)\.\S+/RunInfo\.xml")
 
 #################
 # OUTPUT GLOBALS

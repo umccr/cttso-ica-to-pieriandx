@@ -17,6 +17,7 @@ from libica.openapi.libwes import WorkflowRun
 
 from utils.classes import Case, PierianDXSequenceRun
 from utils.logging import set_basic_logger
+from utils.portal import get_run_name_from_portal_run_id
 from logging import DEBUG, INFO
 
 import sys
@@ -103,8 +104,9 @@ def main():
         case(dryrun=args.dryrun)
 
         # Update the run name to include the runs flowcell id (from the ica workflow object)
-        run_flowcell_id = ICA_WES_CTTSO_RUN_NAME_REGEX.match(ica_workflow_run_obj.name).\
-            group(ICA_WES_CTTSO_RUN_NAME_REGEX_GROUPS.get("date_stamp"))
+        portal_run_id: str = ICA_WES_CTTSO_RUN_NAME_REGEX.match(ica_workflow_run_obj.name).\
+            group(ICA_WES_CTTSO_RUN_NAME_REGEX_GROUPS.get("portal_run_id"))
+        run_flowcell_id: str = get_run_name_from_portal_run_id(portal_run_id)
         run.rename_run(new_run_name=f"{case.case_accession_number}_{run_flowcell_id}_{run.get_timestamp()}")
 
         # Create the run in pierian
