@@ -22,6 +22,9 @@ export const PROD_STACK_SUFFIX: string = "prod"
 
 // Redcap connection things
 export const REDCAP_LAMBDA_FUNCTION_SSM_KEY: string = "redcap-apis-lambda-function"
+export const SSM_REDCAP_LAMBDA_FUNCTION_ARN_VALUE: string = "redcap-to-pieriandx-lambda-function"
+export const SSM_PIERIANDX_ENV_VARS_PATH: string = "/cdk/cttso-ica-to-pieriandx/env_vars/"
+export const SECRETS_MANAGER_PIERIANDX_PATH: string = "PierianDx/UserPassword"
 
 // Output things
 export const SSM_LAMBDA_FUNCTION_ARN_VALUE: string = "cttso-ica-to-pieriandx-lambda-function"

@@ -1,0 +1,10 @@
+aws_requests_auth==0.4.3
+boto3==1.24.22
+botocore==1.27.22
+mypy_boto3_lambda==1.24.0
+mypy_boto3_secretsmanager==1.24.11.post3
+mypy_boto3_ssm==1.24.0
+pandas==1.4.3
+pyriandx==0.2.0
+pytz==2022.1
+requests==2.25.1

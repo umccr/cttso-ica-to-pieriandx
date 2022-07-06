@@ -7,6 +7,7 @@ import {ManagedPolicy, PolicyStatement, Role, ServicePrincipal} from "aws-cdk-li
 import {CttsoIcaToPieriandxBatchStage} from "./cttso-ica-to-pieriandx-batch-stage"
 import { LinuxBuildImage } from "aws-cdk-lib/aws-codebuild";
 import { CodeBuildStep } from "aws-cdk-lib/pipelines";
+import {CttsoIcaToPieriandxRedcapLambdaStage} from "./cttso-ica-to-pieriandx-redcap-lambda-stage";
 
 
 interface CttsoIcaToPieriandxPipelineStackProps extends StackProps {
@@ -94,7 +95,19 @@ export class CttsoIcaToPieriandxPipelineStack extends Stack {
             batch_stage
         )
 
-        // TODO - Add the redcap / metadata lambda stage to the pipeline
+        const redcap_lambda_stage = new CttsoIcaToPieriandxRedcapLambdaStage(this, props.stack_prefix + "-RedCapLambdaStage", {
+            stack_prefix: props.stack_prefix,
+            env: {
+                account: props.aws_account_id,
+                region: props.aws_region
+            },
+            stack_suffix: props.stack_suffix
+        })
+
+        // Add the batch stage to the pipeline
+        pipeline.addStage(
+            redcap_lambda_stage
+        )
 
     }
 
