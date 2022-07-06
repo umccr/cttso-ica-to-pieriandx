@@ -97,7 +97,7 @@ export class CttsoIcaToPieriandxRedcapLambdaStack extends Stack {
                         "secretsmanager:GetSecretValue"
                     ],
                     resources: [
-                        `${pieriandx_user_password_arn}*`
+                        `${pieriandx_user_password_arn}-*`
                     ]
                 }
             )

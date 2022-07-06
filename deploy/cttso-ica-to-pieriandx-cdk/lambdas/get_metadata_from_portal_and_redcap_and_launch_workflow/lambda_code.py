@@ -113,7 +113,6 @@ WFR_NAME_REGEX = re.compile(
 MAX_ATTEMPTS_GET_CASES = 50
 LIST_CASES_RETRY_TIME = 1
 
-
 CURRENT_TIME = datetime.datetime.utcnow()
 AUS_TIMEZONE = pytz.timezone("Australia/Melbourne")
 
@@ -127,8 +126,8 @@ def change_case(column_name: str) -> str:
     :return:
     """
     return ''.join(['_' + i.lower() if i.isupper()
-                    else i for i in column_name]).lstrip('_').\
-        replace("(", "").replace(")", "").\
+                    else i for i in column_name]).lstrip('_'). \
+        replace("(", "").replace(")", ""). \
         replace("/", "_per_")
 
 
@@ -161,12 +160,21 @@ def get_boto3_secretsmanager_client() -> Union[SecretsManagerClient, BaseClient]
     return boto3.client("secretsmanager")
 
 
-def get_redcap_arn() -> str:
+def get_redcap_lambda_function_arn() -> str:
     ssm_client: SSMClient = get_boto3_ssm_client()
 
     return ssm_client.get_parameter(
         Name=REDCAP_APIS_FUNCTION_ARN_SSM_PARAMETER
     ).get("Parameter").get("Value")
+
+
+def get_redcap_project_name() -> str:
+    ssm_client: SSMClient = get_boto3_ssm_client()
+
+    redcap_project_ssm_parameter_obj: Dict = ssm_client.get_parameter(Name=REDCAP_PROJECT_NAME_SSM_PARAMETER)
+    redcap_project_name: str = redcap_project_ssm_parameter_obj.get("Parameter").get("Value")
+
+    return redcap_project_name
 
 
 def get_portal_base_url() -> str:
@@ -201,15 +209,12 @@ def get_info_from_redcap(subject_id: str, library_id: str,
 
     filter_logic = f"[id_sbj] = \"{subject_id}\" && [libraryid] = \"{library_id}\""
 
-    redcap_project_ssm_parameter_obj: Dict = ssm_client.get_parameter(Name=REDCAP_PROJECT_NAME_SSM_PARAMETER)
-    redcap_project_name: str = redcap_project_ssm_parameter_obj.get("Parameter").get("Value")
-
     lambda_dict: Dict = lambda_client.invoke(
-        FunctionName=get_redcap_arn(),
+        FunctionName=get_redcap_lambda_function_arn(),
         InvocationType="RequestResponse",
         Payload=json.dumps(
             {
-                "redcapProjectName": redcap_project_name,
+                "redcapProjectName": get_redcap_project_name(),
                 "queryStringParameters": {
                     "filter_logic": filter_logic,
                     "fields": fields,
@@ -279,18 +284,17 @@ def get_pieriandx_env_vars() -> Tuple:
         # Already here!
         output_dict["PIERIANDX_USER_PASSWORD"] = os.environ["PIERIANDX_USER_PASSWORD"]
     else:
+        # Get the secrets manager client
+        secrets_manager_client: SecretsManagerClient = get_boto3_secretsmanager_client()
+        response = secrets_manager_client.get_secret_value(
+            SecretId=str(PIERIANDX_PASSWORD_SECRETS_PATH)
+        )
+        secrets_json = json.loads(response.get("SecretString"))
+        if PIERIANDX_PASSWORD_SECRETS_KEY not in secrets_json.keys():
+            logger.error(f"Could not find secrets key in {PIERIANDX_PASSWORD_SECRETS_PATH}")
+            sys.exit(1)
 
-      # Get the secrets manager client
-      secrets_manager_client: SecretsManagerClient = get_boto3_secretsmanager_client()
-      response = secrets_manager_client.get_secret_value(
-          SecretId=str(PIERIANDX_PASSWORD_SECRETS_PATH)
-      )
-      secrets_json = json.loads(response.get("SecretString"))
-      if PIERIANDX_PASSWORD_SECRETS_KEY not in secrets_json.keys():
-          logger.error(f"Could not find secrets key in {PIERIANDX_PASSWORD_SECRETS_PATH}")
-          sys.exit(1)
-
-      output_dict["PIERIANDX_USER_PASSWORD"] = secrets_json[PIERIANDX_PASSWORD_SECRETS_KEY]
+        output_dict["PIERIANDX_USER_PASSWORD"] = secrets_json[PIERIANDX_PASSWORD_SECRETS_KEY]
 
     return (
         output_dict.get("PIERIANDX_USER_EMAIL"),
@@ -353,13 +357,17 @@ def get_cttso_ica_to_pieriandx_lambda_function_arn() -> str:
 
     # Get the function dict
     cttso_ica_to_pieriandx_lambda_function_dict_parameter: Dict
-    if (cttso_ica_to_pieriandx_lambda_function_dict_parameter := cttso_ica_to_pieriandx_lambda_function_dict.get("Parameter", None)) is None:
+    if (cttso_ica_to_pieriandx_lambda_function_dict_parameter := cttso_ica_to_pieriandx_lambda_function_dict.get(
+            "Parameter", None)) is None:
         logger.error("Could not get Parameter key from ssm value ")
         sys.exit(1)
     cttso_ica_to_pieriandx_lambda_function_dict_parameter_value: str
 
     # Get the parameter value
-    if (cttso_ica_to_pieriandx_lambda_function_dict_parameter_value := cttso_ica_to_pieriandx_lambda_function_dict_parameter.get("Value", None)) is None:
+    if (
+            cttso_ica_to_pieriandx_lambda_function_dict_parameter_value :=
+            cttso_ica_to_pieriandx_lambda_function_dict_parameter.get("Value", None)
+       ) is None:
         logger.error("Could not get value key from ssm parameter")
         sys.exit(1)
 
@@ -488,12 +496,12 @@ async def get_metadata_information_from_redcap(subject_id: str, library_id: str)
     # Filter redcap label df
     redcap_label_df = redcap_label_df[
         [
-          "sample_type",
-          "disease_name",
-          "gender",
-          "subject_id",
-          "library_id",
-          "pierian_metadata_complete"
+            "sample_type",
+            "disease_name",
+            "gender",
+            "subject_id",
+            "library_id",
+            "pierian_metadata_complete"
         ]
     ]
 
@@ -800,9 +808,9 @@ def lambda_handler(event, context):
     merged_df["date_of_birth"] = str(CURRENT_TIME.astimezone(AUS_TIMEZONE).date())
     merged_df["first_name"] = merged_df.apply(
         lambda x: "John"
-                  if x.gender.lower() == "male"
-                  else
-                  "Jane",
+        if x.gender.lower() == "male"
+        else
+        "Jane",
         axis="columns"
     )
     merged_df["last_name"] = "Doe"
