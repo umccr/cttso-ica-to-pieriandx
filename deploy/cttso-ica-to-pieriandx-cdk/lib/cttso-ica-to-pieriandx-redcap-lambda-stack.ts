@@ -125,19 +125,33 @@ export class CttsoIcaToPieriandxRedcapLambdaStack extends Stack {
 
         // Add redcap lambda execution to lambda policy
         // Step 1 is get the resource from SSM
-        const redcap_lambda_function_arn = StringParameter.fromStringParameterName(
+        const redcap_lambda_function_ssm = StringParameter.fromStringParameterName(
             this,
             `${props.stack_prefix}-redcap-lambda-function-arn`,
             REDCAP_LAMBDA_FUNCTION_SSM_KEY
-        ).stringValue
+        )
+        // Step 1a add ssm to policy
+        lambda_function.addToRolePolicy(
+            new PolicyStatement({
+                    actions: [
+                        "ssm:GetParameter"
+                    ],
+                    resources: [
+                        redcap_lambda_function_ssm.parameterArn
+                    ]
+                }
+            )
+        )
 
+
+        // Add Invoke Function permission arn
         lambda_function.addToRolePolicy(
             new PolicyStatement({
                 actions: [
                     "lambda:InvokeFunction"
                 ],
                 resources: [
-                    redcap_lambda_function_arn
+                    redcap_lambda_function_ssm.stringValue
                 ]
             })
         )
