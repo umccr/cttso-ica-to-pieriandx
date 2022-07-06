@@ -64,6 +64,7 @@ REDCAP_LABEL_FIELDS: List = [
     "patient_gender",
     "id_sbj",
     "libraryid"
+    "pierian_metadata_complete",
 ]
 
 PORTAL_FIELDS: List = [
@@ -491,7 +492,8 @@ async def get_metadata_information_from_redcap(subject_id: str, library_id: str)
           "disease_name",
           "gender",
           "subject_id",
-          "library_id"
+          "library_id",
+          "pierian_metadata_complete"
         ]
     ]
 
@@ -740,6 +742,14 @@ def lambda_handler(event, context):
         redcap_df=redcap_df,
         portal_df=portal_df
     )
+
+    # Step 5a - check if pierian_metadata_complete value is set to 'complete' for this redcap dataframe
+    merged_df = merged_df.query("pierian_metadata_complete=='Complete'")
+
+    # Check length
+    if merged_df.shape[0] == 0:
+        logger.error("PierianDx metadata was not 'Complete', exiting")
+        sys.exit(1)
 
     # Step 6 - check if case accession number is defined
     case_accession_number: str

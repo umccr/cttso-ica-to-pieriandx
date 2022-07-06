@@ -5,6 +5,7 @@ import { Construct } from 'constructs';
 import { DockerImageFunction, DockerImageCode } from "aws-cdk-lib/aws-lambda";
 import { StringParameter } from "aws-cdk-lib/aws-ssm";
 import { Role, ManagedPolicy, ServicePrincipal, PolicyStatement } from "aws-cdk-lib/aws-iam";
+import { Secret } from "aws-cdk-lib/aws-secretsmanager";
 import {
     DATA_PORTAL_API_ID_SSM_PARAMETER,
     REDCAP_LAMBDA_FUNCTION_SSM_KEY,
@@ -84,6 +85,12 @@ export class CttsoIcaToPieriandxRedcapLambdaStack extends Stack {
         )
 
         // Add pieriandx secrets access to lambda policy
+        const pieriandx_user_password_arn = Secret.fromSecretNameV2(
+            this,
+            `${props.stack_prefix}-pieriandx-user-password-arn`,
+            SECRETS_MANAGER_PIERIANDX_PATH
+        ).secretArn
+
         const secretsmanager_access_arn_as_array = [
             "arn", "aws", "secretsmanager",
             env.region, env.account, "secret",
@@ -94,7 +101,7 @@ export class CttsoIcaToPieriandxRedcapLambdaStack extends Stack {
                         "secretsmanager:GetSecretValue"
                     ],
                     resources: [
-                        secretsmanager_access_arn_as_array.join(":")
+                        pieriandx_user_password_arn
                     ]
                 }
             )
