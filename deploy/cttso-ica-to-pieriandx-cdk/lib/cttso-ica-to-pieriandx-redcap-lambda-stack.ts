@@ -89,7 +89,7 @@ export class CttsoIcaToPieriandxRedcapLambdaStack extends Stack {
             this,
             `${props.stack_prefix}-pieriandx-user-password-arn`,
             SECRETS_MANAGER_PIERIANDX_PATH
-        ).secretFullArn
+        ).secretArn
 
         lambda_function.addToRolePolicy(
             new PolicyStatement({
@@ -97,7 +97,7 @@ export class CttsoIcaToPieriandxRedcapLambdaStack extends Stack {
                         "secretsmanager:GetSecretValue"
                     ],
                     resources: [
-                        pieriandx_user_password_arn
+                        `${pieriandx_user_password_arn}*`
                     ]
                 }
             )
