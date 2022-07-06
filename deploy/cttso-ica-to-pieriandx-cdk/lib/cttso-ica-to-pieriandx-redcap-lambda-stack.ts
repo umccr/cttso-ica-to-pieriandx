@@ -6,6 +6,7 @@ import { DockerImageFunction, DockerImageCode } from "aws-cdk-lib/aws-lambda";
 import { StringParameter } from "aws-cdk-lib/aws-ssm";
 import { Role, ManagedPolicy, ServicePrincipal, PolicyStatement } from "aws-cdk-lib/aws-iam";
 import {
+    DATA_PORTAL_API_ID_SSM_PARAMETER,
     REDCAP_LAMBDA_FUNCTION_SSM_KEY,
     SECRETS_MANAGER_PIERIANDX_PATH,
     SSM_PIERIANDX_ENV_VARS_PATH,
@@ -67,7 +68,7 @@ export class CttsoIcaToPieriandxRedcapLambdaStack extends Stack {
         const pieriandx_vars_ssm_access_arn_as_array = [
             "arn", "aws", "ssm",
             env.region, env.account,
-            "parameter/" + SSM_PIERIANDX_ENV_VARS_PATH + "/*"
+            "parameter" + SSM_PIERIANDX_ENV_VARS_PATH + "/*"
         ]
 
         lambda_function.addToRolePolicy(
@@ -99,6 +100,13 @@ export class CttsoIcaToPieriandxRedcapLambdaStack extends Stack {
             )
         )
 
+        // Get portal api id
+        const data_portal_id = StringParameter.fromStringParameterName(
+            this,
+            `${props.stack_prefix}-data-portal-api-id`,
+            DATA_PORTAL_API_ID_SSM_PARAMETER
+        ).stringValue
+
         // Add portal access to lambda policy
         lambda_function.addToRolePolicy(
             new PolicyStatement({
@@ -106,7 +114,7 @@ export class CttsoIcaToPieriandxRedcapLambdaStack extends Stack {
                         "execute-api:Invoke"
                     ],
                     resources: [
-                        "*"
+                        `arn:aws:execute-api:${env.region}:${env.account}:${data_portal_id}/*`
                     ]
                 }
             )

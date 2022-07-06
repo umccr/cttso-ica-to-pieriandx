@@ -19,11 +19,12 @@ export const GITHUB_PROD_BRANCH_NAME: string = "main"
 
 export const DEV_STACK_SUFFIX:  string = "dev"
 export const PROD_STACK_SUFFIX: string = "prod"
+export const DATA_PORTAL_API_ID_SSM_PARAMETER: string = "/data_portal/backend/api_id"
 
 // Redcap connection things
 export const REDCAP_LAMBDA_FUNCTION_SSM_KEY: string = "redcap-apis-lambda-function"
 export const SSM_REDCAP_LAMBDA_FUNCTION_ARN_VALUE: string = "redcap-to-pieriandx-lambda-function"
-export const SSM_PIERIANDX_ENV_VARS_PATH: string = "/cdk/cttso-ica-to-pieriandx/env_vars/"
+export const SSM_PIERIANDX_ENV_VARS_PATH: string = "/cdk/cttso-ica-to-pieriandx/env_vars"
 export const SECRETS_MANAGER_PIERIANDX_PATH: string = "PierianDx/UserPassword"
 
 // Output things

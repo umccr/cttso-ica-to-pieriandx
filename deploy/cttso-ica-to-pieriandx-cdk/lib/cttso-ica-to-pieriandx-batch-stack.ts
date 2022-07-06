@@ -36,7 +36,7 @@ import {
     REDCAP_LAMBDA_FUNCTION_SSM_KEY,
     AWS_BUILD_ACCOUNT_ID,
     AWS_REGION,
-    SSM_LAMBDA_FUNCTION_ARN_VALUE
+    SSM_LAMBDA_FUNCTION_ARN_VALUE, DATA_PORTAL_API_ID_SSM_PARAMETER
 } from "../constants";
 
 
@@ -131,6 +131,13 @@ export class CttsoIcaToPieriandxBatchStack extends Stack {
             }
         )
 
+        // Get portal api id
+        const data_portal_id = StringParameter.fromStringParameterName(
+            this,
+            `${props.stack_prefix}-data-portal-api-id`,
+            DATA_PORTAL_API_ID_SSM_PARAMETER
+        ).stringValue
+
         // Add portal access to batch run policy
         batch_instance_role.addToPolicy(
             new PolicyStatement({
@@ -138,7 +145,7 @@ export class CttsoIcaToPieriandxBatchStack extends Stack {
                         "execute-api:Invoke"
                     ],
                     resources: [
-                        "*"
+                        `arn:aws:execute-api:${env.region}:${env.account}:${data_portal_id}/*`
                     ]
                 }
             )
