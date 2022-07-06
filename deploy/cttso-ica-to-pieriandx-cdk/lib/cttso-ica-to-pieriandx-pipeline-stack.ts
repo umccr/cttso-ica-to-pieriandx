@@ -82,7 +82,7 @@ export class CttsoIcaToPieriandxPipelineStack extends Stack {
 
         // Generate the batch stage
         const batch_stage = new CttsoIcaToPieriandxBatchStage(this, props.stack_prefix + "-BatchStage", {
-            stack_prefix: props.stack_prefix,
+            stack_prefix: `${props.stack_prefix}-batch-stack`,
             env: {
                 account: props.aws_account_id,
                 region: props.aws_region
@@ -96,7 +96,7 @@ export class CttsoIcaToPieriandxPipelineStack extends Stack {
         )
 
         const redcap_lambda_stage = new CttsoIcaToPieriandxRedcapLambdaStage(this, props.stack_prefix + "-RedCapLambdaStage", {
-            stack_prefix: props.stack_prefix,
+            stack_prefix: `${props.stack_prefix}-redcap-lambda-stack`,
             env: {
                 account: props.aws_account_id,
                 region: props.aws_region
