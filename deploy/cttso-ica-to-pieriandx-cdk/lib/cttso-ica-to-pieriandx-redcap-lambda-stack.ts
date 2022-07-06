@@ -56,7 +56,7 @@ export class CttsoIcaToPieriandxRedcapLambdaStack extends Stack {
                 functionName: props.stack_prefix + "-lambda-function",
                 description: "redcap to cttso submission lambda function deployed using AWS CDK with Docker Image",
                 code: DockerImageCode.fromImageAsset(
-                    "./lambdas/get_metadata_from_portal_and_redcap_launch_workflow",
+                    "./lambdas/get_metadata_from_portal_and_redcap_and_launch_workflow",
                 ),
                 role: lambda_role,
                 timeout: Duration.seconds(300),
