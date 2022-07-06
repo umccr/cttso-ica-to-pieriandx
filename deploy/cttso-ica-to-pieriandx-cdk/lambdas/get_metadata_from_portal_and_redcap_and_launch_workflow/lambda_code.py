@@ -63,7 +63,7 @@ REDCAP_LABEL_FIELDS: List = [
     "disease",
     "patient_gender",
     "id_sbj",
-    "libraryid"
+    "libraryid",
     "pierian_metadata_complete",
 ]
 
