@@ -74,7 +74,7 @@ PORTAL_FIELDS: List = [
 ]
 
 REDCAP_APIS_FUNCTION_ARN_SSM_PARAMETER: str = "redcap-apis-lambda-function"
-REDCAP_PROJECT_NAME: str = "TinyCT"
+REDCAP_PROJECT_NAME_SSM_PARAMETER: str = "/cdk/cttso-ica-to-pieriandx/redcap_project_name"
 
 PIERIANDX_CDK_SSM_PATH: Path = Path("/cdk") / "cttso-ica-to-pieriandx" / "env_vars"
 PIERIANDX_CDK_SSM_LIST: List = [
@@ -200,12 +200,15 @@ def get_info_from_redcap(subject_id: str, library_id: str,
 
     filter_logic = f"[id_sbj] = \"{subject_id}\" && [libraryid] = \"{library_id}\""
 
+    redcap_project_ssm_parameter_obj: Dict = ssm_client.get_parameter(Name=REDCAP_PROJECT_NAME_SSM_PARAMETER)
+    redcap_project_name: str = redcap_project_ssm_parameter_obj.get("Parameter").get("Value")
+
     lambda_dict: Dict = lambda_client.invoke(
         FunctionName=get_redcap_arn(),
         InvocationType="RequestResponse",
         Payload=json.dumps(
             {
-                "redcapProjectName": REDCAP_PROJECT_NAME,
+                "redcapProjectName": redcap_project_name,
                 "queryStringParameters": {
                     "filter_logic": filter_logic,
                     "fields": fields,
