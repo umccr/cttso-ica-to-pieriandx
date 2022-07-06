@@ -10,7 +10,7 @@ import {
     DATA_PORTAL_API_ID_SSM_PARAMETER,
     REDCAP_LAMBDA_FUNCTION_SSM_KEY,
     SECRETS_MANAGER_PIERIANDX_PATH,
-    SSM_PIERIANDX_ENV_VARS_PATH,
+    SSM_PIERIANDX_PATH,
     SSM_REDCAP_LAMBDA_FUNCTION_ARN_VALUE
 } from "../constants";
 
@@ -69,7 +69,7 @@ export class CttsoIcaToPieriandxRedcapLambdaStack extends Stack {
         const pieriandx_vars_ssm_access_arn_as_array = [
             "arn", "aws", "ssm",
             env.region, env.account,
-            "parameter" + SSM_PIERIANDX_ENV_VARS_PATH + "/*"
+            "parameter" + SSM_PIERIANDX_PATH + "/*"
         ]
 
         lambda_function.addToRolePolicy(
@@ -130,7 +130,7 @@ export class CttsoIcaToPieriandxRedcapLambdaStack extends Stack {
             `${props.stack_prefix}-redcap-lambda-function-arn`,
             REDCAP_LAMBDA_FUNCTION_SSM_KEY
         )
-        // Step 1a add ssm to policy
+        // Step 1a add ssm to policy (although we get this value elsewhere anyway)
         lambda_function.addToRolePolicy(
             new PolicyStatement({
                     actions: [
@@ -142,8 +142,6 @@ export class CttsoIcaToPieriandxRedcapLambdaStack extends Stack {
                 }
             )
         )
-
-
         // Add Invoke Function permission arn
         lambda_function.addToRolePolicy(
             new PolicyStatement({
