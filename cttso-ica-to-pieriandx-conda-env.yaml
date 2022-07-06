@@ -11,3 +11,4 @@ dependencies:
       - libica==0.5.0
       - python-dateutil==2.8.2
       - wget==3.2
+      - aws_requests_auth
