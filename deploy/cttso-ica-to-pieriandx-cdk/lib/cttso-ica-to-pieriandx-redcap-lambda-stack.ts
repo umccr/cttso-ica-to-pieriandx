@@ -89,12 +89,8 @@ export class CttsoIcaToPieriandxRedcapLambdaStack extends Stack {
             this,
             `${props.stack_prefix}-pieriandx-user-password-arn`,
             SECRETS_MANAGER_PIERIANDX_PATH
-        ).secretArn
+        ).secretFullArn
 
-        const secretsmanager_access_arn_as_array = [
-            "arn", "aws", "secretsmanager",
-            env.region, env.account, "secret",
-            SECRETS_MANAGER_PIERIANDX_PATH ]
         lambda_function.addToRolePolicy(
             new PolicyStatement({
                     actions: [
