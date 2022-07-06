@@ -64,6 +64,10 @@ def lambda_handler(event, context):
         "ica_workflow_run_id": "wfr.dd235d749b6d4d2db63e36864febc341"
       }
     }
+
+    Additional parameters include:
+    "dryrun": bool (False)
+    "verbose": bool (False)
     """
     print(f"Received event: {event}")
 
@@ -154,8 +158,25 @@ def lambda_handler(event, context):
         print(f"containerOverrides: {container_overrides}")
 
         # Update container overrides to be a list of name, value pairs
-        container_overrides['environment'] = [{"name": key, "value": value}
-                                              for key, value in container_overrides['environment'].items()]
+        container_overrides['environment'] = [
+            {
+              "name": key,
+              "value": value
+            }
+            for key, value in container_overrides['environment'].items()
+        ]
+
+        # Set optional parameters
+        # Add --dryrun to parameter list if dryrun in parameter list
+        if parameters.get("dryrun", False):
+            parameters["dryrun"] = "--dryrun"
+        else:
+            _ = parameters.pop("dryrun", None)
+        # Add --verbose to parameter list if verbose in parameter list
+        if parameters.get("verbose", False):
+            parameters["verbose"] = "--verbose"
+        else:
+            _ = parameters.pop("verbose", None)
 
         # Submit job
         response = batch_client.submit_job(

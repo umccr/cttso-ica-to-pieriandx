@@ -63,23 +63,29 @@ export class CttsoIcaToPieriandxBatchStack extends Stack {
         const env = props.env
 
         // Get the base ami from ssm
-        const compute_env_ami = StringParameter.valueFromLookup(
+        const compute_env_ami = StringParameter.fromStringParameterName(
+                this,
+                `${props.stack_prefix}-compute-env-ami`,
+                "/cdk/cttso-ica-to-pieriandx/batch/ami"
+        ).stringValue
+
+        const docker_image_tag = StringParameter.fromStringParameterName(
             this,
-            "/cdk/cttso-ica-to-pieriandx/batch/ami"
-        )
+            `${props.stack_prefix}-docker-image-tag`,
+            "/cdk/cttso-ica-to-pieriandx/batch/docker-image-tag"
+        ).stringValue
 
         // Get the container repo
-        const container_registry: string = `${AWS_BUILD_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com`
-
+        const container_registry: string = `arn:aws:ecr:${AWS_REGION}:${AWS_BUILD_ACCOUNT_ID}:${ECR_REPOSITORY_NAME}`
 
         // Get the image repo
         const image_repo = ContainerImage.fromEcrRepository(
             Repository.fromRepositoryArn(
                 this,
-                "fromrepo",
-                `${container_registry}/${ECR_REPOSITORY_NAME}`
+                `${props.stack_prefix}-ecr-arn`,
+                container_registry
             ),
-            `latest-dev`
+            docker_image_tag
         )
 
         // Add batch service role
@@ -308,7 +314,11 @@ export class CttsoIcaToPieriandxBatchStack extends Stack {
             `${props.stack_prefix}-job-definition`,
             {
                 jobDefinitionName: `${props.stack_prefix}-job-definition`,
-                parameters: {},
+                parameters: {
+                    // Set optional parameters as false
+                    "dryrun": "",
+                    "verbose": ""
+                },
                 container: {
                     image: image_repo,
                     vcpus: 1,
@@ -317,7 +327,9 @@ export class CttsoIcaToPieriandxBatchStack extends Stack {
                     command: [
                         "/opt/container/cttso-ica-to-pieriandx-wrapper.sh",
                         "--ica-workflow-run-id", "Ref::ica_workflow_run_id",
-                        "--accession-json-base64-str", "Ref::accession_json_base64_str"
+                        "--accession-json-base64-str", "Ref::accession_json_base64_str",
+                        "Ref::dryrun",
+                        "Ref::verbose"
                     ],
                     mountPoints: [
                         {
@@ -377,26 +389,7 @@ export class CttsoIcaToPieriandxBatchStack extends Stack {
             })
         ))
 
-        // Get redcap lambda arn
-        const redcap_lambda_arn = StringParameter.valueFromLookup(
-            this,
-            REDCAP_LAMBDA_FUNCTION_SSM_KEY
-        )
-
-        // Add ability to call lambda function
-        lambda_role.addToPolicy(
-            new PolicyStatement({
-                    actions: [
-                        "lambda:InvokeFunction"
-                    ],
-                    resources: [
-                        redcap_lambda_arn
-                    ]
-                }
-            )
-        )
-
-        // Set up lambda function
+                // Set up lambda function
         const aws_lambda_function = new LambdaFunction(
             this,
             `${props.stack_prefix}-lambda-function`,
