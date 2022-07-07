@@ -33,8 +33,10 @@ from pathlib import Path
 import asyncio
 from urllib.parse import urlparse
 import pytz
+from concurrent.futures import ThreadPoolExecutor
 
 LOGGER_STYLE = "%(asctime)s - %(levelname)-8s - %(module)-25s - %(funcName)-40s : LineNo. %(lineno)-4d - %(message)s"
+MAX_SIM_TASKS = 4  # Number of simultaneous tasks
 
 # Set basic logger
 logger = logging.getLogger()
@@ -738,9 +740,15 @@ def lambda_handler(event, context):
     # Steps 1, 2, 3, and 4 all done asynchronously
     logger.info("Completing metadata requests asynchronously")
 
-    # Step 1 - Get all pieriandx case accession numbers
+    # Start event loop
     loop = asyncio.new_event_loop()
 
+    # Step number of simultaneous executions
+    loop.set_default_executor(ThreadPoolExecutor(max_workers=MAX_SIM_TASKS))
+
+    # Start tasks
+
+    # Step 1 - Get all pieriandx case accession numbers
     pieriandx_task = loop.create_task(
         get_existing_pieriandx_case_accession_numbers(),
 

@@ -20,6 +20,7 @@ export const GITHUB_PROD_BRANCH_NAME: string = "main"
 export const DEV_STACK_SUFFIX:  string = "dev"
 export const PROD_STACK_SUFFIX: string = "prod"
 export const DATA_PORTAL_API_ID_SSM_PARAMETER: string = "/data_portal/backend/api_id"
+export const DATA_PORTAL_API_DOMAIN_NAME_SSM_PARAMETER: string = "/data_portal/backend/api_domain_name"
 
 // Redcap connection things
 export const REDCAP_LAMBDA_FUNCTION_SSM_KEY: string = "redcap-apis-lambda-function"

@@ -7,7 +7,7 @@ import { StringParameter } from "aws-cdk-lib/aws-ssm";
 import { Role, ManagedPolicy, ServicePrincipal, PolicyStatement } from "aws-cdk-lib/aws-iam";
 import { Secret } from "aws-cdk-lib/aws-secretsmanager";
 import {
-    DATA_PORTAL_API_ID_SSM_PARAMETER,
+    DATA_PORTAL_API_ID_SSM_PARAMETER, DATA_PORTAL_API_DOMAIN_NAME_SSM_PARAMETER,
     REDCAP_LAMBDA_FUNCTION_SSM_KEY,
     SECRETS_MANAGER_PIERIANDX_PATH, SSM_LAMBDA_FUNCTION_ARN_VALUE,
     SSM_PIERIANDX_PATH,
@@ -83,6 +83,20 @@ export class CttsoIcaToPieriandxRedcapLambdaStack extends Stack {
                 }
             )
         )
+
+        // Get access to data portal api domain name ssm parameter
+        lambda_function.addToRolePolicy(
+            new PolicyStatement({
+                    actions: [
+                        "ssm:GetParameter"
+                    ],
+                    resources: [
+                        DATA_PORTAL_API_DOMAIN_NAME_SSM_PARAMETER
+                    ]
+                }
+            )
+        )
+
 
         // Add pieriandx secrets access to lambda policy
         const pieriandx_user_password_arn = Secret.fromSecretNameV2(
