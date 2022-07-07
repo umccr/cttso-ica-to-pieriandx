@@ -37,6 +37,7 @@ from concurrent.futures import ThreadPoolExecutor
 
 LOGGER_STYLE = "%(asctime)s - %(levelname)-8s - %(module)-25s - %(funcName)-40s : LineNo. %(lineno)-4d - %(message)s"
 MAX_SIM_TASKS = 4  # Number of simultaneous tasks
+SPECIMEN_TYPE = "122561005"
 
 # Set basic logger
 logger = logging.getLogger()
@@ -839,6 +840,7 @@ def lambda_handler(event, context):
             iter_int += 1
 
     # Set defaults
+    merged_df["specimen_type"] = SPECIMEN_TYPE
     merged_df["indication"] = "NA"  # Set indication to NA
     merged_df["hospital_number"] = HOSPITAL_NUMBER
     merged_df["accession_number"] = case_accession_number
