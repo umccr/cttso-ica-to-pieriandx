@@ -41,7 +41,7 @@ import {
     SSM_LAMBDA_FUNCTION_ARN_VALUE,
     DATA_PORTAL_API_ID_SSM_PARAMETER,
     SECRETS_MANAGER_PIERIANDX_PATH,
-    SECRETS_MANAGER_ICA_SECRETS_PATH, SSM_PIERIANDX_PATH
+    SECRETS_MANAGER_ICA_SECRETS_PATH, SSM_PIERIANDX_PATH, DATA_PORTAL_API_DOMAIN_NAME_SSM_PARAMETER
 } from "../constants";
 
 
@@ -188,6 +188,26 @@ export class CttsoIcaToPieriandxBatchStack extends Stack {
                     ],
                     resources: [
                         pieriandx_vars_ssm_access_arn_as_array.join(":")
+                    ]
+                }
+            )
+        )
+
+        // Get portal api id
+        const data_portal_api_domain_name_ssm_parameter_as_array = [
+            "arn", "aws", "ssm",
+            env.region, env.account,
+            "parameter" + DATA_PORTAL_API_DOMAIN_NAME_SSM_PARAMETER
+        ]
+
+        // Get access to data portal api domain name ssm parameter
+        batch_instance_role.addToPolicy(
+            new PolicyStatement({
+                    actions: [
+                        "ssm:GetParameter"
+                    ],
+                    resources: [
+                        data_portal_api_domain_name_ssm_parameter_as_array.join(":")
                     ]
                 }
             )
