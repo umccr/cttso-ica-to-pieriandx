@@ -84,6 +84,13 @@ export class CttsoIcaToPieriandxRedcapLambdaStack extends Stack {
             )
         )
 
+        // Get portal api id
+        const data_portal_api_domain_name_ssm_parameter_as_array = [
+            "arn", "aws", "ssm",
+            env.region, env.account,
+            "parameter" + DATA_PORTAL_API_DOMAIN_NAME_SSM_PARAMETER
+        ]
+
         // Get access to data portal api domain name ssm parameter
         lambda_function.addToRolePolicy(
             new PolicyStatement({
@@ -91,7 +98,7 @@ export class CttsoIcaToPieriandxRedcapLambdaStack extends Stack {
                         "ssm:GetParameter"
                     ],
                     resources: [
-                        DATA_PORTAL_API_DOMAIN_NAME_SSM_PARAMETER
+                        data_portal_api_domain_name_ssm_parameter_as_array.join(":")
                     ]
                 }
             )
