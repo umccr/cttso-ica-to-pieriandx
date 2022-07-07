@@ -9,7 +9,7 @@ Complete the following steps
 * Ensure that the case doesn't already exist in pieriandx
 * Launch the lambda that triggers batch
 """
-import datetime
+from datetime import datetime
 import requests
 import sys
 from base64 import b64encode
@@ -131,7 +131,7 @@ WFR_NAME_REGEX = re.compile(
 MAX_ATTEMPTS_GET_CASES = 50
 LIST_CASES_RETRY_TIME = 1
 
-CURRENT_TIME = datetime.datetime.utcnow()
+CURRENT_TIME = datetime.utcnow()
 AUS_TIMEZONE = pytz.timezone("Australia/Melbourne")
 
 HOSPITAL_NUMBER = 99
@@ -845,7 +845,7 @@ def lambda_handler(event, context):
     merged_df["indication"] = "NA"  # Set indication to NA
     merged_df["hospital_number"] = HOSPITAL_NUMBER
     merged_df["accession_number"] = case_accession_number
-    merged_df["date_accessioned"] = str(CURRENT_TIME.astimezone(AUS_TIMEZONE).date())
+    merged_df["date_accessioned"] = str(CURRENT_TIME.astimezone(AUS_TIMEZONE).strftime("%Y-%m-%dT%H:%M:%S%z"))
 
     # Rename columns
     logger.info("Rename external subject and external sample columns")
@@ -867,7 +867,7 @@ def lambda_handler(event, context):
             raise ValueError
 
     # Step 7a - make up the 'identified' values (date_of_birth / first_name / last_name)
-    merged_df["date_of_birth"] = str(CURRENT_TIME.astimezone(AUS_TIMEZONE).date())
+    merged_df["date_of_birth"] = str(CURRENT_TIME.date())
     merged_df["first_name"] = merged_df.apply(
         lambda x: "John"
         if x.gender.lower() == "male"
