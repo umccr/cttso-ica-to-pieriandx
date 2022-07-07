@@ -818,7 +818,7 @@ def lambda_handler(event, context):
     # Step 6 - check if case accession number is defined
     logger.info("Ensure that the case accession value does not already exist in PierianDx")
     case_accession_number: str
-    if (case_accession_number := event.get("case_accession_number", None)) is None:
+    if (case_accession_number := event.get("case_accession_number", None)) is not None:
         # Step 6.true.a - ensure it is of the syntax SBJID / LIB ID
         re_str: str = f"{subject_id}_{library_id}_" + r"\d{3}"
         if re.fullmatch(re_str, case_accession_number) is None:
