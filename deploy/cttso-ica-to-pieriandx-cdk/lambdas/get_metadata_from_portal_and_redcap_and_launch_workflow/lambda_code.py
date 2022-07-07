@@ -909,12 +909,13 @@ def lambda_handler(event, context):
         Payload=payload
     )
 
+    if not client_response.get("StatusCode") == 200:
+        logger.error(f"Bad exit code when retrieving response from "
+                     f"cttso-ica-to-pieriandx lambda client {client_response}")
+        sys.exit(1)
+
     response_payload: Dict = json.loads(client_response.get("Payload").read())
 
-    if not response_payload.get("statusCode") == 200:
-        logger.error(f"Bad exit code when retrieving response from "
-                     f"cttso-ica-to-pieriandx lambda client {response_payload}")
-        sys.exit(1)
     logger.info("Successfully launched and returned pieriandx submission lambda")
 
     response_body: List[Dict] = json.loads(response_payload.get("body"))
