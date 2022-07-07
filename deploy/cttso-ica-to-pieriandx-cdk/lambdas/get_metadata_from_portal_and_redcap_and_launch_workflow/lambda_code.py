@@ -918,11 +918,13 @@ def lambda_handler(event, context):
 
     logger.info("Successfully launched and returned pieriandx submission lambda")
 
-    response_body: List[Dict] = json.loads(response_payload.get("body"))
+    logger.info(f"Showing response payload keys {list(response_payload.keys())}")
 
-    if len(response_body) == 0:
-        logger.error(f"Could not pull the required information from redcap {response_payload}")
-        sys.exit(1)
+    # response_body: List[Dict] = json.loads(response_payload.get("body"))
+    #
+    # if len(response_body) == 0:
+    #     logger.error(f"Could not pull the required information from redcap {response_payload}")
+    #     sys.exit(1)
 
     # Step 8 - Return case accession number and metadata information to user
-    return response_body
+    return response_payload
