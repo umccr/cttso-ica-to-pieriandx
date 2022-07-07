@@ -521,9 +521,5 @@ export class CttsoIcaToPieriandxBatchStack extends Stack {
         this.LambdaFunctionArn = new CfnOutput(this, "LambdaFunctionArn", {
             value: aws_lambda_function.functionArn,
         });
-
-        // Set this lambda function arn as an output
-        // TODO
-
     }
 }
