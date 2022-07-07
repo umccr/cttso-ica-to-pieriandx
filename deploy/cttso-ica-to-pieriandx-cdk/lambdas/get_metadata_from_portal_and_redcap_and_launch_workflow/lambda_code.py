@@ -34,9 +34,24 @@ import asyncio
 from urllib.parse import urlparse
 import pytz
 
+LOGGER_STYLE = "%(asctime)s - %(levelname)-8s - %(module)-25s - %(funcName)-40s : LineNo. %(lineno)-4d - %(message)s"
+
+# Set basic logger
 logger = logging.getLogger()
 logger.setLevel(level=logging.INFO)
 
+# Set formatter
+formatter = logging.Formatter(LOGGER_STYLE)
+
+# Set console handler
+console_hander = logging.StreamHandler()
+console_hander.setLevel(logger.level)
+console_hander.setFormatter(formatter)
+
+# Add console handler to logger
+logger.addHandler(console_hander)
+
+# Globals
 PORTAL_API_BASE_URL_SSM_PATH = "/data_portal/backend/api_domain_name"
 PORTAL_METADATA_ENDPOINT = "https://{PORTAL_API_BASE_URL}/iam/metadata/"
 PORTAL_WORKFLOWS_ENDPOINT = "https://{PORTAL_API_BASE_URL}/workflows"
@@ -64,7 +79,7 @@ REDCAP_LABEL_FIELDS: List = [
     "patient_gender",
     "id_sbj",
     "libraryid",
-    "pierian_metadata_complete",
+    "pierian_metadata_complete"
 ]
 
 PORTAL_FIELDS: List = [
@@ -380,6 +395,8 @@ async def get_existing_pieriandx_case_accession_numbers() -> List:
     since we don't want to try launch with an existing accession umber
     :return:
     """
+    logger.info("Starting async function 'get_existing_pieriandx_case_accession_numbers'")
+
     email, password, institution, base_url = get_pieriandx_env_vars()
     pyriandx_client = get_pieriandx_client(
         email=email,
@@ -414,6 +431,8 @@ async def get_existing_pieriandx_case_accession_numbers() -> List:
 
     cases_df.columns = sanitised_columns
 
+    logger.info("Collected cases information and returning all accession numbers")
+
     return cases_df["accession_number"].tolist()
 
 
@@ -436,9 +455,14 @@ async def get_metadata_information_from_redcap(subject_id: str, library_id: str)
     """
 
     # Get raw data from redcap
+    logger.info("Starting async function 'Collecting information from redcap'")
+
+    logger.info("Collecting raw dataframe from redcap")
     redcap_raw_df: pd.DataFrame = get_info_from_redcap(subject_id=subject_id, library_id=library_id,
                                                        fields=REDCAP_RAW_FIELDS,
                                                        raw_or_label="raw")
+    logger.info(f"Returned {redcap_raw_df.shape[0]} rows and {redcap_raw_df.shape[1]} columns from raw dataframe redcap")
+    logger.info(f"Collected the following columns from raw redcap: {', '.join(redcap_raw_df.columns.tolist())}")
 
     # Rename fields in redcap raw df (to prevent conflict with label df and to match accession json)
     redcap_raw_df = redcap_raw_df.rename(
@@ -479,9 +503,13 @@ async def get_metadata_information_from_redcap(subject_id: str, library_id: str)
     ]
 
     # Get label data from redcap
+    logger.info("Collecting label information from redcap")
     redcap_label_df: pd.DataFrame = get_info_from_redcap(subject_id=subject_id, library_id=library_id,
                                                          fields=REDCAP_LABEL_FIELDS,
                                                          raw_or_label="label")
+    logger.info(
+        f"Returned {redcap_label_df.shape[0]} rows and {redcap_label_df.shape[1]} columns from label dataframe in redcap")
+    logger.info(f"Collected the following columns from label redcap: {', '.join(redcap_label_df.columns.tolist())}")
 
     redcap_label_df = redcap_label_df.rename(
         columns={
@@ -489,7 +517,7 @@ async def get_metadata_information_from_redcap(subject_id: str, library_id: str)
             "patient_gender": "gender",
             "disease": "disease_name",
             "id_sbj": "subject_id",
-            "libraryid": "library_id",
+            "libraryid": "library_id"
         }
     )
 
@@ -515,6 +543,8 @@ async def get_metadata_information_from_redcap(subject_id: str, library_id: str)
     num_entries: int
     if not (num_entries := redcap_df.shape[0]) == 1:
         logger.info(f"Expected dataframe to be of length 1, not {num_entries}")
+        
+    logger.info("Completed async function and returning metadata information from redcap")
 
     return redcap_df
 
@@ -528,6 +558,9 @@ async def get_metadata_information_from_portal(subject_id: str, library_id: str)
     :param library_id:
     :return:
     """
+    
+    logger.info("Starting async function - 'Getting metadata information from the portal'")
+    
     portal_base_url = get_portal_base_url()
     portal_url_endpoint = PORTAL_METADATA_ENDPOINT.format(
         PORTAL_API_BASE_URL=portal_base_url
@@ -564,6 +597,8 @@ async def get_metadata_information_from_portal(subject_id: str, library_id: str)
         if field not in result.keys():
             logger.error(f"Expected {field} in portal metadata query but only got {list(result.keys())}")
 
+    logger.info("Completed async function and returning metadata information from portal")
+
     return pd.DataFrame([result])[PORTAL_FIELDS]
 
 
@@ -576,6 +611,8 @@ async def get_ica_workflow_run_id_from_portal(subject_id: str, library_id: str) 
     :param library_id:
     :return:
     """
+    logger.info("Starting async function 'collecting ICA workflow run ID from portal'")
+
     portal_base_url = get_portal_base_url()
     portal_url_endpoint = PORTAL_WORKFLOWS_ENDPOINT.format(
         PORTAL_API_BASE_URL=portal_base_url
@@ -622,6 +659,8 @@ async def get_ica_workflow_run_id_from_portal(subject_id: str, library_id: str) 
         logger.error(f"Could not find cttso workflow for subject {subject_id} and library id {library_id}")
         sys.exit(1)
 
+    logger.info("Completing async function 'collecting ICA workflow run ID from portal'")
+
     # Collect the workflow run id from the most recent run
     return cttso_workflows_df["wfr_id"].tolist()[0]
 
@@ -650,6 +689,8 @@ def merge_redcap_and_portal_data(redcap_df: pd.DataFrame, portal_df: pd.DataFram
     :param portal_df:
     :return:
     """
+
+    logger.info("Merging portal and redcap dataframes")
 
     # Merge over subject and library id
     merged_df: pd.DataFrame = pd.merge(
@@ -682,6 +723,8 @@ def lambda_handler(event, context):
     """
 
     # Step 0 - ensure subject id and library id can be found in the event, fail otherwise
+    logger.info("Step 0: Ensure that subject id and library id can be found in the event")
+
     subject_id: str
     if (subject_id := event.get("subject_id", None)) is None:
         logger.error(f"Could not find subject id in event keys {list(event.keys())}")
@@ -693,6 +736,7 @@ def lambda_handler(event, context):
         raise ValueError
 
     # Steps 1, 2, 3, and 4 all done asynchronously
+    logger.info("Completing metadata requests asynchronously")
 
     # Step 1 - Get all pieriandx case accession numbers
     loop = asyncio.new_event_loop()
@@ -745,13 +789,17 @@ def lambda_handler(event, context):
     if get_ica_workflow_run_id_task is not None:
         ica_workflow_run_id: str = get_ica_workflow_run_id_task.result()
 
+    logger.info("Completed all asynchronous steps")
+
     # Step 5 - Merge redcap information with portal information
+    logger.info("Merge redcap and portal metadata information")
     merged_df: pd.DataFrame = merge_redcap_and_portal_data(
         redcap_df=redcap_df,
         portal_df=portal_df
     )
 
     # Step 5a - check if pierian_metadata_complete value is set to 'complete' for this redcap dataframe
+    logger.info("Make sure pieriandx metadata is complete")
     merged_df = merged_df.query("pierian_metadata_complete=='Complete'")
 
     # Check length
@@ -760,6 +808,7 @@ def lambda_handler(event, context):
         sys.exit(1)
 
     # Step 6 - check if case accession number is defined
+    logger.info("Ensure that the case accession value does not already exist in PierianDx")
     case_accession_number: str
     if (case_accession_number := event.get("case_accession_number", None)) is None:
         # Step 6.true.a - ensure it is of the syntax SBJID / LIB ID
@@ -788,6 +837,7 @@ def lambda_handler(event, context):
     merged_df["date_accessioned"] = str(CURRENT_TIME.astimezone(AUS_TIMEZONE).date())
 
     # Rename columns
+    logger.info("Rename external subject and external sample columns")
     merged_df = merged_df.rename(
         columns={
             "external_sample_id": "external_specimen_id",
@@ -796,6 +846,7 @@ def lambda_handler(event, context):
     )
 
     # Step 7 - assert expected values exist
+    logger.info("Check we have all of the expected information")
     for expected_column in EXPECTED_ATTRIBUTES:
         if expected_column not in merged_df.columns.tolist():
             logger.error(
@@ -819,6 +870,7 @@ def lambda_handler(event, context):
     accession_json: Dict = merged_df.to_dict(orient="records")[0]
 
     # Initialise payload parameters
+    logger.info("Converting accession json to a lambda payload")
     payload_parameters: Dict = {
         "accession_json_base64_str": b64encode(json.dumps(accession_json).encode("ascii")).decode("utf-8"),
         "ica_workflow_run_id": ica_workflow_run_id,
@@ -842,6 +894,7 @@ def lambda_handler(event, context):
     lambda_client: LambdaClient = get_boto3_lambda_client()
 
     # Get lambda
+    logger.info("Launch lambda client to invoke pieriandx")
     client_response = lambda_client.invoke(
         FunctionName=cttso_ica_to_pieriandx_lambda_arn,
         InvocationType="RequestResponse",
@@ -854,6 +907,7 @@ def lambda_handler(event, context):
         logger.error(f"Bad exit code when retrieving response from "
                      f"cttso-ica-to-pieriandx lambda client {response_payload}")
         sys.exit(1)
+    logger.info("Successfully launched and returned pieriandx submission lambda")
 
     response_body: List[Dict] = json.loads(response_payload.get("body"))
 

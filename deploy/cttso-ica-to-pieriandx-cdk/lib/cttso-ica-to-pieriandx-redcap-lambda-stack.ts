@@ -9,7 +9,7 @@ import { Secret } from "aws-cdk-lib/aws-secretsmanager";
 import {
     DATA_PORTAL_API_ID_SSM_PARAMETER,
     REDCAP_LAMBDA_FUNCTION_SSM_KEY,
-    SECRETS_MANAGER_PIERIANDX_PATH,
+    SECRETS_MANAGER_PIERIANDX_PATH, SSM_LAMBDA_FUNCTION_ARN_VALUE,
     SSM_PIERIANDX_PATH,
     SSM_REDCAP_LAMBDA_FUNCTION_ARN_VALUE
 } from "../constants";
@@ -130,7 +130,7 @@ export class CttsoIcaToPieriandxRedcapLambdaStack extends Stack {
             `${props.stack_prefix}-redcap-lambda-function-arn`,
             REDCAP_LAMBDA_FUNCTION_SSM_KEY
         )
-        // Step 1a add ssm to policy (although we get this value elsewhere anyway)
+        // Step 2: Add ssm to policy
         lambda_function.addToRolePolicy(
             new PolicyStatement({
                     actions: [
@@ -142,7 +142,7 @@ export class CttsoIcaToPieriandxRedcapLambdaStack extends Stack {
                 }
             )
         )
-        // Add Invoke Function permission arn
+        // Step 3: Add Invoke Function permission arn
         lambda_function.addToRolePolicy(
             new PolicyStatement({
                 actions: [
@@ -154,6 +154,37 @@ export class CttsoIcaToPieriandxRedcapLambdaStack extends Stack {
             })
         )
 
+        // Need to be able to invoke cttso-ica-to-pieriandx-lambda-function value
+        // Step 1: Get the resource object
+        const pieriandx_launch_function_arn = StringParameter.fromStringParameterName(
+            this,
+            `${props.stack_prefix}-cttso-ica-to-pieriandx-lambda-function-arn`,
+            SSM_LAMBDA_FUNCTION_ARN_VALUE
+        )
+
+        // Step 2: Add ssm to policy
+        lambda_function.addToRolePolicy(
+            new PolicyStatement({
+                    actions: [
+                        "ssm:GetParameter"
+                    ],
+                    resources: [
+                        pieriandx_launch_function_arn.parameterArn
+                    ]
+                }
+            )
+        )
+        // Step 3: Add invoke function to policy
+        lambda_function.addToRolePolicy(
+            new PolicyStatement({
+                actions: [
+                    "lambda:InvokeFunction"
+                ],
+                resources: [
+                    pieriandx_launch_function_arn.stringValue
+                ]
+            })
+        )
 
         // Create the ssm parameter to represent the cttso lambda function
         const ssm_parameter = new StringParameter(
