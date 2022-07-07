@@ -106,7 +106,7 @@ export class CttsoIcaToPieriandxRedcapLambdaStack extends Stack {
 
 
         // Add pieriandx secrets access to lambda policy
-        const pieriandx_user_password_arn = Secret.fromSecretNameV2(
+        const pieriandx_secrets_path = Secret.fromSecretNameV2(
             this,
             `${props.stack_prefix}-pieriandx-user-password-arn`,
             SECRETS_MANAGER_PIERIANDX_PATH
@@ -118,7 +118,7 @@ export class CttsoIcaToPieriandxRedcapLambdaStack extends Stack {
                         "secretsmanager:GetSecretValue"
                     ],
                     resources: [
-                        `${pieriandx_user_password_arn}-*`
+                        `${pieriandx_secrets_path}/*`
                     ]
                 }
             )

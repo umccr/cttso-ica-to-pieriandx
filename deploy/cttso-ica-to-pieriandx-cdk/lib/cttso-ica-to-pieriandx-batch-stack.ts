@@ -31,12 +31,17 @@ import {
 import { Asset } from "aws-cdk-lib/aws-s3-assets";
 import { readFileSync } from "fs";
 import { Runtime, Function as LambdaFunction, Code } from "aws-cdk-lib/aws-lambda";
+import { Secret } from "aws-cdk-lib/aws-secretsmanager";
+
 import {
     ECR_REPOSITORY_NAME,
     REDCAP_LAMBDA_FUNCTION_SSM_KEY,
     AWS_BUILD_ACCOUNT_ID,
     AWS_REGION,
-    SSM_LAMBDA_FUNCTION_ARN_VALUE, DATA_PORTAL_API_ID_SSM_PARAMETER
+    SSM_LAMBDA_FUNCTION_ARN_VALUE,
+    DATA_PORTAL_API_ID_SSM_PARAMETER,
+    SECRETS_MANAGER_PIERIANDX_PATH,
+    SECRETS_MANAGER_ICA_SECRETS_PATH, SSM_PIERIANDX_PATH
 } from "../constants";
 
 
@@ -125,10 +130,67 @@ export class CttsoIcaToPieriandxBatchStack extends Stack {
                 managedPolicies: [
                     ManagedPolicy.fromAwsManagedPolicyName("service-role/AmazonEC2RoleforSSM"),
                     ManagedPolicy.fromAwsManagedPolicyName('service-role/AmazonEC2ContainerServiceforEC2Role'),
-                    ManagedPolicy.fromAwsManagedPolicyName('service-role/AmazonECSTaskExecutionRolePolicy'),
-                    ManagedPolicy.fromAwsManagedPolicyName('SecretsManagerReadWrite')
+                    ManagedPolicy.fromAwsManagedPolicyName('service-role/AmazonECSTaskExecutionRolePolicy')
                 ]
             }
+        )
+
+        // Add pieriandx secrets access to lambda policy
+        // Add pieriandx secrets access to lambda policy
+        const pieriandx_secrets_path = Secret.fromSecretNameV2(
+            this,
+            `${props.stack_prefix}-pieriandx-secrets-arn-prefix`,
+            SECRETS_MANAGER_PIERIANDX_PATH
+        ).secretArn
+
+        batch_instance_role.addToPolicy(
+            new PolicyStatement({
+                    actions: [
+                        "secretsmanager:GetSecretValue"
+                    ],
+                    resources: [
+                        `${pieriandx_secrets_path}/*`
+                    ]
+                }
+            )
+        )
+
+        // Add ICA secrets access to batch instance role
+        const ica_secrets_path = Secret.fromSecretNameV2(
+            this,
+            `${props.stack_prefix}-ica-secrets-path`,
+            SECRETS_MANAGER_ICA_SECRETS_PATH
+        ).secretArn
+        batch_instance_role.addToPolicy(
+            new PolicyStatement({
+                    actions: [
+                        "secretsmanager:GetSecretValue"
+                    ],
+                    resources: [
+                        `${ica_secrets_path}*`
+                    ]
+                }
+            )
+        )
+
+        // Get access to PierianDx SSM parameters
+        // Add pieriandx ssm access to lambda policy
+        const pieriandx_vars_ssm_access_arn_as_array = [
+            "arn", "aws", "ssm",
+            env.region, env.account,
+            "parameter" + SSM_PIERIANDX_PATH + "/*"
+        ]
+
+        batch_instance_role.addToPolicy(
+            new PolicyStatement({
+                    actions: [
+                        "ssm:GetParameter"
+                    ],
+                    resources: [
+                        pieriandx_vars_ssm_access_arn_as_array.join(":")
+                    ]
+                }
+            )
         )
 
         // Get portal api id
@@ -365,8 +427,8 @@ export class CttsoIcaToPieriandxBatchStack extends Stack {
                         }
                     ]
                 },
-                retryAttempts: 2,
-                timeout: Duration.hours(5)
+                retryAttempts: 1,
+                timeout: Duration.hours(1)
             }
         )
 
@@ -396,7 +458,7 @@ export class CttsoIcaToPieriandxBatchStack extends Stack {
             })
         ))
 
-                // Set up lambda function
+        // Set up lambda function
         const aws_lambda_function = new LambdaFunction(
             this,
             `${props.stack_prefix}-lambda-function`,
