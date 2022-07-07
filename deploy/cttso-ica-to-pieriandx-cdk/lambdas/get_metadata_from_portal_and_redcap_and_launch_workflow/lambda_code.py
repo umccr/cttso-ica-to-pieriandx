@@ -10,6 +10,7 @@ Complete the following steps
 * Launch the lambda that triggers batch
 """
 from datetime import datetime
+from dateutil.parser import parse as date_parser
 import requests
 import sys
 from base64 import b64encode
@@ -133,6 +134,7 @@ LIST_CASES_RETRY_TIME = 1
 
 CURRENT_TIME = datetime.utcnow()
 AUS_TIMEZONE = pytz.timezone("Australia/Melbourne")
+AUS_TIMEZONE_SUFFIX = datetime.now(AUS_TIMEZONE).strftime("%z")
 
 HOSPITAL_NUMBER = 99
 
@@ -481,13 +483,13 @@ async def get_metadata_information_from_redcap(subject_id: str, library_id: str)
 
     # Update date fields
     redcap_raw_df["date_collected"] = redcap_raw_df.apply(
-        lambda x: x.date_collection + "T" + x.time_collected + ":00+1000",
+        lambda x: x.date_collection + "T" + x.time_collected + f":00{AUS_TIMEZONE_SUFFIX}",
         axis="columns"
     )
 
     # Add time to 'date_receipt' string
     redcap_raw_df["date_received"] = redcap_raw_df.apply(
-        lambda x: x.date_receipt + "T00:00:00+1000",
+        lambda x: x.date_receipt + f"T00:00:00{AUS_TIMEZONE_SUFFIX}",
         axis="columns"
     )
 
@@ -845,7 +847,13 @@ def lambda_handler(event, context):
     merged_df["indication"] = "NA"  # Set indication to NA
     merged_df["hospital_number"] = HOSPITAL_NUMBER
     merged_df["accession_number"] = case_accession_number
-    merged_df["date_accessioned"] = str(CURRENT_TIME.astimezone(AUS_TIMEZONE).strftime("%Y-%m-%dT%H:%M:%S%z"))
+    merged_df["date_accessioned"] = str(CURRENT_TIME.strftime("%Y-%m-%dT%H:%M:%S%z"))
+
+    # Convert times to utc time
+    for date_column in ["date_received", "date_collected"]:
+        merged_df[date_column] = merged_df[date_column].apply(
+            lambda x: date_parser(x).astimezone(pytz.utc).replace(microsecond=0)
+        )
 
     # Rename columns
     logger.info("Rename external subject and external sample columns")
