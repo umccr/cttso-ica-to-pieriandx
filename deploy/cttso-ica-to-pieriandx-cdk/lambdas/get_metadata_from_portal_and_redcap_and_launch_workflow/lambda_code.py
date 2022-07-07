@@ -847,12 +847,12 @@ def lambda_handler(event, context):
     merged_df["indication"] = "NA"  # Set indication to NA
     merged_df["hospital_number"] = HOSPITAL_NUMBER
     merged_df["accession_number"] = case_accession_number
-    merged_df["date_accessioned"] = str(CURRENT_TIME.strftime("%Y-%m-%dT%H:%M:%S%z"))
+    merged_df["date_accessioned"] = CURRENT_TIME.astimezone(pytz.utc).replace(microsecond=0).isoformat()
 
     # Convert times to utc time
     for date_column in ["date_received", "date_collected"]:
         merged_df[date_column] = merged_df[date_column].apply(
-            lambda x: date_parser(x).astimezone(pytz.utc).replace(microsecond=0)
+            lambda x: date_parser(x).astimezone(pytz.utc).replace(microsecond=0).isoformat()
         )
 
     # Rename columns
