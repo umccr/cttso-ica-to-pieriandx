@@ -76,7 +76,7 @@ export class CttsoIcaToPieriandxBatchStack extends Stack {
         ).stringValue
 
         // Get the container repo
-        const container_registry: string = `arn:aws:ecr:${AWS_REGION}:${AWS_BUILD_ACCOUNT_ID}:${ECR_REPOSITORY_NAME}`
+        const container_registry: string = `arn:aws:ecr:${AWS_REGION}:${AWS_BUILD_ACCOUNT_ID}:repository/${ECR_REPOSITORY_NAME}`
 
         // Get the image repo
         const image_repo = ContainerImage.fromEcrRepository(
