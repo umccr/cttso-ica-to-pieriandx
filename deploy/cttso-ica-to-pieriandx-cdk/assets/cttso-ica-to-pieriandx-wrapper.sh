@@ -142,7 +142,8 @@ job_temp_space="$(mktemp \
 ICA_ACCESS_TOKEN="$(aws secretsmanager get-secret-value --secret-id 'IcaSecretsPortal' | \
                     jq --raw-output '.SecretString' \
                   )"
-# FIXME - use nameless keys in future
+
+# Passwords
 PIERIANDX_AWS_ACCESS_KEY_ID="$(aws secretsmanager get-secret-value --secret-id 'PierianDx/AWSAccessKeyID' | \
                                jq --raw-output '.SecretString | fromjson | .PierianDxAWSAccessKeyID' \
                               )"
