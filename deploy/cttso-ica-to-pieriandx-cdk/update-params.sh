@@ -49,7 +49,7 @@ for key in ${param_keys}; do
 
   # Put parameter on ssm
   if [[ -n "${current_value-}" ]]; then
-    echo "Updating parameter '${key}' from '${current_value}' to '{$value}'" 1>&2
+    echo "Updating parameter '${key}' from '${current_value}' to '${value}'" 1>&2
   else
     echo "Setting '${key}' as '${value}'" 1>&2
   fi

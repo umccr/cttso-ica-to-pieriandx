@@ -1,5 +1,5 @@
 {
-  "/cdk/cttso-ica-to-pieriandx/batch/ami": "ami-09fb62624e1ab3e2c",
+  "/cdk/cttso-ica-to-pieriandx/batch/ami": "ami-0a5d07e2b337abadb",
   "/cdk/cttso-ica-to-pieriandx/batch/docker-image-name": "cttso-ica-to-pieriandx",
   "/cdk/cttso-ica-to-pieriandx/batch/docker-image-tag": "latest-dev",
   "/cdk/cttso-ica-to-pieriandx/env_vars/ica_base_url": "https://aps2.platform.illumina.com",
