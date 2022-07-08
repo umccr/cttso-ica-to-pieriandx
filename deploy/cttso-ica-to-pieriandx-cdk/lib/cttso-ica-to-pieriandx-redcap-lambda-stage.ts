@@ -1,7 +1,6 @@
-import {CfnOutput, StackProps, Stage, StageProps, Tags} from "aws-cdk-lib";
+import {CfnOutput, StackProps, Stage, Tags} from "aws-cdk-lib";
 import { Construct } from "constructs";
 import { CttsoIcaToPieriandxRedcapLambdaStack } from "./cttso-ica-to-pieriandx-redcap-lambda-stack"
-import { IBucket } from "aws-cdk-lib/aws-s3";
 
 
 interface CttsoIcaToPieriandxRedcapLambdaStageProps extends StackProps {

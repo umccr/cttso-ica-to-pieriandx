@@ -153,7 +153,6 @@ def lambda_handler(event, context):
         # http://docs.aws.amazon.com/batch/latest/APIReference/API_SubmitJob.html
         print(f"jobName: {job_name}")
         print(f"jobQueue: {job_queue}")
-        print(f"parameters: {parameters}")
         print(f"dependsOn: {depends_on}")
         print(f"containerOverrides: {container_overrides}")
 
@@ -171,12 +170,15 @@ def lambda_handler(event, context):
         if parameters.get("dryrun", False):
             parameters["dryrun"] = "--dryrun"
         else:
-            parameters["dryrun"] = " "
+            _ = parameters.pop("dryrun", None)
+
         # Add --verbose to parameter list if verbose in parameter list
         if parameters.get("verbose", False):
             parameters["verbose"] = "--verbose"
         else:
-            parameters["verbose"] = " "
+            _ = parameters.pop("verbose", None)
+
+        print(f"parameters: {parameters}")
 
         # Submit job
         response = batch_client.submit_job(

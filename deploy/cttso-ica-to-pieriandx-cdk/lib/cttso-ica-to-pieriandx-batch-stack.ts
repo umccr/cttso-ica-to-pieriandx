@@ -404,9 +404,8 @@ export class CttsoIcaToPieriandxBatchStack extends Stack {
             {
                 jobDefinitionName: `${props.stack_prefix}-job-definition`,
                 parameters: {
-                    // Set optional parameters as false
-                    "dryrun": "",
-                    "verbose": ""
+                    ["dryrun"]: "",
+                    ["verbose"]: ""
                 },
                 container: {
                     image: image_repo,
