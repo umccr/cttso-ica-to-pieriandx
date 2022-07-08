@@ -925,17 +925,20 @@ def lambda_handler(event, context):
                      f"cttso-ica-to-pieriandx lambda client {client_response}")
         sys.exit(1)
 
+    if "Payload" not in list(client_response.keys()):
+        logger.error("Could not retrieve payload, submission to batch likely failed")
+        logger.error(f"Client response was {client_response}")
+        sys.exit(1)
+
     response_payload: Dict = json.loads(client_response.get("Payload").read())
 
-    logger.info("Successfully launched and returned pieriandx submission lambda")
+    if response_payload is None or not isinstance(response_payload, Dict):
+        logger.error("Could not get response payload as a dict")
+        logger.error(f"Client response was {client_response}")
+        logger.error(f"Payload was {response_payload}")
+        sys.exit(1)
 
-    logger.info(f"Showing response payload keys {list(response_payload.keys())}")
-
-    # response_body: List[Dict] = json.loads(response_payload.get("body"))
-    #
-    # if len(response_body) == 0:
-    #     logger.error(f"Could not pull the required information from redcap {response_payload}")
-    #     sys.exit(1)
+    logger.info("Successfully launched and returning pieriandx submission lambda")
 
     # Step 8 - Return case accession number and metadata information to user
     return response_payload

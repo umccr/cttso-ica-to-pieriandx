@@ -171,12 +171,12 @@ def lambda_handler(event, context):
         if parameters.get("dryrun", False):
             parameters["dryrun"] = "--dryrun"
         else:
-            _ = parameters.pop("dryrun", None)
+            parameters["dryrun"] = ""
         # Add --verbose to parameter list if verbose in parameter list
         if parameters.get("verbose", False):
             parameters["verbose"] = "--verbose"
         else:
-            _ = parameters.pop("verbose", None)
+            parameters["verbose"] = ""
 
         # Submit job
         response = batch_client.submit_job(
