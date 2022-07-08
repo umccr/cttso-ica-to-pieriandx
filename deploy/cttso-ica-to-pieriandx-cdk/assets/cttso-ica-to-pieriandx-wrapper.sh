@@ -180,8 +180,8 @@ export PIERIANDX_USER_PASSWORD
   cttso-ica-to-pieriandx.py \
     --ica-workflow-run-ids "${ica_workflow_run_id}" \
     --accession-json "${accession_json}" \
-    "${dryrun}" \
-    "${verbose}"
+    ${dryrun} \
+    ${verbose}
 )
 
 echo_stderr "Cleaning up..."

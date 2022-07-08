@@ -170,13 +170,13 @@ def lambda_handler(event, context):
         if parameters.get("dryrun", False):
             parameters["dryrun"] = "--dryrun"
         else:
-            parameters["dryrun"] = "\\ "
+            parameters["dryrun"] = r"\ "
 
         # Add --verbose to parameter list if verbose in parameter list
         if parameters.get("verbose", False):
             parameters["verbose"] = "--verbose"
         else:
-            parameters["verbose"] = "\\ "
+            _ = parameters.pop("verbose")
 
         print(f"parameters: {parameters}")
 
