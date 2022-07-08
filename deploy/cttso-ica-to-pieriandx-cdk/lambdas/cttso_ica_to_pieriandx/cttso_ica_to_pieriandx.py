@@ -176,7 +176,7 @@ def lambda_handler(event, context):
         if parameters.get("verbose", False):
             parameters["verbose"] = "--verbose"
         else:
-            _ = parameters.pop("verbose")
+            _ = parameters.pop("verbose", None)
 
         print(f"parameters: {parameters}")
 
