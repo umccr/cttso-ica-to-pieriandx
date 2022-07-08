@@ -148,7 +148,11 @@ def get_run_name_from_portal_run_id(portal_run_id: str) -> str:
     """
 
     # Query portal with portal run id
-    workflow_object: Dict = get_workflow_obj_from_portal(portal_run_id)
+    try:
+        workflow_object: Dict = get_workflow_obj_from_portal(portal_run_id)
+    except AttributeError:
+        logger.info("If we're running in dev, this is expected")
+        return portal_run_id
 
     # Get inputs from object
     workflow_inputs: Dict = get_workflow_inputs_from_portal_workflow_obj(workflow_object)
