@@ -11,12 +11,15 @@ import gzip
 import requests
 import json
 import time
+import re
+from requests import Response
 
 from utils.logging import get_logger
 from dateutil.parser import parse as date_parser
 from datetime import datetime, timezone
 from utils.globals import MANDATORY_INPUT_COLUMNS, OPTIONAL_DEFAULTS, ACCESSION_FORMAT_REGEX, OUTPUT_STATS_FILE, \
-    MAX_ATTEMPTS_GET_CASES, LIST_CASES_RETRY_TIME
+    MAX_ATTEMPTS_GET_CASES, LIST_CASES_RETRY_TIME, \
+    MANDATORY_INPUT_COLUMNS_FOR_DEIDENTIFIED_SAMPLES, MANDATORY_INPUT_COLUMNS_FOR_IDENTIFIED_SAMPLES
 
 from utils.micro_classes import Disease, SpecimenType
 from utils.classes import Case
@@ -77,13 +80,11 @@ def get_cases_df() -> pd.DataFrame:
             raise ListCasesError
 
         # Attempt to get cases
-        response = pyriandx_client._get_api(endpoint=f"/case")
+        response: Response = pyriandx_client._get_api(endpoint=f"/case")
 
         logger.debug("Printing response")
-        if not response.status_code == 200:
-            logger.warning(f"Received code {response.status_code} and {response.content} trying "
-                           f"to get cases")
-            logger.warning(f"Trying again - attempt {iter_count}")
+        if response is None:
+            logger.warning(f"Trying again to get cases - attempt {iter_count}")
             time.sleep(LIST_CASES_RETRY_TIME)
         else:
             break
@@ -147,7 +148,27 @@ def get_case(case_id: str) -> Dict:
     pyriandx_client = get_pieriandx_client()
 
     logger.debug(f"Getting case object case {case_id}")
-    return pyriandx_client._get_api(endpoint=f"/case/{case_id}")
+    iter_count = 0
+
+    while True:
+        # Add iter_count
+        iter_count += 1
+
+        if iter_count >= MAX_ATTEMPTS_GET_CASES:
+            logger.error(f"Tried to get all cases {str(MAX_ATTEMPTS_GET_CASES)} times and failed")
+            raise ListCasesError
+
+        # Attempt to get cases
+        response: Optional[Dict] = pyriandx_client._get_api(endpoint=f"/case/{case_id}")
+
+        logger.debug("Printing response")
+        if response is None:
+            logger.warning(f"Trying again to get cases - attempt {iter_count}")
+            time.sleep(LIST_CASES_RETRY_TIME)
+        else:
+            break
+
+    return response
 
 
 def get_report_ids_by_case_id(case_id) -> Optional[List[Dict]]:
@@ -305,8 +326,8 @@ def read_input_csv(input_csv: Path) -> pd.DataFrame:
 
 
 def sanitise_data_frame(input_df: pd.DataFrame) -> pd.DataFrame:
-    # Convert blanks to nas
-    input_df = input_df.replace("", pd.NA)
+    # Copy dataframe and convert blanks to nas
+    input_df = input_df.copy().replace("", pd.NA)
 
     # Drop all columns with blanks
     input_df.dropna(axis="columns", how="all")
@@ -406,46 +427,150 @@ def sanitise_data_frame(input_df: pd.DataFrame) -> pd.DataFrame:
             input_df[key].fillna(value, inplace=True)
 
     # Coerce to 'lower' for our enum types
-    input_df["sample_type"] = input_df["sample_type"].apply(lambda x: SampleType(x.lower()))
+    # Coerce patient care sample to patientcare
+    input_df["sample_type"] = input_df["sample_type"].apply(lambda x:
+                                                            SampleType(
+                                                                re.sub(r"sample$", "", x.lower().replace(" ", ""))
+                                                            ))
     input_df["ethnicity"] = input_df["ethnicity"].apply(lambda x: Ethnicity(x.lower()))
     input_df["race"] = input_df["race"].apply(lambda x: Race(x.lower()))
     input_df["gender"] = input_df["gender"].apply(lambda x: Gender(x.lower()))
 
-    # Map 'study_id' to 'study_identifier'
-    input_df["study_identifier"] = input_df["study_id"]
+    # Check if identified column set, if not set, set to false
+    input_df["is_identified"] = input_df.apply(lambda x: x.is_identified
+                                                         if hasattr(x, "is_identified")
+                                                         else False,
+                                               axis="columns")
+
+    # Check if any deidentified samples and make sure all the columns are there for them
+    if input_df.query("is_identified==False").shape[0] > 0:
+        missing_columns = list(set(MANDATORY_INPUT_COLUMNS_FOR_DEIDENTIFIED_SAMPLES) -
+                               set(list(input_df.query("is_identified==False").dropna(axis="columns", how="all").columns)))
+        if not len(missing_columns) == 0:
+            logger.error(f"Missing inputs in the following mandatory columns: {', '.join(missing_columns)}")
+            raise ValueError
+
+    # Check if any identified samples and make sure all the columns are there for them
+    if input_df.query("is_identified==True").shape[0] > 0:
+        missing_columns = list(set(MANDATORY_INPUT_COLUMNS_FOR_IDENTIFIED_SAMPLES) -
+                               set(list(input_df.query("is_identified==True").dropna(axis="columns", how="all").columns)))
+        if not len(missing_columns) == 0:
+            logger.error(f"Missing inputs in the following mandatory columns: {', '.join(missing_columns)}")
+            raise ValueError
+
+    # De-Identified columns only
+    # Map 'study_id' to 'study_identifier' but check identified status first
+    input_df["study_identifier"] = input_df.apply(
+        lambda x: x.study_id
+        if hasattr(x, "study_id")
+        else pd.NA,
+        axis="columns")
 
     # Map 'participant_id' to 'study_subject_identifier'
-    input_df["study_subject_identifier"] = input_df["participant_id"]
+    input_df["study_subject_identifier"] = input_df.apply(
+        lambda x: x.participant_id
+        if hasattr(x, "participant_id")
+        else pd.NA,
+        axis="columns")
 
     # Set defaults for study identifier and study subject identifier
-    input_df["study_identifier"] = input_df.apply(lambda x: x.study_identifier
-                                                            if hasattr(x, "study_identifier")
-                                                            and not pd.isna(x.study_identifier)
-                                                            else x.sample_type.value,
-                                                  axis="columns")
+    input_df["study_identifier"] = input_df.apply(
+        lambda x: x.study_identifier
+        if hasattr(x, "study_identifier")
+           and not pd.isna(x.study_identifier)
+        else x.sample_type.value,
+        axis="columns")
 
-    input_df["study_subject_identifier"] = input_df.apply(lambda x: x.study_subject_identifier
-                                                                    if hasattr(x, "study_subject_identifier")
-                                                                    and not pd.isna(x.study_subject_identifier)
-                                                                    else x.accession_number,
-                                                          axis="columns")
+    input_df["study_subject_identifier"] = input_df.apply(
+        lambda x: x.study_subject_identifier
+        if hasattr(x, "study_subject_identifier")
+           and not pd.isna(x.study_subject_identifier)
+        else x.accession_number,
+        axis="columns")
+
+    # Identified columns only
+    input_df["date_of_birth"] = input_df.apply(
+        lambda x: x.date_of_birth
+        if hasattr(x, "date_of_birth")
+        else pd.NAT,
+        axis="columns"
+    )
+    input_df["first_name"] = input_df.apply(
+        lambda x: x.first_name
+        if hasattr(x, "first_name")
+        else pd.NA,
+        axis="columns"
+    )
+    input_df["last_name"] = input_df.apply(
+        lambda x: x.last_name
+        if hasattr(x, "last_name")
+        else pd.NA,
+        axis="columns"
+    )
+    input_df["mrn"] = input_df.apply(
+        lambda x: x.mrn
+        if hasattr(x, "mrn")
+        else pd.NA,
+        axis="columns"
+    )
+    input_df["hospital_number"] = input_df.apply(
+        lambda x: x.hospital_number
+        if hasattr(x, "hospital_number")
+        else pd.NA,
+        axis="columns"
+    )
+    input_df["facility"] = input_df.apply(
+        lambda x: x.facility
+        if hasattr(x, "facility")
+        else pd.NA,
+        axis="columns"
+    )
+
+    # Set medical record number as a list of dicts
+    input_df["medical_record_numbers"] = input_df.apply(
+        lambda x: [
+            {
+                "mrn": x.get("mrn", None),
+                "facility": x.get("facility", None),
+                "hospital_number": x.get("hospital_number", None)
+            }
+        ],
+        axis="columns"
+    )
+
+    # Set physician as a list of dicts
+    input_df["requesting_physicians"] = input_df.apply(
+        lambda x: [
+            {
+                "first_name": x.get("requesting_physicians_first_name", None),
+                "last_name": x.get("requesting_physicians_last_name", None)
+            }
+        ],
+        axis="columns"
+    )
 
     # Coerce dates to date objects
-    for date_column in ["date_accessioned", "date_received", "date_collected"]:
+    for date_column in ["date_accessioned", "date_received", "date_collected", "date_of_birth"]:
+        # Don't care if not here
+        if date_column not in input_df.columns:
+            continue
         # Get the input df date column as a utc date object
-        input_df[date_column] = input_df[date_column].apply(lambda x: date_parser(x).
-                                                            replace(tzinfo=timezone.utc).
-                                                            astimezone(pytz.utc).replace(microsecond=0))
+        input_df[date_column] = input_df[date_column].apply(
+            lambda x: date_parser(x).
+                      replace(tzinfo=timezone.utc).
+                      astimezone(pytz.utc).replace(microsecond=0)
+                      if not pd.isnull(x)
+                      else x
+        )
 
     # Confirm dates are not later than now
     current_datetime = datetime.utcnow().astimezone(pytz.utc)
-    for date_column in ["date_accessioned", "date_received", "date_collected"]:
+    for date_column in ["date_accessioned", "date_received", "date_collected", "date_of_birth"]:
+        if date_column not in input_df.columns:
+            continue
         for date_time_obj in input_df[date_column]:
             if date_time_obj > current_datetime:
                 logger.error(f"Got date {date_time_obj} which is in the future")
                 raise ValueError
 
     return input_df
-
-
-

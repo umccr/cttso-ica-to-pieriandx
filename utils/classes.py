@@ -3,7 +3,6 @@
 """
 Sequence Run, Case and Specimen classes
 """
-from datetime import datetime
 from os import remove
 from pathlib import Path
 from shutil import move
@@ -13,6 +12,8 @@ from typing import Dict, Optional, List
 import pandas as pd
 import time
 from datetime import datetime
+from requests import Response
+import json
 
 from utils.enums import Ethnicity, Race, Gender, SampleType
 from utils.errors import RunNotFoundError, \
@@ -23,7 +24,7 @@ from utils.globals import DAG, PANEL_NAME, \
     MAX_CASE_CREATION_ATTEMPTS, CASE_CREATION_RETRY_TIME, \
     MAX_RUN_CREATION_ATTEMPTS, RUN_CREATION_RETRY_TIME, \
     MAX_JOB_CREATION_ATTEMPTS, JOB_CREATION_RETRY_TIME
-from utils.micro_classes import SpecimenType, Disease
+from utils.micro_classes import SpecimenType, Disease, MedicalRecordNumber, Physician
 from utils.pieriandx_helper import get_pieriandx_client
 from utils.s3_uploader import get_s3_bucket, get_s3_key_prefix, pieriandx_file_uploader
 from utils.logging import get_logger
@@ -43,7 +44,7 @@ class Specimen:
                  date_accessioned: datetime, date_received: datetime, date_collected: datetime,
                  ethnicity: Ethnicity, race: Race, gender: Gender,
                  external_specimen_id: str,
-                 study_identifier: str, study_subject_identifier: str, specimen_type: SpecimenType):
+                 specimen_type: SpecimenType):
         # Populate specimen objects from input
         self.name = name
         self.case_accession_number = case_accession_number
@@ -56,8 +57,6 @@ class Specimen:
         self.gender: Gender = gender
         # Add external identifiers
         self.external_specimen_id = external_specimen_id
-        self.study_identifier = study_identifier
-        self.study_subject_identifier = study_subject_identifier
         self.specimen_type: SpecimenType = specimen_type
 
         # Additional objects to be added in down the line
@@ -78,29 +77,142 @@ class Specimen:
     @classmethod
     def from_dict(cls, specimen_dict: Dict):
         """
-        Create a specimen object from a dictionary
-        :return:
-        """
-        return cls(name=specimen_dict.get("specimen_label", None),
-                   case_accession_number=specimen_dict.get("accession_number", None),
-                   date_accessioned=specimen_dict.get("date_accessioned", None),
-                   date_received=specimen_dict.get("date_received", None),
-                   date_collected=specimen_dict.get("date_collected", None),
-                   ethnicity=Ethnicity(specimen_dict.get("ethnicity", None)),
-                   race=Race(specimen_dict.get("race", None)),
-                   gender=Gender(specimen_dict.get("gender", None)),
-                   external_specimen_id=specimen_dict.get("external_specimen_id", None),
-                   study_identifier=specimen_dict.get("study_identifier", None),
-                   study_subject_identifier=specimen_dict.get("study_subject_identifier", None),
-                   specimen_type=specimen_dict.get("specimen_type_obj", None))
-
-    @classmethod
-    def from_json(cls, specimen_json: Dict):
-        """
-
+        Read in the class from a dictionary object
+        :param specimen_dict:
         :return:
         """
         raise NotImplementedError
+
+    def to_dict(self) -> Dict:
+        """
+        Write out the class as a dictionary object for case submission
+        :return:
+        """
+        raise NotImplementedError
+
+
+class DeIdentifiedSpecimen(Specimen):
+    """
+    Specimen that is deidentified 
+    """
+
+    def __init__(self, **kwargs):
+        self.study_identifier: Optional[str] = kwargs.pop("study_identifier")
+        self. study_subject_identifier: Optional[str] = kwargs.pop("study_subject_identifier")
+        super(DeIdentifiedSpecimen, self).__init__(**kwargs)
+
+    @classmethod
+    def from_dict(cls, specimen_dict: Dict):
+        """
+        Create a specimen object from a dictionary
+        :return:
+        """
+        return cls(
+            name=specimen_dict.get("specimen_label", None),
+            case_accession_number=specimen_dict.get("accession_number", None),
+            date_accessioned=specimen_dict.get("date_accessioned", None),
+            date_received=specimen_dict.get("date_received", None),
+            date_collected=specimen_dict.get("date_collected", None),
+            ethnicity=Ethnicity(specimen_dict.get("ethnicity", None)),
+            race=Race(specimen_dict.get("race", None)),
+            gender=Gender(specimen_dict.get("gender", None)),
+            external_specimen_id=specimen_dict.get("external_specimen_id", None),
+            specimen_type=specimen_dict.get("specimen_type_obj", None),
+            # De-identified specific fields
+            study_identifier=specimen_dict.get("study_identifier", None),
+            study_subject_identifier=specimen_dict.get("study_subject_identifier", None)
+        )
+
+    def to_dict(self) -> Dict:
+        """
+        Write out the class as a dictionary object for case submission
+        :return:
+        """
+        return {
+            "name": self.name,
+            "accessionNumber": self.case_accession_number,
+            "dateAccessioned": self.date_accessioned.isoformat().replace("+00:00", "Z"),
+            "dateReceived": self.date_received.isoformat().replace("+00:00", "Z"),
+            "datecollected": self.date_collected.isoformat().replace("+00:00", "Z"),
+            "ethnicity": self.ethnicity.value,
+            "externalSpecimenId": self.external_specimen_id,
+            "gender": self.gender.value,
+            "race": self.race.value,
+            "type": self.specimen_type.to_dict(),
+            # De-identified specific fields
+            "studyIdentifier": self.study_identifier,
+            "studySubjectIdentifier": self.study_subject_identifier
+        }
+
+
+class IdentifiedSpecimen(Specimen):
+    """
+    Specimen that is 'identified'
+    """
+    def __init__(self, **kwargs):
+        """
+        Identified Speciment specific arguments
+        :param kwargs:
+        """
+        self.date_of_birth: Optional[datetime] = kwargs.pop("date_of_birth")  # All fake though
+        self.first_name: Optional[str] = kwargs.pop("first_name")  # All fake though
+        self.last_name: Optional[str] = kwargs.pop("last_name")  # All fake though
+        self.medical_record_numbers: Optional[List[MedicalRecordNumber]] = kwargs.pop("medical_record_numbers")
+
+        super(IdentifiedSpecimen, self).__init__(**kwargs)
+
+    @classmethod
+    def from_dict(cls, specimen_dict: Dict):
+        """
+        Create a specimen object from a dictionary
+        :return:
+        """
+        return cls(
+            name=specimen_dict.get("specimen_label", None),
+            case_accession_number=specimen_dict.get("accession_number", None),
+            date_accessioned=specimen_dict.get("date_accessioned", None),
+            date_received=specimen_dict.get("date_received", None),
+            date_collected=specimen_dict.get("date_collected", None),
+            ethnicity=Ethnicity(specimen_dict.get("ethnicity", None)),
+            race=Race(specimen_dict.get("race", None)),
+            gender=Gender(specimen_dict.get("gender", None)),
+            external_specimen_id=specimen_dict.get("external_specimen_id", None),
+            specimen_type=specimen_dict.get("specimen_type_obj", None),
+            # Identified specific fields
+            date_of_birth=specimen_dict.get("date_of_birth", None),
+            first_name=specimen_dict.get("first_name", None),
+            last_name=specimen_dict.get("last_name", None),
+            medical_record_numbers=[
+                MedicalRecordNumber.from_dict(mrn)
+                for mrn in specimen_dict.get("medical_record_numbers", None)
+            ]
+        )
+
+    def to_dict(self) -> Dict:
+        """
+        Write out the class as a dictionary object for case submission
+        :return:
+        """
+        return {
+            "name": self.name,
+            "accessionNumber": self.case_accession_number,
+            "dateAccessioned": self.date_accessioned.isoformat().replace("+00:00", "Z"),
+            "dateReceived": self.date_received.isoformat().replace("+00:00", "Z"),
+            "datecollected": self.date_collected.isoformat().replace("+00:00", "Z"),
+            "ethnicity": self.ethnicity.value,
+            "externalSpecimenId": self.external_specimen_id,
+            "gender": self.gender.value,
+            "race": self.race.value,
+            "type": self.specimen_type.to_dict(),
+            # De-identified specific fields
+            "dateOfBirth": str(self.date_of_birth.date()),
+            "firstName": self.first_name,
+            "lastName": self.last_name,
+            "medicalRecordNumbers": [
+                mrn.to_dict()
+                for mrn in self.medical_record_numbers
+            ]
+        }
 
 
 class PierianDXSequenceRun:
@@ -117,7 +229,7 @@ class PierianDXSequenceRun:
         self.run_dir: Optional[Path] = None
         self.staging_dir: Optional[Path] = None
         self.basecalls_dir: Optional[Path] = None
-        self.case_files_dir : Optional[Path] = None
+        self.case_files_dir: Optional[Path] = None
         self.file_list: Optional[List[Path]] = None
 
         # Add specimens
@@ -129,12 +241,18 @@ class PierianDXSequenceRun:
         # Create run dirs
         self.make_run_dirs()
 
-    def __call__(self):
+    def __call__(self, dryrun: bool = False):
         """
         Create the run
         :return:
         """
         data = self.get_run_creation_request_data()
+
+        if dryrun:
+            logger.debug(f"Would submit run data as "
+                         f"'{data}'")
+            self.run_id = 0
+            return
 
         self.create_run(data)
 
@@ -177,8 +295,8 @@ class PierianDXSequenceRun:
             logger.debug(f"Creating sequencing run {self.run_dir} with attempt {str(iter_count)}")
 
             # Call end point
-            response = pyriandx_client._post_api(endpoint="/sequencerRun",
-                                                 data=data).json()
+            response: Response = pyriandx_client._post_api(endpoint="/sequencerRun",
+                                                           data=data)
 
             logger.debug("Printing response")
             if not response.status_code == 200:
@@ -187,10 +305,11 @@ class PierianDXSequenceRun:
                 logger.warning(f"Trying upload again - attempt {iter_count}")
                 time.sleep(RUN_CREATION_RETRY_TIME)
             else:
+                response_json: Dict = response.json()
                 break
 
         # Get the id
-        self.run_id = response.get("id")
+        self.run_id = response_json.get("id")
 
     def get_run_creation_request_data(self):
         """
@@ -246,7 +365,7 @@ class PierianDXSequenceRun:
         # Add VcfWorkflow to top run directory
         (self.run_dir / Path("VcfWorkflow.txt")).touch()
 
-    def upload_to_s3_bucket(self):
+    def upload_to_s3_bucket(self, dryrun: bool = False):
         """
         Upload items in run_dir to the s3 bucket
         :return:
@@ -265,6 +384,10 @@ class PierianDXSequenceRun:
             if not file_name.is_file():
                 continue
             upload_path: Path = Path(s3_key_prefix) / self.run_name / file_name.relative_to(self.run_dir)
+
+            if dryrun:
+                logger.debug(f"Would have uploaded file '{file_name}' to {upload_path}")
+                continue
 
             logger.debug(f"Uploading {file_name.name} to {upload_path}")
             pieriandx_file_uploader(src_path=file_name,
@@ -286,8 +409,10 @@ class Case:
     # List of globals that exist for all cases
     dag_name = "cromwell_tso500_ctdna_workflow_1.0.1"
     dag_description = "tso500_ctdna_workflow"
-    identified = False
     panel_name = "tso500_ctDNA_vcf_workflow_university_of_melbourne"
+
+    # Set identified as object
+    identified: bool
 
     def __init__(self, case_accession_number: str,
                  disease: Disease,
@@ -317,7 +442,7 @@ class Case:
         # Check case exists
         self.check_case_exists()
 
-    def __call__(self):
+    def __call__(self, dryrun: bool = False):
         """
         Create the case object on PierianDx
         :return:
@@ -326,12 +451,17 @@ class Case:
         # Get data response
         data = self.get_case_creation_request_data()
 
+        if dryrun:
+            logger.debug(f"Would submit case data as "
+                         f"'{data}'")
+            self.case_id = 0
+            return
+
         self.create_case(data)
 
     def check_case_exists(self):
         """
         Check the case doesn't already exist
-        :param accession_number:
         :return:
         """
         from utils.accession import get_cases_df
@@ -352,7 +482,7 @@ class Case:
         pyriandx_client = get_pieriandx_client()
 
         # Debug logger
-        logger.debug(f"Launching the case creation data endpoint with following data inputs {data}")
+        logger.debug(f"Launching the case creation data endpoint with following data inputs {json.dumps(data)}")
 
         # Create the case and get the response
         iter_count = 0
@@ -367,19 +497,21 @@ class Case:
             logger.debug(f"Creating case {self.case_accession_number} with attempt {str(iter_count)}")
 
             # Generate response
-            response = pyriandx_client._post_api(endpoint="/case", data=data).json()
+            response: Response = pyriandx_client._post_api(endpoint="/case", data=data)
 
             logger.debug("Printing response")
             if not response.status_code == 200:
+                print(response)
                 logger.warning(f"Received code {response.status_code} and {response.content} trying "
                                f"to create case {self.case_accession_number}")
                 logger.warning(f"Trying case creation again - attempt {iter_count}")
                 time.sleep(CASE_CREATION_RETRY_TIME)
             else:
+                response_json: Dict = response.json()
                 break
 
         # Get the id
-        self.case_id = response.get("id")
+        self.case_id = response_json.get("id")
 
     def add_sample_id_to_specimen(self, sample_id):
         """
@@ -412,36 +544,10 @@ class Case:
 
     def get_case_creation_request_data(self):
         """
-        Create the case creation request data
+        Implemented in subclass
         :return:
         """
-        data = {
-            "dagName": DAG.get("name"),
-            "dagDescription": DAG.get("description"),
-            "disease": self.disease.to_dict(),
-            "identified": False,
-            "indication": self.indication,
-            "panelName": PANEL_NAME,
-            "sampleType": self.sample_type.value,
-            "specimens": [
-                {
-                    'name': self.specimen.name,
-                    "accessionNumber": self.specimen.case_accession_number,
-                    "dateAccessioned": self.specimen.date_accessioned.isoformat().replace("+00:00", "Z"),
-                    "dateReceived": self.specimen.date_received.isoformat().replace("+00:00", "Z"),
-                    "datecollected": self.specimen.date_collected.isoformat().replace("+00:00", "Z"),
-                    'ethnicity': self.specimen.ethnicity.value,
-                    "externalSpecimenId": self.specimen.external_specimen_id,
-                    'gender': self.specimen.gender.value,
-                    'race': self.specimen.race.value,
-                    "studyIdentifier": self.specimen.study_identifier,
-                    "studySubjectIdentifier": self.specimen.study_subject_identifier,
-                    "type": self.specimen.specimen_type.to_dict()
-                }
-            ]
-        }
-
-        return data
+        raise NotImplementedError
 
     def get_informatics_job_creation_request_data(self):
         """
@@ -470,7 +576,7 @@ class Case:
 
         return data
 
-    def launch_informatics_job(self):
+    def launch_informatics_job(self, dryrun: bool = False):
         """
         Launch an informatics job
         :return:
@@ -487,6 +593,11 @@ class Case:
 
         # Create the informatics job and collect the response
         data = self.get_informatics_job_creation_request_data()
+
+        if dryrun:
+            logger.debug(f"Would have pushed informatics job with data '{data}'")
+            self.informatics_job_id = 0
+            return
 
         self.launch_informatics_job_with_retries(data)
 
@@ -510,8 +621,8 @@ class Case:
                 raise JobCreationError
 
             # Call end point
-            response = pyriandx_client._post_api(endpoint=f"/case/{self.case_id}/informaticsJobs",
-                                                 data=data).json()
+            response: Response = pyriandx_client._post_api(endpoint=f"/case/{self.case_id}/informaticsJobs",
+                                                 data=data)
 
             logger.debug("Printing response")
             if not response.status_code == 200:
@@ -520,15 +631,16 @@ class Case:
                 logger.warning(f"Trying job creation again - attempt {iter_count}")
                 time.sleep(JOB_CREATION_RETRY_TIME)
             else:
+                response_json: Dict = response.json()
                 break
 
         # Get the id
-        self.informatics_job_id = response.get("jobId")
+        self.informatics_job_id = response_json.get("jobId")
 
         logger.debug(f"Created informatics job for case {self.case_id} with "
                      f"data {data} and retrieved job id {str(self.informatics_job_id)}")
 
-    def upload_case_files(self):
+    def upload_case_files(self, dryrun: bool = False):
         """
         Upload the case files for the case
         :return:
@@ -537,6 +649,9 @@ class Case:
         pyriandx_client = get_pieriandx_client()
 
         for file_name in self.run_objs[0].case_files_dir.rglob("*"):
+            if dryrun:
+                logger.debug(f"Would have uploaded file {file_name} to case files")
+                continue
             # Set iter count
             iter_count = 0
             while True:
@@ -558,8 +673,8 @@ class Case:
                 }
 
                 # Call end point
-                response = pyriandx_client._post_api(endpoint=f"/case/{self.case_id}/caseFiles/{file_name.name}/",
-                                                     files=file_dict)
+                response: Response = pyriandx_client._post_api(endpoint=f"/case/{self.case_id}/caseFiles/{file_name.name}/",
+                                                               files=file_dict)
 
                 logger.debug("Printing response")
                 if not response.status_code == 200:
@@ -572,6 +687,40 @@ class Case:
 
     @classmethod
     def from_dict(cls, case_dict: Dict):
+        raise NotImplementedError
+
+
+class DeIdentifiedCase(Case):
+    """
+    A DeIdentified Case has identified set to false
+    """
+
+    def __init__(self, **kwargs):
+        self.identified = False
+
+        # Initialise from the super class
+        super(DeIdentifiedCase, self).__init__(**kwargs)
+
+    def get_case_creation_request_data(self):
+        """
+        Create the case creation request data
+        :return:
+        """
+        data = {
+            "dagName": DAG.get("name"),
+            "dagDescription": DAG.get("description"),
+            "disease": self.disease.to_dict(),
+            "identified": self.identified,
+            "indication": self.indication,
+            "panelName": PANEL_NAME,
+            "sampleType": self.sample_type.value,
+            "specimens": [
+                self.specimen.to_dict()
+            ]
+        }
+
+    @classmethod
+    def from_dict(cls, case_dict: Dict):
         """
         From a redcap dict file, read in the dictionary
         :param case_dict:
@@ -580,17 +729,59 @@ class Case:
         return cls(case_accession_number=case_dict.get("accession_number"),
                    disease=case_dict.get("disease_obj"),
                    sample_type=SampleType(case_dict.get("sample_type")),
-                   specimen=Specimen.from_dict(case_dict),
+                   # Still need to load this
+                   specimen=DeIdentifiedSpecimen.from_dict(case_dict),
                    indication=case_dict.get("indication"))
 
-    @classmethod
-    def from_json(cls, case_json: Dict):
+
+class IdentifiedCase(Case):
+    """
+    An Identified Case has identified set to True
+    """
+
+    def __init__(self, **kwargs):
+        self.identified = True
+        self.requesting_physicians: Optional[List[Physician]] = kwargs.pop("requesting_physicians")
+
+        # Initialise from the super class
+        super(IdentifiedCase, self).__init__(**kwargs)
+
+    def get_case_creation_request_data(self):
         """
-        From a redcap json file, read in the
-        :param redcap_json:
+        Create the case creation request data
         :return:
         """
+        data = {
+            "dagName": DAG.get("name"),
+            "dagDescription": DAG.get("description"),
+            "disease": self.disease.to_dict(),
+            "identified": self.identified,
+            "indication": self.indication,
+            "physicians": [
+                physician.to_dict()
+                for physician in self.requesting_physicians
+            ],
+            "panelName": PANEL_NAME,
+            "sampleType": self.sample_type.value,
+            "specimens": [
+                self.specimen.to_dict()
+            ]
+        }
 
-        raise NotImplementedError
+        return data
 
-
+    @classmethod
+    def from_dict(cls, case_dict: Dict):
+        """
+        From a redcap dict file, read in the dictionary
+        :param case_dict:
+        :return:
+        """
+        return cls(case_accession_number=case_dict.get("accession_number"),
+                   disease=case_dict.get("disease_obj"),
+                   sample_type=SampleType(case_dict.get("sample_type")),
+                   requesting_physicians=[Physician.from_dict(physician)
+                                          for physician in case_dict.get("requesting_physicians")],
+                   # Still need to load this
+                   specimen=IdentifiedSpecimen.from_dict(case_dict),
+                   indication=case_dict.get("indication"))

@@ -17,6 +17,7 @@ from libica.openapi.libwes import WorkflowRun
 
 from utils.classes import Case, PierianDXSequenceRun
 from utils.logging import set_basic_logger
+from utils.portal import get_run_name_from_portal_run_id
 from logging import DEBUG, INFO
 
 import sys
@@ -100,31 +101,32 @@ def main():
 
         # Create the case in PierianDx
         logger.info(f"Creating case object on PierianDx for case {case.case_accession_number}")
-        case()
+        case(dryrun=args.dryrun)
 
         # Update the run name to include the runs flowcell id (from the ica workflow object)
-        run_flowcell_id = ICA_WES_CTTSO_RUN_NAME_REGEX.match(ica_workflow_run_obj.name).\
-            group(ICA_WES_CTTSO_RUN_NAME_REGEX_GROUPS.get("date_stamp"))
+        portal_run_id: str = ICA_WES_CTTSO_RUN_NAME_REGEX.match(ica_workflow_run_obj.name).\
+            group(ICA_WES_CTTSO_RUN_NAME_REGEX_GROUPS.get("portal_run_id"))
+        run_flowcell_id: str = get_run_name_from_portal_run_id(portal_run_id)
         run.rename_run(new_run_name=f"{case.case_accession_number}_{run_flowcell_id}_{run.get_timestamp()}")
 
         # Create the run in pierian
         logger.info(f"Creating run object on PierianDx for case {case.case_accession_number}")
-        run()
+        run(dryrun=args.dryrun)
 
         # Add the run id to the case object
         case.add_run_to_case([run])
 
         # Get the case file
         logger.info("Uploading failed exon coverage case file")
-        case.upload_case_files()
+        case.upload_case_files(dryrun=args.dryrun)
 
         # Upload files to s3
         logger.info(f"Uploading cttso files to PierianDx s3 bucket for case {case.case_accession_number}")
-        run.upload_to_s3_bucket()
+        run.upload_to_s3_bucket(dryrun=args.dryrun)
 
         # Launch the informatics job:
         logger.info("Launching informatics job for case")
-        case.launch_informatics_job()
+        case.launch_informatics_job(dryrun=args.dryrun)
 
     logger.info("Writing out cases")
     log_informatics_job_by_case(args.cases)

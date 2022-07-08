@@ -56,6 +56,19 @@ batch_job_container_props = {
 
 def lambda_handler(event, context):
     # Log the received event
+    """
+    Example payload is something like:
+    {
+      "parameters": {
+        "accession_json_base64_str": "eyJzYW1wbGVfdHlwZSI6IlBhdGllbnQgQ2FyZSBTYW1wbGUiLCJkaXNlYXNlIjo3MDA0MjMwMDMsImlzX2lkZW50aWZpZWQiOnRydWUsImFjY2Vzc2lvbl9udW1iZXIiOiJTQkowMTE1OF9MMjEwMTUxM18wMDEiLCJzcGVjaW1lbl90eXBlIjoiMTIyNTYxMDA1IiwiZXh0ZXJuYWxfc3BlY2ltZW5faWQiOiIxMTUwIFNVUEVSIiwiZGF0ZV9hY2Nlc3Npb25lZCI6IjIwMjItMDYtMjNUMjE6MzI6MzYrMTAwMCIsImRhdGVfY29sbGVjdGVkIjoiMjAyMi0wMS0wMSIsImRhdGVfcmVjZWl2ZWQiOm51bGwsImRhdGVfb2ZfYmlydGgiOiIyMDIyLTA2LTIzVDIxOjMyOjM2KzEwMDAiLCJmaXJzdF9uYW1lIjoiSm9obiIsImxhc3RfbmFtZSI6IkRvZSIsImdlbmRlciI6bnVsbCwibXJuIjoiU05fMTE1MCIsImZhY2lsaXR5IjoiUGV0ZXIgTWFjQ2FsbHVtIENhbmNlciBDZW50cmUiLCJob3NwaXRhbF9udW1iZXIiOjEsInJlcXVlc3RpbmdfcGh5c2ljaWFuc19maXJzdF9uYW1lIjoiQWxleGlzIiwicmVxdWVzdGluZ19waHlzaWNpYW5zX2xhc3RfbmFtZSI6IlNhbmNoZXoifQ==",
+        "ica_workflow_run_id": "wfr.dd235d749b6d4d2db63e36864febc341"
+      }
+    }
+
+    Additional parameters include:
+    "dryrun": bool (False)
+    "verbose": bool (False)
+    """
     print(f"Received event: {event}")
 
     print(f"Using jobDefinition: {JOB_DEF}")
@@ -140,13 +153,32 @@ def lambda_handler(event, context):
         # http://docs.aws.amazon.com/batch/latest/APIReference/API_SubmitJob.html
         print(f"jobName: {job_name}")
         print(f"jobQueue: {job_queue}")
-        print(f"parameters: {parameters}")
         print(f"dependsOn: {depends_on}")
         print(f"containerOverrides: {container_overrides}")
 
         # Update container overrides to be a list of name, value pairs
-        container_overrides['environment'] = [{"name": key, "value": value}
-                                              for key, value in container_overrides['environment'].items()]
+        container_overrides['environment'] = [
+            {
+              "name": key,
+              "value": value
+            }
+            for key, value in container_overrides['environment'].items()
+        ]
+
+        # Set optional parameters
+        # Add --dryrun to parameter list if dryrun in parameter list
+        if parameters.get("dryrun", False):
+            parameters["dryrun"] = "--dryrun"
+        else:
+            _ = parameters.pop("dryrun", None)
+
+        # Add --verbose to parameter list if verbose in parameter list
+        if parameters.get("verbose", False):
+            parameters["verbose"] = "--verbose"
+        else:
+            _ = parameters.pop("verbose", None)
+
+        print(f"parameters: {parameters}")
 
         # Submit job
         response = batch_client.submit_job(

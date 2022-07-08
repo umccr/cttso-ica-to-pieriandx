@@ -15,12 +15,10 @@ import pandas as pd
 from pathlib import Path
 
 from utils.logging import get_logger
-
-from utils.classes import Case, PierianDXSequenceRun
+from utils.classes import Case, DeIdentifiedCase, IdentifiedCase, PierianDXSequenceRun
 from utils.ica_wes import get_ica_workflow_run_objs_from_library_names
 
 from libica.openapi.libwes import WorkflowRun
-from os import getcwd
 
 logger = get_logger()
 
@@ -63,10 +61,17 @@ The following environment variables are expected:
     parser.add_argument("--accession-csv",
                         required=False,
                         help="Path to accession csv containing redcap information for sample list")
+
     parser.add_argument("--verbose",
                         action='store_true',
                         default=False,
                         help="Set log level from info to debug")
+
+    parser.add_argument("--dryrun",
+                        action="store_true",
+                        default=False,
+                        help="Don't actually submit / create or upload anything to PierianDx - "
+                             "will still download data from ICA to tmpdir")
 
     return parser.parse_args()
 
@@ -291,7 +296,10 @@ def get_cases_from_input_df(input_df: pd.DataFrame) -> List[Case]:
 
     for index, row in input_df.iterrows():
         # Create a case object from the row values in the input df
-        cases.append(Case.from_dict(row.to_dict()))
+        if row.get("is_identified", False):
+            cases.append(IdentifiedCase.from_dict(row.to_dict()))
+        else:
+            cases.append(DeIdentifiedCase.from_dict(row.to_dict()))
 
     return cases
 

@@ -13,25 +13,7 @@ The script then creates a case, sequencing run and informatics job on PierianDx.
 ### Option 1: Recommended
 > No installation required - just run things
 
-Using the docker container:
-```bash
-docker run \
-  --rm -it \
-  --volume "$PWD:$PWD" \
-  --workdir "$PWD" \
-  --env "ICA_BASE_URL=${ICA_BASE_URL}" \
-  --env "ICA_ACCESS_TOKEN=${ICA_ACCESS_TOKEN}" \
-  --env "PIERIANDX_BASE_URL=${PIERIANDX_BASE_URL}" \
-  --env "PIERIANDX_INSTITUTION=${PIERIANDX_INSTITUTION}" \
-  --env "PIERIANDX_AWS_REGION=${PIERIANDX_AWS_REGION}" \
-  --env "PIERIANDX_AWS_S3_PREFIX=${PIERIANDX_AWS_S3_PREFIX}" \
-  --env "PIERIANDX_AWS_ACCESS_KEY_ID=${PIERIANDX_AWS_ACCESS_KEY_ID}" \
-  --env "PIERIANDX_AWS_SECRET_ACCESS_KEY=${PIERIANDX_AWS_SECRET_ACCESS_KEY}" \
-  --env "PIERIANDX_USER_EMAIL=${PIERIANDX_USER_EMAIL}" \
-  --env "PIERIANDX_USER_PASSWORD=${PIERIANDX_USER_PASSWORD}" \
-  quay.io/umccr/cttso-ica-to-pieriandx:1.0.0 \
-    cttso-ica-to-pieriandx.py ...
-```
+Checkout our [deploy](deploy/cttso-ica-to-pieriandx-cdk) folder for how we automate this service in AWS. 
 
 ## Option 2: (Installation through conda)
 > Few hacky bits
@@ -183,7 +165,6 @@ optional arguments:
 * Run `ica-context-switcher --scope read-only --project-name <project-name>` 
 to add `ICA_ACCESS_TOKEN` to your environment
 
-
 ### PIERIANDX_BASE_URL
 * For prod this is `https://app.pieriandx.com/cgw-api/v2.0.0`.  
 * For dev this is `https://app.uat.pieriandx.com/cgw-api/v2.0.0`
@@ -231,6 +212,7 @@ The AWS Lambda call expects two input parameter arguments:
 ### Single sample example
 The example below shows an example deployment of the lambda
 
+#### De-identified sample
 ```bash
 #!/usr/bin/env bash
 
@@ -239,23 +221,26 @@ set -euo pipefail
 
 ## Set inputs
 ica_workflow_run_id="wfr.55ee9135cd88442b8810d7224c88c03f"
-accession_json_base64_str="$(jq \
-                             --raw-output \
-                             '@base64' <<< \
-                             '{
-                                 "sample_type":"Validation",
-                                 "indication":"CUP",
-                                 "disease":285645000,
-                                 "is_identified?":"No",
-                                 "accession_number":"SBJ00001_L2100001",
-                                 "study_id":"Validation",
-                                 "participant_id":"SBJ00001",
-                                 "specimen_type":119361006,
-                                 "external_specimen_id":"pDNA_Super_1085",
-                                 "date_accessioned":"2021-10-04t09:00:00+1000",
-                                 "date_collected":"2021-10-02t09:00:00+1000",
-                                 "date_received":"2021-10-03t09:00:00+1000",
-                             }')"
+accession_json_base64_str="$(
+  jq \
+    --raw-output \
+    '@base64' <<< \
+  '
+    {
+      "sample_type":"Validation",
+      "disease":285645000,
+      "is_identified":False,
+      "accession_number":"SBJ00001_L2100001",
+      "study_id":"Validation",
+      "participant_id":"SBJ00001",
+      "specimen_type":119361006,
+      "external_specimen_id":"pDNA_Super_1085",
+      "date_accessioned":"2021-10-04t09:00:00+1000",
+      "date_collected":"2021-10-02t09:00:00+1000",
+      "date_received":"2021-10-03t09:00:00+1000",
+    }
+  ' \
+)"
 
 # Get payload
 payload="$(jq --raw-output \
@@ -276,10 +261,61 @@ aws lambda invoke \
   /dev/stdout
 ```
 
-### Multi-sample example
+#### Identified sample
 
-Please see [examples/launch_bulk_csv](examples/launch_bulk_csv) 
-for examples of launching multiple samples through the pipeline.
+```bash
+#!/usr/bin/env bash
+
+# Set to fail
+set -euo pipefail
+
+## Set inputs
+ica_workflow_run_id="wfr.55ee9135cd88442b8810d7224c88c03f"
+accession_json_base64_str="$(
+  jq \
+    --raw-output \
+    '@base64' <<< \
+  '
+    {      
+      "sample_type": "Validation",
+      "disease": 285645000,
+      "is_identified": True,
+      "accession_number": "SBJ00001_L2100001",
+      "specimen_type": 119361006,
+      "external_specimen_id": "pDNA_Super_1085.1",
+      "date_accessioned": "2021-10-04t09:00:00+1000",
+      "date_collected": "2021-10-02t09:00:00+1000",
+      "date_received": "2021-10-03t09:00:00+1000",
+      "date_of_birth": "2021-10-04t09:00:00+1000",
+      "first_name": "John",
+      "last_name": "Doe",
+      "mrn": "pDNA_Super_1085",
+      "hospital_number": "99",
+      "facility": "PeterMac",
+      "requesting_physicians_first_name": "Dr",
+      "requesting_physicians_last_name": "DoLittle"
+    }
+  ' \
+)"
+
+# Get payload
+payload="$(jq --raw-output \
+              --arg ica_workflow_run_id "${ica_workflow_run_id}" \
+              --arg accession_json_base64_str "${accession_json_base64_str}" \
+              '{
+                 parameters: {
+                   ica_workflow_run_id: $ica_workflow_run_id,
+                   accession_json_base64_str: $accession_json_base64_str
+                 }
+               }' <<< {})"
+
+# Call lambda - write output to stdout
+aws lambda invoke \
+  --cli-binary-format "raw-in-base64-out" \
+  --function-name "ctTSOICAToPierianDx_batch_lambda" \
+  --payload "${payload}" \
+  /dev/stdout
+```
 
 ## Accession CSV format reference
 
@@ -302,12 +338,6 @@ The accession csv will have the following columns (all columns are reduced to lo
 * Accession Number / accession_number
   * The Case Accession Number, should be `<subject_id>_<library_id>`
   * i.e `SBJ00123_L2100456`
-* Study ID / StudyID / study_id
-  * Could be the name of the study
-  * Leave blank and falls back to sample type attribute?
-* Participant ID / ParticipantID / participant_id
-  * The subject ID
-  * Leave blank and falls back to accession number
 * Specimen Label / specimen_label:  # Optional
   * Mapping to the panel's specimen scheme
   * Default is `primarySpecimen`
@@ -322,9 +352,37 @@ The accession csv will have the following columns (all columns are reduced to lo
 * Date collected
   * Date Time string in UTC time
 * Date Received
-  * Date Time string in UTC time 
+  * Date Time string in UTC time
 * Gender  # Optional (default "unknown")
   * One of `[ unknown, male, female, unspecified, other, ambiguous, not_applicable ]`
+
+### De-identified specific options
+* Study ID / StudyID / study_id
+  * Could be the name of the study
+  * Leave blank and falls back to sample type attribute?
+* Participant ID / ParticipantID / participant_id
+  * The subject ID
+  * Leave blank and falls back to accession number
+
+### Identified specific options
+* Date Of Birth:
+  * Patient's Date of birth, we just set this as the current date
+* First Name:
+  * Patient's first name, set always to John or Jane
+* Last Name:
+  * Patient's last name, set always to Doe
+* Mrn
+  * Patient's medical record number
+* Hospital Number
+  * Patient's hospital number (set to 99 currently)
+* Institution
+  * Institution of clinician
+* Requesting Physicians First Name
+  * First name of Clinician
+* Requesting Physicians Last Name
+  * Last nameof Clinician
+
+### Unused options
 * Ethnicity # Optional (default "unknown")
   * One of `[ hispanic_or_latino, not_hispanic_or_latino, not_reported, unknown ]`
 * Race       # Optional (default "unknown")

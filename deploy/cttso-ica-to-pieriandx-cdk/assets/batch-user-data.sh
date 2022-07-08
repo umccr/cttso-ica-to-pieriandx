@@ -8,7 +8,7 @@ second is the s3 path to the cloud watch configuration script on s3
 '
 
 # Set to fail
-set -euo pipefail
+set -euxo pipefail
 
 # Functions
 echo_stderr(){
@@ -17,6 +17,9 @@ echo_stderr(){
   '
   echo "${!@}" 1>&2
 }
+
+# Create container directory
+mkdir -p /opt/container
 
 # Expects two positional arguments
 # 1. s3 Path to wrapper
@@ -39,9 +42,33 @@ if [[ -z "${!S3_CWA_CONFIG-}" ]]; then
   exit 1
 fi
 
+# Stop the ssm agent
+echo "Stopping and upgrading amazon ssm agent" 1>&2
+systemctl stop amazon-ssm-agent
+systemctl disable amazon-ssm-agent
+
+echo "Downloading latest version" 1>&2
+curl \
+  --output "amazon-ssm-agent.rpm" \
+  "https://s3.amazonaws.com/ec2-downloads-windows/SSMAgent/latest/linux_amd64/amazon-ssm-agent.rpm"
+echo "Upgrading ssm agent to latest version" 1>&2
+rpm \
+  --quiet \
+  --install \
+  --force \
+  --upgrade \
+  --replacepkgs \
+  "amazon-ssm-agent.rpm"
+echo "Re-enabling amazon ssm agent" 1>&2
+systemctl enable --output=verbose amazon-ssm-agent
+systemctl start --output=verbose amazon-ssm-agent
+echo "Cleaning up" 1>&2
+rm "amazon-ssm-agent.rpm"
+
 # Lets do some updates / installations
 # Update yum
 yum update -q -y
+
 # Install cloud watch agent
 yum install -q -y \
   amazon-cloudwatch-agent \
@@ -85,9 +112,6 @@ systemctl enable docker
 systemctl start docker
 usermod -a -G docker ec2-user
 
-# Create container directory
-mkdir -p /opt/container
-
 # Update local wrapper script to be executable by all
 chmod 755 "${!LOCAL_WRAPPER}"
 
@@ -97,6 +121,3 @@ mount /dev/xvdf /mnt
 
 # set uid and gid of /mnt/ as the 'cttso_ica_to_pieriandx_user' and group defined in the Dockerfile
 chown 1000:1000 /mnt
-
-
-
