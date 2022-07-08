@@ -75,11 +75,12 @@ def get_workflow_obj_from_portal(portal_run_id: str) -> Dict:
     :return:
     """
     portal_base_url = get_portal_base_url()
-    portal_auth = get_portal_creds(portal_base_url)
 
     portal_url_endpoint = PORTAL_WORKFLOWS_ENDPOINT.format(
         PORTAL_API_BASE_URL=portal_base_url
     )
+
+    portal_auth = get_portal_creds(portal_url_endpoint)
 
     req: Response = requests.get(
         url=portal_url_endpoint,
