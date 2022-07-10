@@ -838,8 +838,8 @@ def lambda_handler(event, context):
             raise ValueError
     else:
         # Step 6.false - create case accession number that does not match any previous accession numbers
-        # Get a case accession number that does not exist yet in the form SBJ_LIB_000
-        iter_int = 0
+        # Get a case accession number that does not exist yet in the form SBJ_LIB_001
+        iter_int = 1
         while True:
             case_accession_number = f"{subject_id}_{library_id}_{str(iter_int).zfill(3)}"
             if case_accession_number not in pieriandx_case_accession_numbers:
