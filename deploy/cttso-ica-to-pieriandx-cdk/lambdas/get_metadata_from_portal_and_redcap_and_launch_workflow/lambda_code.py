@@ -483,7 +483,7 @@ async def get_metadata_information_from_redcap(subject_id: str, library_id: str)
 
     # Update time_collected field since it might not exist
     redcap_raw_df["time_collected"] = redcap_raw_df["time_collected"].apply(
-        lambda x: x if not pd.isnull(x) else "00:00:00"
+        lambda x: x if not pd.isnull(x) else "00:00"
     )
 
     # Update date fields
