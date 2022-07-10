@@ -115,7 +115,7 @@ def get_workflow_inputs_from_portal_workflow_obj(workflow_object: Dict) -> Optio
     Get workflow inputs from the workflow object
     :return:
     """
-    return workflow_object.get("input", None)
+    return json.loads(workflow_object.get("input", None))
 
 
 def collect_run_xml_from_workflow_inputs(workflow_inputs: Dict) -> Optional[Dict]:
@@ -133,7 +133,7 @@ def get_run_name_from_run_xml_location(run_info_path: str):
     :return:
     """
 
-    if ( runinfo_regex_match := RUN_INFO_XML_REGEX.fullmatch(run_info_path) ) is None:
+    if ( runinfo_regex_match := RUN_INFO_XML_REGEX.fullmatch(run_info_path)) is None:
         logger.error(f"Could not get the run name from the run xml location '{run_info_path}'")
 
     # Return the only regex group
