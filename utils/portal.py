@@ -18,7 +18,7 @@ import requests
 from requests import Response
 import boto3
 
-PORTAL_WORKFLOWS_ENDPOINT = "https://{PORTAL_API_BASE_URL}/workflows"
+PORTAL_WORKFLOWS_ENDPOINT = "https://{PORTAL_API_BASE_URL}/iam/workflows"
 PORTAL_API_BASE_URL_SSM_PATH = "/data_portal/backend/api_domain_name"
 
 logger = get_logger()

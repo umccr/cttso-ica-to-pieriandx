@@ -58,7 +58,7 @@ logger.addHandler(console_hander)
 # Globals
 PORTAL_API_BASE_URL_SSM_PATH = "/data_portal/backend/api_domain_name"
 PORTAL_METADATA_ENDPOINT = "https://{PORTAL_API_BASE_URL}/iam/metadata/"
-PORTAL_WORKFLOWS_ENDPOINT = "https://{PORTAL_API_BASE_URL}/workflows"
+PORTAL_WORKFLOWS_ENDPOINT = "https://{PORTAL_API_BASE_URL}/iam/workflows"
 PORTAL_CTTSO_TYPE_NAME = "tso_ctdna_tumor_only"
 PORTAL_MAX_ROWS_PER_PAGE = 1000  # FIXME - this breaks after 1000 workflow runs
 PORTAL_WORKFLOW_ORDERING = "-start"  # We generally want the latest
