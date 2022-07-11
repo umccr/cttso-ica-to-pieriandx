@@ -368,7 +368,7 @@ export class CttsoIcaToPieriandxBatchStack extends Stack {
                     instanceRole: batch_instance_profile.instanceProfileName,
                     vpc: vpc,
                     vpcSubnets: {
-                        subnetType: SubnetType.PRIVATE_WITH_NAT,
+                        subnetType: SubnetType.PUBLIC,
                         availabilityZones: this.availabilityZones
                     },
                     securityGroups: [
