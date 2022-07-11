@@ -135,9 +135,11 @@ LIST_CASES_RETRY_TIME = 1
 CURRENT_TIME = datetime.utcnow()
 AUS_TIMEZONE = pytz.timezone("Australia/Melbourne")
 AUS_TIMEZONE_SUFFIX = datetime.now(AUS_TIMEZONE).strftime("%z")
+UTC_TIMEZONE = pytz.timezone("UTC")
 
 HOSPITAL_NUMBER = 99
 
+DATE_OF_BIRTH = datetime.fromtimestamp(0).astimezone(UTC_TIMEZONE)
 
 def change_case(column_name: str) -> str:
     """
@@ -880,7 +882,7 @@ def lambda_handler(event, context):
             raise ValueError
 
     # Step 7a - make up the 'identified' values (date_of_birth / first_name / last_name)
-    merged_df["date_of_birth"] = str(CURRENT_TIME.date())
+    merged_df["date_of_birth"] = str(DATE_OF_BIRTH.date())
     merged_df["first_name"] = merged_df.apply(
         lambda x: "John"
         if x.gender.lower() == "male"
