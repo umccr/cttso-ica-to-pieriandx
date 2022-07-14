@@ -64,11 +64,20 @@ export class CttsoIcaToPieriandxPipelineStack extends Stack {
             crossAccountKeys: true
         })
 
-        // Add the build docker image as a 'wave'
+        // Collect manual approval step
+        const wave_pre_steps = []  // Default, if stack suffix is prod we add a Manual Approval Step
+        if ( props.stack_suffix === "prod"){
+            wave_pre_steps.push(
+                new pipelines.ManualApprovalStep("PromoteToProd")
+            )
+        }
+
+        // Add stacks and docker image build docker image as a 'wave'
         // https://docs.aws.amazon.com/cdk/api/v2/docs/aws-cdk-lib.pipelines-readme.html#using-docker-image-assets-in-the-pipeline
-        pipeline.addWave(
+        const pipeline_wave = pipeline.addWave(
             "build-docker-image-wave",
             {
+                pre: wave_pre_steps,
                 post: [
                     this.createBuildStage(
                         props.stack_prefix,
@@ -90,8 +99,8 @@ export class CttsoIcaToPieriandxPipelineStack extends Stack {
             stack_suffix: props.stack_suffix
         })
 
-        // Add the batch stage to the pipeline
-        pipeline.addStage(
+        // Add the batch stage to the pipeline wave
+        pipeline_wave.addStage(
             batch_stage
         )
 
@@ -104,8 +113,8 @@ export class CttsoIcaToPieriandxPipelineStack extends Stack {
             stack_suffix: props.stack_suffix
         })
 
-        // Add the batch stage to the pipeline
-        pipeline.addStage(
+        // Add the batch stage to the pipeline wave
+        pipeline_wave.addStage(
             redcap_lambda_stage
         )
 
