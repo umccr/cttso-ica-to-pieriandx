@@ -5,9 +5,9 @@ set -euo pipefail
 # Help function
 print_help(){
   echo "
-        Usage: launch-direct-cttso-lambda-from-glims.sh (--ica-workflow-run-id wfr....)
-                                                        (--subject-id SBJ...)
+        Usage: launch-direct-cttso-lambda-from-glims.sh (--subject-id SBJ...)
                                                         (--library-id L..)
+                                                        [--ica-workflow-run-id wfr....]
                                                         [--dryrun]
                                                         [--verbose]
                                                         [--help]
@@ -16,9 +16,9 @@ print_help(){
           Call cttso-ica-to-pieriandx and pull in all required information from GLIMS
 
         Options:
-            --ica-workflow-run-id:             Required: The ica workflow run id for a given sample
             --subject-id:                      Required: The subject id
             --library-id:                      Required: The library id
+            --ica-workflow-run-id:             Optional: The ica workflow run id for a given sample
             --dryrun:                          Optional: If set, adds --dryrun parameter to pieriandx command
             --verbose:                         Optional: Turn on debugging
             --help:                            Print help
@@ -55,6 +55,7 @@ fi
 AWS_SUBMISSION_LAMBDA_FUNCTION_ARM_SSM_PARAMETER_PATH="cttso-ica-to-pieriandx-lambda-function"
 GOOGLE_LIMS_AUTH_JSON_SSM_PARAMETER_PATH="/umccr/google/drive/lims_service_account_json"
 GOOGLE_LIMS_SHEET_ID_SSM_PARAMETER_PATH="/umccr/google/drive/lims_sheet_id"
+WORKFLOW_TYPE_NAME="tso_ctdna_tumor_only"
 
 # Submission inputs
 SPECIMEN_TYPE="122561005"                             # From GLIMS.specimen_type (overridden to match previous submissions) - example
@@ -75,16 +76,16 @@ verbose="false"
 # Get args from command line
 while [ $# -gt 0 ]; do
   case "$1" in
-    --ica-workflow-run-id)
-      ica_workflow_run_id="$2"
-      shift 1
-      ;;
     --subject-id)
       subject_id="$2"
       shift 1
       ;;
     --library-id)
       library_id="$2"
+      shift 1
+      ;;
+    --ica-workflow-run-id)
+      ica_workflow_run_id="$2"
       shift 1
       ;;
     --dryrun)
@@ -101,11 +102,7 @@ while [ $# -gt 0 ]; do
   shift 1
 done
 
-if [[ -z "${ica_workflow_run_id-}" ]]; then
-  echo "Please provide the --ica-workflow-run-id parameter" 1>&2
-  print_help
-  exit 1
-fi
+# Assert mandatory parameters exit
 if [[ -z "${subject_id-}" ]]; then
   echo "Please provide the --subject-id parameter" 1>&2
   print_help
@@ -116,6 +113,51 @@ if [[ -z "${library_id-}" ]]; then
   echo "Please provide the --library-id parameter" 1>&2
   print_help
   exit 1
+fi
+
+# Find missing ica workflow run id if it doesn't exist
+if [[ -z "${ica_workflow_run_id-}" ]]; then
+  echo "Attempting to find the ica workflow run id via the portal" 1>&2
+  portal_run_id="$( \
+    awscurl --region ap-southeast-2 \
+      --request GET \
+      --header "Content-Type: application/json" \
+      --profile "${ACCOUNT_ID}" \
+      "https://api.data.prod.umccr.org/iam/libraryrun?library_id=${library_id}" | \
+    jq --raw-output \
+      '
+        .results |
+        map(.workflows[-1]) |
+        flatten |
+        unique |
+        .[0]
+      ' \
+  )"
+
+  ica_workflow_run_id="$( \
+    awscurl \
+      --request GET \
+      --region ap-southeast-2 \
+      --header "Content-Type: application/json" \
+      --profile "${ACCOUNT_ID}" \
+      "https://api.data.prod.umccr.org/iam/workflows/${portal_run_id}" | \
+    jq --raw-output \
+      --arg type_name "${WORKFLOW_TYPE_NAME}" \
+    '
+      if ( .type_name == $type_name ) then
+        .wfr_name
+      else null
+      end
+    ' \
+  )"
+
+  if [[ "${ica_workflow_run_id}" == "null" ]]; then
+    echo "Error: Could not get the right workflow, please use the --ica-workflow-run-id parameter instead" 1>&2
+    exit 1
+  fi
+
+  echo "Collected the ica workflow run id '${ica_workflow_run_id}'" 1>&2
+
 fi
 
 # Get GSPREAD PANDAS LOGIC
@@ -163,8 +205,7 @@ jq --raw-output \
   '
 )"
 
-# Workflow Run ID
-# ica workflows runs list --max-items=0 | grep "${SUBJECT_ID}__${LIBRARY_ID}"
+# Payload
 cttso_ica_to_pieriandx_payload="$( \
   jq \
     --raw-output \
