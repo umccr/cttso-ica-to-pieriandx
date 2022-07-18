@@ -25,6 +25,9 @@ print_help(){
 
         Requirements:
           * jq
+          * pip3 (pip)
+          * aws
+          * awscurl
           * python requirements:
             * pytz
             * gspread-pandas
@@ -35,6 +38,12 @@ print_help(){
         " 1>&2
 }
 
+echo "Checking binaries are present" 1>&2
+if ! type jq python3 pip3 awscurl aws 1>/dev/null 2>&1; then
+  echo "Error! Please ensure all required binaries are installed" 1>&2
+  print_help
+  exit 1
+fi
 
 # Get json file based on account
 ACCOUNT_ID="$( \
@@ -47,15 +56,22 @@ ACCOUNT_ID="$( \
 if [[ "${ACCOUNT_ID}" == "472057503814" ]]; then
   echo "Submitting workflow in prod" 1>&2
 else
-  echo "Please ensure you're logged in the UMCCR AWS prod account" 1>&2
+  echo "Error! Please ensure you're logged in the UMCCR AWS prod account" 1>&2
+  print_help
   exit 1
 fi
+
 
 # Globals
 AWS_SUBMISSION_LAMBDA_FUNCTION_ARM_SSM_PARAMETER_PATH="cttso-ica-to-pieriandx-lambda-function"
 GOOGLE_LIMS_AUTH_JSON_SSM_PARAMETER_PATH="/umccr/google/drive/lims_service_account_json"
 GOOGLE_LIMS_SHEET_ID_SSM_PARAMETER_PATH="/umccr/google/drive/lims_sheet_id"
 WORKFLOW_TYPE_NAME="tso_ctdna_tumor_only"
+REQUIRED_PYTHON_LIBRARIES=( \
+  "pytz" \
+  "gspread-pandas" \
+  "python-dateutil" \
+)
 
 # Submission inputs
 SPECIMEN_TYPE="122561005"                             # From GLIMS.specimen_type (overridden to match previous submissions) - example
@@ -114,6 +130,33 @@ if [[ -z "${library_id-}" ]]; then
   print_help
   exit 1
 fi
+
+# Check we have all of our python libraries available
+echo "Checking python3 pip3 installations"
+pip_json_list_str="$( \
+  pip3 list \
+    --pre \
+    --format=json | \
+  jq --raw-output \
+)"
+
+for python_library in "${REQUIRED_PYTHON_LIBRARIES[@]}"; do
+  has_library="$( \
+    jq --raw-output \
+      --arg python_library "${python_library}" \
+      '
+        map(
+          select(.name==$python_library)
+        ) |
+        length
+      ' \
+  )" <<< "${pip_json_list_str}"
+  if [[ ! "${has_library}" -lt "1" ]]; then
+    echo "Error - python library '${python_library}' is not installed" 1>&2
+    print_help
+    exit 1
+  fi
+done
 
 # Find missing ica workflow run id if it doesn't exist
 if [[ -z "${ica_workflow_run_id-}" ]]; then
