@@ -57,7 +57,10 @@ export class CttsoIcaToPieriandxValidationLambdaStack extends Stack {
                 functionName: props.stack_prefix + "-lf",
                 description: "validation sample to cttso submission lambda function deployed using AWS CDK with Docker Image",
                 code: DockerImageCode.fromImageAsset(
-                    "./lambdas/get_metadata_from_portal_and_validation_and_launch_clinical_workflow",
+                    "./lambdas/",
+                    {
+                        file: "get_metadata_from_portal_and_validation_and_launch_clinical_workflow/Dockerfile"
+                    }
                 ),
                 role: lambda_role,
                 timeout: Duration.seconds(300),
@@ -102,7 +105,6 @@ export class CttsoIcaToPieriandxValidationLambdaStack extends Stack {
                 }
             )
         )
-
 
         // Add pieriandx secrets access to lambda policy
         const pieriandx_secrets_path = Secret.fromSecretNameV2(
