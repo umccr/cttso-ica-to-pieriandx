@@ -30,7 +30,7 @@ Run `update-params.sh` in your console and changed ssm parameters will be update
 
 The PierianDx password must be updated every three months and is a manual process. 
 
-This requires the user to log in to [app.pieriandx.com](app.pieriandx.com) and update their password. 
+This requires the user to log in to [app.pieriandx.com](https://app.pieriandx.com) and update their password. 
 
 Once updated in PierianDx, the user should run the update-pieriandx-password.sh in both the dev and prod accounts.  
 
@@ -51,5 +51,3 @@ An example of the payloads file is as below:
 { "subject_id": "SBJ12345", "library_id": "L000123", "ica_workflow_run_id": "wfr.abcdef123456" }
 { "subject_id": "SBJ67890", "library_id": "L000456", "ica_workflow_run_id": "wfr.a1b2c3d4e5f6" }
 ```
-
-

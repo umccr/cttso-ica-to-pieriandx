@@ -118,6 +118,18 @@ export class CttsoIcaToPieriandxPipelineStack extends Stack {
             redcap_lambda_stage
         )
 
+        // Add the validation stage to the pipeline wave
+        const validation_lambda_stage = new CttsoIcaToPieriandxRedcapLambdaStage(this, props.stack_prefix + "-ValidationLambdaStage", {
+            stack_prefix: `${props.stack_prefix}-validation-lambda-stack`,
+            env: {
+                account: props.aws_account_id,
+                region: props.aws_region
+            },
+            stack_suffix: props.stack_suffix
+        })
+
+        // Add the launch all available payloads and update cttso lims sheet to the pipeline wave
+        // TODO
     }
 
     // Create the build stage
