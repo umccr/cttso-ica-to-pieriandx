@@ -14,10 +14,11 @@ RUN yum update -y && \
 
 COPY ${APP_ROOT}/${THIS_DIR_NAME}/lambda_code.py ./
 
-COPY ${APP_ROOT}/layers/lambda_utils ./
+COPY ${APP_ROOT}/layers/lambda_utils/ ./lambda_utils/
 
 RUN ( \
   cd lambda_utils && \
+  ls && \
   python setup.py install && \
   rm -rf lambda_utils \
 )
