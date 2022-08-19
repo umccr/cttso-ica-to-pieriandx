@@ -53,8 +53,8 @@ export class CttsoIcaToPieriandxValidationLambdaStack extends Stack {
         // Create DockerImage-based lambda Function
         const lambda_function = new DockerImageFunction(
             this,
-            props.stack_prefix + "-LambdaFunction", {
-                functionName: props.stack_prefix + "-lambda-function",
+            props.stack_prefix + "-LF", {
+                functionName: props.stack_prefix + "-lf",
                 description: "validation sample to cttso submission lambda function deployed using AWS CDK with Docker Image",
                 code: DockerImageCode.fromImageAsset(
                     "./lambdas/get_metadata_from_portal_and_validation_and_launch_clinical_workflow",
