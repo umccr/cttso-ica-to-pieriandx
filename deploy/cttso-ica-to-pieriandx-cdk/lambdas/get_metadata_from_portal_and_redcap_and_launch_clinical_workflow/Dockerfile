@@ -18,8 +18,7 @@ COPY ${APP_ROOT}/layers/ ./layers/
 
 RUN ( \
       cd layers && \
-      python setup.py install && \
+      python setup.py install \
     )
-
 
 CMD ["lambda_code.lambda_handler"]
