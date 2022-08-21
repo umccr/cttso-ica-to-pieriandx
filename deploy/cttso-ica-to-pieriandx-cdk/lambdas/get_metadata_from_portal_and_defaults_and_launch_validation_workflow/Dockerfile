@@ -12,6 +12,9 @@ RUN yum update -y && \
     rm -Rf /var/cache/yum && \
     mkdir /opt/python_utils/
 
+RUN pip install --upgrade pip && \
+    pip install google-auth
+
 COPY ${APP_ROOT}/${THIS_DIR_NAME}/lambda_code.py ./
 
 COPY ${APP_ROOT}/layers/ ./layers/
