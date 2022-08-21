@@ -9,4 +9,4 @@ pyriandx==0.2.0
 pytz==2022.1
 requests==2.25.1
 python-dateutil==2.8.2
-gspread-pandas==3.2.2
+gspread_pandas==3.2.2
