@@ -15,7 +15,8 @@ import re
 PORTAL_API_BASE_URL_SSM_PATH = "/data_portal/backend/api_domain_name"
 PORTAL_METADATA_ENDPOINT = "https://{PORTAL_API_BASE_URL}/iam/metadata/"
 PORTAL_WORKFLOWS_ENDPOINT = "https://{PORTAL_API_BASE_URL}/iam/workflows"
-PORTAL_MAX_ROWS_PER_PAGE = 10000
+PORTAL_SEQUENCE_RUNS_ENDPOINT = "https://{PORTAL_API_BASE_URL}/iam/sequencerun"
+PORTAL_MAX_ROWS_PER_PAGE = 1000
 PORTAL_CTTSO_TYPE_NAME = "tso_ctdna_tumor_only"
 PORTAL_WORKFLOW_ORDERING = "-start"  # We generally want the latest
 

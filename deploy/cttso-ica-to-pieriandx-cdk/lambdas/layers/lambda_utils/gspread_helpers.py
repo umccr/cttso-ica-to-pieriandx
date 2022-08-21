@@ -83,18 +83,27 @@ def get_cttso_samples_from_glims() -> pd.DataFrame:
       * glims_is_validation -> Is this a validation sample? Determined by ProjectName is equal to "Validation"
     """
 
-    df: pd.DataFrame = Spread(spread=get_glims_sheet_id(), sheet="Sheet1").sheet_to_df()
-    df = df.query("Type=='ctDNA' & Assay=='ctTSO'")
-    df["glims_is_validation"] = df.apply(lambda x: True if x.ProjectName.lower() == "validation" else False)
+    if os.environ.get("GSPREAD_PANDAS_CONFIG_DIR") is None:
+        set_google_secrets()
 
-    df = df.rename(
+    glims_df: pd.DataFrame = Spread(spread=get_glims_sheet_id(), sheet="Sheet1").sheet_to_glims_df()
+    glims_df = glims_df.query("Type=='ctDNA' & Assay=='ctTSO'")
+    glims_df["glims_is_validation"] = glims_df.apply(
+        lambda x: True if x.ProjectName.lower() == "validation" else False,
+        axis="columns"
+    )
+
+    glims_df = glims_df.rename(
         columns={
             "SubjectID": "subject_id",
             "LibraryID": "library_id"
         }
     )
 
-    return df[["subject_id", "library_id", "glims_is_validation"]]
+    # Drop duplicate rows
+    glims_df = glims_df.drop_duplicates()
+
+    return glims_df[["subject_id", "library_id", "glims_is_validation"]]
 
 
 def update_cttso_lims_row(new_row: pd.Series, row_number: int):
@@ -171,9 +180,9 @@ def get_cttso_lims() -> (pd.DataFrame, pd.DataFrame):
     )
     """
 
-    cttso_lims_df: pd.DataFrame = Spread(spread=get_cttso_lims_sheet_id(), sheet="Sheet1").sheet_to_df()
+    cttso_lims_df: pd.DataFrame = Spread(spread=get_cttso_lims_sheet_id(), sheet="Sheet1").sheet_to_df(index=0)
 
     excel_row_number_df = cttso_lims_df[["subject_id", "library_id"]]
     excel_row_number_df["excel_row_number"] = excel_row_number_df.index + 2  # Conversion to 1-based index plus single header row
 
-    return pd.DataFrame(), pd.DataFrame()
+    return cttso_lims_df, excel_row_number_df

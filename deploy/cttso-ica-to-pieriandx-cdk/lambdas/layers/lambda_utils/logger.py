@@ -5,6 +5,7 @@ import logging
 from .globals import LOGGER_STYLE
 
 # Set logger
+logger = logging.getLogger()
 # Set basic logger
 logger.setLevel(level=logging.INFO)
 
@@ -13,7 +14,7 @@ formatter = logging.Formatter(LOGGER_STYLE)
 
 # Set console handler
 console_hander = logging.StreamHandler()
-console_hander.setLevel(logger.level)
+console_hander.setLevel(logging.INFO)
 console_hander.setFormatter(formatter)
 
 # Add console handler to logger

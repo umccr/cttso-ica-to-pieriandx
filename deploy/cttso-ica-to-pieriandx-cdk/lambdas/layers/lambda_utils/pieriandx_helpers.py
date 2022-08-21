@@ -6,7 +6,7 @@ All things PierianDx that are useful
 
 import os
 import re
-from typing import Tuple, Dict, List
+from typing import Tuple, Dict, List, Union
 from pyriandx.client import Client
 import json
 import pandas as pd
@@ -147,7 +147,6 @@ def get_pieriandx_df() -> pd.DataFrame:
       * pieriandx_case_id
       * pieriandx_case_accession_number
       * pieriandx_case_creation_date
-      * pieriandx_case_identified
     """
     email, password, institution, base_url = get_pieriandx_env_vars()
 
@@ -184,9 +183,61 @@ def get_pieriandx_df() -> pd.DataFrame:
 
     cases_df.columns = sanitised_columns
 
+    cases_df = cases_df.rename(
+        columns={
+            "id": "pieriandx_case_id",
+            "accession_number": "pieriandx_case_accession_number",
+            "date_created": "pieriandx_case_creation_date",
+        }
+    )
+
+    # Get subject id and library id
+    cases_df["subject_id"] = cases_df.apply(
+        lambda x: get_subject_id_from_accession_number(x.pieriandx_case_accession_number),
+        axis="columns"
+    )
+    cases_df["library_id"] = cases_df.apply(
+        lambda x: get_library_id_from_accession_number(x.pieriandx_case_accession_number),
+        axis="columns"
+    )
+
+    cases_df = cases_df.query(
+        "not ("
+        "  subject_id.isnull() or "
+        "  library_id.isnull() "
+        ")",
+        engine="python"
+    )
+
     logger.info("Collected cases information and returning all accession numbers")
 
     return cases_df
+
+
+def get_subject_id_from_accession_number(accession_number: str) -> Union[str, None]:
+    """
+    Dont fail just return null
+    :param accession_number:
+    :return:
+    """
+    try:
+        subject_id, library_id = split_subject_id_and_library_id_from_case_accession_number(accession_number)
+        return subject_id
+    except ValueError:
+        return None
+
+
+def get_library_id_from_accession_number(accession_number: str) -> Union[str, None]:
+    """
+    Dont fail just return null
+    :param accession_number:
+    :return:
+    """
+    try:
+        subject_id, library_id = split_subject_id_and_library_id_from_case_accession_number(accession_number)
+        return subject_id
+    except ValueError:
+        return None
 
 
 def get_existing_pieriandx_case_accession_numbers() -> List:
@@ -232,14 +283,16 @@ def split_subject_id_and_library_id_from_case_accession_number(case_accession_nu
     """
     case_accession_number_regex_obj = re.fullmatch(r"^(SBJ\d+)_(L\d+)(?:_\d+)?$", case_accession_number)
     if case_accession_number_regex_obj is None:
-        logger.error(f"Could not split the subject id and library id from the case accession number '{case_accession_number}'")
+        logger.warning(f"Could not split the subject id and library id from the case accession number '{case_accession_number}'")
         raise ValueError
     subject_id = case_accession_number_regex_obj.group(1)
     if subject_id is None:
-        logger.error(f"Could not collect the subject id from the case accession number '{case_accession_number}'")
+        logger.warning(f"Could not collect the subject id from the case accession number '{case_accession_number}'")
+        raise ValueError
     library_id = case_accession_number_regex_obj.group(2)
     if library_id is None:
-        logger.error(f"Could not collect the library id from the case accession number '{case_accession_number}'")
+        logger.warning(f"Could not collect the library id from the case accession number '{case_accession_number}'")
+        raise ValueError
     return subject_id, library_id
 
 
