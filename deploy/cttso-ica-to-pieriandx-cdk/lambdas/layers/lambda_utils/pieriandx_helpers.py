@@ -252,7 +252,7 @@ def get_existing_pieriandx_case_accession_numbers() -> List:
 
     cases_df = get_pieriandx_df()
 
-    return cases_df["accession_number"].tolist()
+    return cases_df["pieriandx_case_accession_number"].tolist()
 
 
 def get_new_case_accession_number(subject_id: str, library_id: str) -> str:
