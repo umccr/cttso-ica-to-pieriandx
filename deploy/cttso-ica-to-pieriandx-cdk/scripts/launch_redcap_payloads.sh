@@ -105,7 +105,7 @@ while read -r payload_line || [ -n "${payload_line}" ]; do
   )"
   subject_id="$( \
     jq --raw-output \
-      '.subject_id' \
+      '.subject_id' <<< "${payload_json_str}" \
   )"
   library_id="$( \
     jq --raw-output \

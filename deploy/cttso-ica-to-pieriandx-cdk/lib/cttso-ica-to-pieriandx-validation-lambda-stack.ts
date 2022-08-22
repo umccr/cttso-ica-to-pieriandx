@@ -59,7 +59,7 @@ export class CttsoIcaToPieriandxValidationLambdaStack extends Stack {
                 code: DockerImageCode.fromImageAsset(
                     "./lambdas/",
                     {
-                        file: "get_metadata_from_portal_and_validation_and_launch_clinical_workflow/Dockerfile"
+                        file: "get_metadata_from_portal_and_defaults_and_launch_validation_workflow/Dockerfile"
                     }
                 ),
                 role: lambda_role,
