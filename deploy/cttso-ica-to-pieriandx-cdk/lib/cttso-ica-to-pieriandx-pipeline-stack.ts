@@ -8,6 +8,7 @@ import {CttsoIcaToPieriandxBatchStage} from "./cttso-ica-to-pieriandx-batch-stag
 import { LinuxBuildImage } from "aws-cdk-lib/aws-codebuild";
 import { CodeBuildStep } from "aws-cdk-lib/pipelines";
 import {CttsoIcaToPieriandxRedcapLambdaStage} from "./cttso-ica-to-pieriandx-redcap-lambda-stage";
+import {CttsoIcaToPieriandxValidationLambdaStage} from "./cttso-ica-to-pieriandx-validation-lambda-stage";
 
 
 interface CttsoIcaToPieriandxPipelineStackProps extends StackProps {
@@ -119,7 +120,7 @@ export class CttsoIcaToPieriandxPipelineStack extends Stack {
         )
 
         // Add the validation stage to the pipeline wave
-        const validation_lambda_stage = new CttsoIcaToPieriandxRedcapLambdaStage(this, props.stack_prefix + "-ValidationLambdaStage", {
+        const validation_lambda_stage = new CttsoIcaToPieriandxValidationLambdaStage(this, props.stack_prefix + "-ValidationLambdaStage", {
             stack_prefix: `${props.stack_prefix}-validation-lambda-stack`,
             env: {
                 account: props.aws_account_id,
