@@ -28,6 +28,7 @@ from lambda_utils.aws_helpers import get_boto3_lambda_client
 from lambda_utils.globals import \
     CLINICAL_DEFAULTS, EXPECTED_ATTRIBUTES, \
     CURRENT_TIME
+from lambda_utils.miscell import handle_date
 
 from lambda_utils.pieriandx_helpers import \
     validate_case_accession_number, get_new_case_accession_number
@@ -240,7 +241,7 @@ def lambda_handler(event, context):
     # Convert times to utc time
     for date_column in ["date_received", "date_collected"]:
         merged_df[date_column] = merged_df[date_column].apply(
-            lambda x: date_parser(x).astimezone(pytz.utc).replace(microsecond=0).isoformat()
+            lambda x: datetime_obj_to_utc_isoformat(handle_date(x))
         )
 
     # Rename columns
@@ -265,11 +266,11 @@ def lambda_handler(event, context):
     # Step 7a - make up the 'identified' values (date_of_birth / first_name / last_name)
     merged_df["date_of_birth"] = str(CLINICAL_DEFAULTS["date_of_birth"].date())
     merged_df["first_name"] = merged_df.apply(
-        lambda x: CLINICAL_DEFAULTS["patient_name"][x.gender()].split(" ")[0],
+        lambda x: CLINICAL_DEFAULTS["patient_name"][x.gender].split(" ")[0],
         axis="columns"
     )
     merged_df["last_name"] = merged_df.apply(
-        lambda x: CLINICAL_DEFAULTS["patient_name"][x.gender()].split(" ")[-1],
+        lambda x: CLINICAL_DEFAULTS["patient_name"][x.gender].split(" ")[-1],
         axis="columns"
     )
 

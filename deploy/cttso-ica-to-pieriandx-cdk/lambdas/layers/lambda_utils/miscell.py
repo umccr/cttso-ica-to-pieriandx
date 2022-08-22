@@ -34,3 +34,13 @@ def handle_date(datetime_str_or_obj: Union[str, datetime]) -> datetime:
     else:
         logger.error(f"Couldn't handle date-str-or-obj of type '{type(datetime_str_or_obj)}'")
         raise ValueError
+
+
+def datetime_obj_to_utc_isoformat(datetime_obj: datetime) -> datetime:
+    if datetime_obj.tzinfo is None:
+        # Assume utc time and just append
+        datetime_obj = datetime_obj.replace(tzinfo=timezone.utc)
+    else:
+        datetime_obj.astimezone(pytz.utc)
+
+    return datetime_obj.replace(microsecond=0)

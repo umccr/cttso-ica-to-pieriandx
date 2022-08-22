@@ -10,7 +10,6 @@ from typing import Tuple, Dict, List, Union
 from pyriandx.client import Client
 import json
 import pandas as pd
-from requests import Response
 import time
 
 from .globals import \

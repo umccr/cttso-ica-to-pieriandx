@@ -22,7 +22,7 @@ import pytz
 from lambda_utils.arns import get_cttso_ica_to_pieriandx_lambda_function_arn
 from lambda_utils.aws_helpers import get_boto3_lambda_client
 from lambda_utils.globals import CLINICAL_DEFAULTS, VALIDATION_DEFAULTS, CURRENT_TIME, EXPECTED_ATTRIBUTES
-from lambda_utils.miscell import handle_date
+from lambda_utils.miscell import handle_date, datetime_obj_to_utc_isoformat
 from lambda_utils.pieriandx_helpers import \
     validate_case_accession_number, get_new_case_accession_number, get_existing_pieriandx_case_accession_numbers
 from lambda_utils.logger import get_logger
@@ -121,12 +121,12 @@ def lambda_handler(event, context):
         case_accession_number = get_new_case_accession_number(subject_id, library_id)
 
     sample_df["accession_number"] = case_accession_number
-    sample_df["date_accessioned"] = CURRENT_TIME.astimezone(pytz.utc).replace(microsecond=0).isoformat()
+    sample_df["date_accessioned"] = datetime_obj_to_utc_isoformat(CURRENT_TIME)
 
     # Convert times to utc time
     for date_column in ["date_received", "date_collected"]:
         sample_df[date_column] = sample_df[date_column].apply(
-            lambda x: handle_date(x).astimezone(pytz.utc).replace(microsecond=0).isoformat()
+            lambda x: datetime_obj_to_utc_isoformat(handle_date(x))
         )
 
     # Rename columns
@@ -147,17 +147,6 @@ def lambda_handler(event, context):
                 f"did not find it in columns {', '.join(sample_df.columns.tolist())}"
             )
             raise ValueError
-
-    # Step 7a - make up the 'identified' values (date_of_birth / first_name / last_name)
-    sample_df["date_of_birth"] = str(CLINICAL_DEFAULTS["date_of_birth"].date())
-    sample_df["first_name"] = sample_df.apply(
-        lambda x: CLINICAL_DEFAULTS["patient_name"][x.gender()].split(" ")[0],
-        axis="columns"
-    )
-    sample_df["last_name"] = sample_df.apply(
-        lambda x: CLINICAL_DEFAULTS["patient_name"][x.gender()].split(" ")[-1],
-        axis="columns"
-    )
 
     # Launch batch lambda function
     accession_json: Dict = sample_df.to_dict(orient="records")[0]

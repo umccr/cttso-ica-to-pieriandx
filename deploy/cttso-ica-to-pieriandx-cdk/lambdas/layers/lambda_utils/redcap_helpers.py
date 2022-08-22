@@ -7,16 +7,13 @@ Helpers for RedCap
 from typing import Dict
 import pandas as pd
 import json
-from typing import List, Optional, Union
-import sys
+from typing import List, Optional
 from requests import RequestException
-
-import requests
 
 from .globals import \
     REDCAP_PROJECT_NAME_PARAMETER_PATH, \
     REDCAP_APIS_FUNCTION_ARN_SSM_PARAMETER, \
-    AUS_TIMEZONE, AUS_TIMEZONE_SUFFIX, \
+    AUS_TIMEZONE_SUFFIX, \
     REDCAP_RAW_FIELDS_CLINICAL, REDCAP_LABEL_FIELDS_CLINICAL, \
     CLINICAL_DEFAULTS
 
