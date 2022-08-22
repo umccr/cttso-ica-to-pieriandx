@@ -36,7 +36,7 @@ def handle_date(datetime_str_or_obj: Union[str, datetime]) -> datetime:
         raise ValueError
 
 
-def datetime_obj_to_utc_isoformat(datetime_obj: datetime) -> datetime:
+def datetime_obj_to_utc_isoformat(datetime_obj: datetime) -> str:
     if datetime_obj.tzinfo is None:
         # Assume utc time and just append
         datetime_obj = datetime_obj.replace(tzinfo=timezone.utc)

@@ -123,8 +123,8 @@ def lambda_handler(event, context):
     sample_df["accession_number"] = case_accession_number
     sample_df["date_accessioned"] = datetime_obj_to_utc_isoformat(CURRENT_TIME)
 
-    # Convert times to utc time
-    for date_column in ["date_received", "date_collected"]:
+    # Convert times to utc time and strings
+    for date_column in ["date_received", "date_collected", "date_of_birth"]:
         sample_df[date_column] = sample_df[date_column].apply(
             lambda x: datetime_obj_to_utc_isoformat(handle_date(x))
         )

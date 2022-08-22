@@ -28,7 +28,7 @@ from lambda_utils.aws_helpers import get_boto3_lambda_client
 from lambda_utils.globals import \
     CLINICAL_DEFAULTS, EXPECTED_ATTRIBUTES, \
     CURRENT_TIME
-from lambda_utils.miscell import handle_date
+from lambda_utils.miscell import handle_date, datetime_obj_to_utc_isoformat
 
 from lambda_utils.pieriandx_helpers import \
     validate_case_accession_number, get_new_case_accession_number
@@ -264,7 +264,7 @@ def lambda_handler(event, context):
             raise ValueError
 
     # Step 7a - make up the 'identified' values (date_of_birth / first_name / last_name)
-    merged_df["date_of_birth"] = str(CLINICAL_DEFAULTS["date_of_birth"].date())
+    merged_df["date_of_birth"] = datetime_obj_to_utc_isoformat(CLINICAL_DEFAULTS["date_of_birth"])
     merged_df["first_name"] = merged_df.apply(
         lambda x: CLINICAL_DEFAULTS["patient_name"][x.gender].split(" ")[0],
         axis="columns"
