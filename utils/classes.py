@@ -711,7 +711,7 @@ class DeIdentifiedCase(Case):
             "disease": self.disease.to_dict(),
             "identified": self.identified,
             "indication": self.indication,
-            "panelName": PanelType[self.sample_type.name],
+            "panelName": PanelType[self.sample_type.name].value,
             "sampleType": self.sample_type.value,
             "specimens": [
                 self.specimen.to_dict()
@@ -762,7 +762,7 @@ class IdentifiedCase(Case):
                 physician.to_dict()
                 for physician in self.requesting_physicians
             ],
-            "panelName": PanelType[self.sample_type.value],
+            "panelName": PanelType[self.sample_type.name].value,
             "sampleType": self.sample_type.value,
             "specimens": [
                 self.specimen.to_dict()
