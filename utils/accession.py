@@ -572,7 +572,7 @@ def sanitise_data_frame(input_df: pd.DataFrame) -> pd.DataFrame:
         )
 
     # Confirm dates are not later than now
-    current_datetime = datetime.utcnow().astimezone(pytz.utc)
+    current_datetime = datetime_obj_to_utc(datetime.utcnow())
     for date_column in ["date_accessioned", "date_received", "date_collected", "date_of_birth"]:
         if date_column not in input_df.columns:
             continue

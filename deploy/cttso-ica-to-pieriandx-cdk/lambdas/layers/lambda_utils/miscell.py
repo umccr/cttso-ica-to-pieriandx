@@ -43,4 +43,4 @@ def datetime_obj_to_utc_isoformat(datetime_obj: datetime) -> datetime:
     else:
         datetime_obj.astimezone(pytz.utc)
 
-    return datetime_obj.replace(microsecond=0)
+    return datetime_obj.replace(microsecond=0).isoformat()
