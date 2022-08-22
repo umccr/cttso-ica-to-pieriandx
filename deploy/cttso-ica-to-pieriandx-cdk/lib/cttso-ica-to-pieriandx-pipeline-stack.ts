@@ -113,7 +113,7 @@ export class CttsoIcaToPieriandxPipelineStack extends Stack {
             stack_suffix: props.stack_suffix
         })
 
-        // Add the batch stage to the pipeline wave
+        // Add the redcap stage to the pipeline wave
         pipeline_wave.addStage(
             redcap_lambda_stage
         )
@@ -127,6 +127,11 @@ export class CttsoIcaToPieriandxPipelineStack extends Stack {
             },
             stack_suffix: props.stack_suffix
         })
+
+        // Add the validation lambda stage to the pipeline wave
+        pipeline_wave.addStage(
+            validation_lambda_stage
+        )
 
         // Add the launch all available payloads and update cttso lims sheet to the pipeline wave
         // TODO
