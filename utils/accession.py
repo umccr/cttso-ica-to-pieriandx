@@ -4,7 +4,7 @@
 Read in the accession csv or json
 """
 
-from typing import List, Dict, Optional
+from typing import List, Dict, Optional, Union
 from pathlib import Path
 import pandas as pd
 import gzip
@@ -325,6 +325,16 @@ def read_input_csv(input_csv: Path) -> pd.DataFrame:
     return pd.read_csv(input_csv, header=0, comment="#")
 
 
+def handle_date(datetime_str_or_obj: Union[str, datetime]) -> datetime:
+    if isinstance(datetime_str_or_obj, str):
+        return date_parser(datetime_str_or_obj)
+    elif isinstance(datetime_str_or_obj, datetime):
+        return datetime_str_or_obj
+    else:
+        logger.error(f"Couldn't handle date-str-or-obj of type '{type(datetime_str_or_obj)}'")
+        raise ValueError
+
+
 def datetime_obj_to_utc(datetime_obj: datetime) -> datetime:
     if datetime_obj.tzinfo is None:
         # Assume utc time and just append
@@ -566,7 +576,7 @@ def sanitise_data_frame(input_df: pd.DataFrame) -> pd.DataFrame:
             continue
         # Get the input df date column as a utc date object
         input_df[date_column] = input_df[date_column].apply(
-            lambda x: datetime_obj_to_utc(x)
+            lambda x: datetime_obj_to_utc(handle_date(x))
                       if not pd.isnull(x)
                       else x
         )
