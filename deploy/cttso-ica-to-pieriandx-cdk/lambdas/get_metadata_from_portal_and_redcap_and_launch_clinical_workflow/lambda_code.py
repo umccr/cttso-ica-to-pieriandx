@@ -266,11 +266,11 @@ def lambda_handler(event, context):
     # Step 7a - make up the 'identified' values (date_of_birth / first_name / last_name)
     merged_df["date_of_birth"] = datetime_obj_to_utc_isoformat(CLINICAL_DEFAULTS["date_of_birth"])
     merged_df["first_name"] = merged_df.apply(
-        lambda x: CLINICAL_DEFAULTS["patient_name"][x.gender].split(" ")[0],
+        lambda x: CLINICAL_DEFAULTS["patient_name"][x.gender.lower()].split(" ")[0],
         axis="columns"
     )
     merged_df["last_name"] = merged_df.apply(
-        lambda x: CLINICAL_DEFAULTS["patient_name"][x.gender].split(" ")[-1],
+        lambda x: CLINICAL_DEFAULTS["patient_name"][x.gender.lower()].split(" ")[-1],
         axis="columns"
     )
 
