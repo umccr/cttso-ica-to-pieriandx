@@ -172,7 +172,6 @@ def get_portal_workflow_run_data_df() -> pd.DataFrame:
         if mini_df.shape[0] == 1:
             mini_dfs.append(mini_df)
             continue
-        pd.set_option('display.max_columns', 500)
         # Remove portal failed runs if one has passed
         if len(mini_df["portal_is_failed_run"].unique().tolist()) > 1:
             only_succeeded_sequence_runs_df: pd.DataFrame = mini_df.query("portal_is_failed_run == False")

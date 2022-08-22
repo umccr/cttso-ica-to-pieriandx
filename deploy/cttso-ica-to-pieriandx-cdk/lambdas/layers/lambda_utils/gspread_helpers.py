@@ -86,7 +86,7 @@ def get_cttso_samples_from_glims() -> pd.DataFrame:
     if os.environ.get("GSPREAD_PANDAS_CONFIG_DIR") is None:
         set_google_secrets()
 
-    glims_df: pd.DataFrame = Spread(spread=get_glims_sheet_id(), sheet="Sheet1").sheet_to_glims_df()
+    glims_df: pd.DataFrame = Spread(spread=get_glims_sheet_id(), sheet="Sheet1").sheet_to_df()
     glims_df = glims_df.query("Type=='ctDNA' & Assay=='ctTSO'")
     glims_df["glims_is_validation"] = glims_df.apply(
         lambda x: True if x.ProjectName.lower() == "validation" else False,
