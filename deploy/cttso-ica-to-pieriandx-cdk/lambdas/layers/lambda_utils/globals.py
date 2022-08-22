@@ -52,10 +52,11 @@ REDCAP_PROJECT_NAME_PARAMETER_PATH = "/cdk/cttso-ica-to-pieriandx/redcap_project
 # Validation lambda path
 VALIDATION_LAMBDA_FUNCTION_ARN_SSM_PARAMETER_PATH = "validation-apis-lambda-function"
 
-CURRENT_TIME = datetime.utcnow()
 AUS_TIMEZONE = pytz.timezone("Australia/Melbourne")
 AUS_TIMEZONE_SUFFIX = datetime.now(AUS_TIMEZONE).strftime("%z")
 UTC_TIMEZONE = pytz.timezone("UTC")
+# Current time with timezone suffix
+CURRENT_TIME = UTC_TIMEZONE.localize(datetime.utcnow())
 
 VALIDATION_DEFAULTS = {
     "sample_type": "validation",

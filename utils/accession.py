@@ -325,6 +325,16 @@ def read_input_csv(input_csv: Path) -> pd.DataFrame:
     return pd.read_csv(input_csv, header=0, comment="#")
 
 
+def datetime_obj_to_utc(datetime_obj: datetime) -> datetime:
+    if datetime_obj.tzinfo is None:
+        # Assume utc time and just append
+        datetime_obj = datetime_obj.replace(tzinfo=timezone.utc)
+    else:
+        datetime_obj.astimezone(pytz.utc)
+
+    return datetime_obj.replace(microsecond=0)
+
+
 def sanitise_data_frame(input_df: pd.DataFrame) -> pd.DataFrame:
     # Copy dataframe and convert blanks to nas
     input_df = input_df.copy().replace("", pd.NA)
@@ -556,9 +566,7 @@ def sanitise_data_frame(input_df: pd.DataFrame) -> pd.DataFrame:
             continue
         # Get the input df date column as a utc date object
         input_df[date_column] = input_df[date_column].apply(
-            lambda x: date_parser(x).
-                      replace(tzinfo=timezone.utc).
-                      astimezone(pytz.utc).replace(microsecond=0)
+            lambda x: datetime_obj_to_utc(x)
                       if not pd.isnull(x)
                       else x
         )

@@ -22,6 +22,7 @@ import pytz
 from lambda_utils.arns import get_cttso_ica_to_pieriandx_lambda_function_arn
 from lambda_utils.aws_helpers import get_boto3_lambda_client
 from lambda_utils.globals import CLINICAL_DEFAULTS, VALIDATION_DEFAULTS, CURRENT_TIME, EXPECTED_ATTRIBUTES
+from lambda_utils.miscell import handle_date
 from lambda_utils.pieriandx_helpers import \
     validate_case_accession_number, get_new_case_accession_number, get_existing_pieriandx_case_accession_numbers
 from lambda_utils.logger import get_logger
@@ -125,7 +126,7 @@ def lambda_handler(event, context):
     # Convert times to utc time
     for date_column in ["date_received", "date_collected"]:
         sample_df[date_column] = sample_df[date_column].apply(
-            lambda x: date_parser(x).astimezone(pytz.utc).replace(microsecond=0).isoformat()
+            lambda x: handle_date(x).astimezone(pytz.utc).replace(microsecond=0).isoformat()
         )
 
     # Rename columns
