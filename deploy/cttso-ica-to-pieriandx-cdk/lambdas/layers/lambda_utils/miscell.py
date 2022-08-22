@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-from datetime import date
+from datetime import date, datetime
 from typing import List, Union
 import pytz
 from dateutil.parser import parse as date_parser
