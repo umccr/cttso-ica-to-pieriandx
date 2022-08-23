@@ -41,6 +41,6 @@ def datetime_obj_to_utc_isoformat(datetime_obj: datetime) -> str:
         # Assume utc time and just append
         datetime_obj = datetime_obj.replace(tzinfo=timezone.utc)
     else:
-        datetime_obj.astimezone(pytz.utc)
+        datetime_obj = datetime_obj.astimezone(pytz.utc)
 
     return datetime_obj.replace(microsecond=0).isoformat()

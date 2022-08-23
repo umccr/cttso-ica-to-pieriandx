@@ -234,7 +234,7 @@ def get_library_id_from_accession_number(accession_number: str) -> Union[str, No
     """
     try:
         subject_id, library_id = split_subject_id_and_library_id_from_case_accession_number(accession_number)
-        return subject_id
+        return library_id
     except ValueError:
         return None
 
