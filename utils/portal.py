@@ -99,6 +99,10 @@ def get_workflow_obj_from_portal(portal_run_id: str) -> Dict:
                      f"portal_run_id {portal_run_id}")
         raise AttributeError
 
+    if len(results) == 0:
+        logger.error(f"Could not find the portal run id: {portal_run_id}")
+        raise ValueError
+
     # Check length of results
     if not len(results) == 1:
         logger.error(f"Expected only one entry for portal run id: {portal_run_id}")

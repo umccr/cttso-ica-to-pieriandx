@@ -107,8 +107,12 @@ def main():
         portal_run_name_regex_obj: Match[str] | None = ICA_WES_CTTSO_RUN_NAME_REGEX.match(ica_workflow_run_obj.name)
         if portal_run_name_regex_obj is not None:
             portal_run_id: str = portal_run_name_regex_obj.group(ICA_WES_CTTSO_RUN_NAME_REGEX_GROUPS.get("portal_run_id"))
-            run_flowcell_id: str = get_run_name_from_portal_run_id(portal_run_id)
-            run.rename_run(new_run_name=f"{case.case_accession_number}_{run_flowcell_id}_{run.get_timestamp()}")
+            try:
+                run_flowcell_id: str = get_run_name_from_portal_run_id(portal_run_id)
+            except ValueError:
+                logger.warning(f"Could not get run flowcell id from '{portal_run_id}', skipping renaming run")
+            else:
+                run.rename_run(new_run_name=f"{case.case_accession_number}_{run_flowcell_id}_{run.get_timestamp()}")
         else:
             logger.info(f"Couldn't rename the run object since workflow "
                         f"run name '{ica_workflow_run_obj.name}' was not in recognised regex form")
