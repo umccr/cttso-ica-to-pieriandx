@@ -15,7 +15,7 @@ class SampleType(Enum):
 
 class PanelType(Enum):
     VALIDATION = "tso500_ctDNA_vcf_workflow_university_of_melbourne"
-    PATIENTCARE = "TruSight Oncology 500 ctDNA (VCF) Sub-panel"
+    PATIENTCARE = "tso500_ctDNA_vcf_subpanel_workflow_university_of_melbourne"
 
 
 class Ethnicity(Enum):
