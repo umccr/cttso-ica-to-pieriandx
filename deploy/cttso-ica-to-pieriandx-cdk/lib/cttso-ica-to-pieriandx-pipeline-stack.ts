@@ -67,18 +67,18 @@ export class CttsoIcaToPieriandxPipelineStack extends Stack {
         })
 
         // Create manual approval step in a wave
-        const wave_pre_steps = []  // Default, if stack suffix is prod we add a Manual Approval Step
-        if ( props.stack_suffix === "prod"){
+        if ( props.stack_suffix === "prod") {
+            const wave_pre_steps = []  // Default, if stack suffix is prod we add a Manual Approval Step
             wave_pre_steps.push(
                 new pipelines.ManualApprovalStep("PromoteToProd")
             )
+            const manual_approval_stage_wave = pipeline.addWave(
+                "manual-approval-wave",
+                {
+                    pre: wave_pre_steps,
+                }
+            )
         }
-        const manual_approval_stage_wave = pipeline.addWave(
-            "manual-approval-wave",
-            {
-                pre: wave_pre_steps,
-            }
-        )
 
         // First stage is the batch stage (which generates an ssm parameter required for downstream steps
         // Generate the batch stage
