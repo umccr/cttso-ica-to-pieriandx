@@ -1,0 +1,6 @@
+#!/bin/sh
+
+set -euo pipefail
+
+# Initialization - load function handler
+source $LAMBDA_TASK_ROOT/"$(echo $_HANDLER | cut -d. -f1).sh"

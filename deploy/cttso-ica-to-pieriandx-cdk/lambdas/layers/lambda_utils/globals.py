@@ -50,7 +50,7 @@ REDCAP_LAMBDA_FUNCTION_SSM_PARAMETER_PATH = "redcap-apis-lambda-function"
 REDCAP_PROJECT_NAME_PARAMETER_PATH = "/cdk/cttso-ica-to-pieriandx/redcap_project_name"
 
 # Validation lambda path
-VALIDATION_LAMBDA_FUNCTION_ARN_SSM_PARAMETER_PATH = "validation-apis-lambda-function"
+VALIDATION_LAMBDA_FUNCTION_ARN_SSM_PARAMETER_PATH = "validation-sample-to-pieriandx-lambda-function"
 
 AUS_TIMEZONE = pytz.timezone("Australia/Melbourne")
 AUS_TIMEZONE_SUFFIX = datetime.now(AUS_TIMEZONE).strftime("%z")

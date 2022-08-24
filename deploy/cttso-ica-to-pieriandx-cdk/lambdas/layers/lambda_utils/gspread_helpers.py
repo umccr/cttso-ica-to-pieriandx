@@ -117,9 +117,9 @@ def update_cttso_lims_row(new_row: pd.Series, row_number: int):
     column_range = get_alphabet()[:series_length]
     sheet_obj = Spread(spread=get_cttso_lims_sheet_id(), sheet="Sheet1")
     sheet_obj.update_cells(
-        start=(row_number, column_range[0]),
-        end=(row_number, column_range[-1]),
-        vals=new_row.tolist()
+        start=f"{column_range[0]}{row_number}",
+        end=f"{column_range[-1]}{row_number}",
+        vals=new_row.map(str).tolist()
     )
 
 
@@ -137,13 +137,13 @@ def append_row_to_cttso_lims(new_row: pd.Series):
     sheet_obj = Spread(spread=get_cttso_lims_sheet_id(), sheet="Sheet1")
 
     # Get the total number of rows in the sheet
-    num_rows, _ = sheet_obj.get_sheet_dims()
+    num_rows = sheet_obj.sheet_to_df().shape[0]
 
     # Add another row
     sheet_obj.update_cells(
-        start=(num_rows+1, column_range[0]),
-        end=(num_rows+1, column_range[-1]),
-        vals=new_row.tolist()
+        start=f"{column_range[0]}{num_rows+2}",
+        end=f"{column_range[-1]}{num_rows+2}",
+        vals=new_row.map(str).tolist()
     )
 
 
@@ -156,6 +156,10 @@ def get_cttso_lims() -> (pd.DataFrame, pd.DataFrame):
       A pandas DataFrame with the following columns:
         * subject_id
         * library_id
+        * in_glims
+        * in_portal
+        * in_redcap
+        * in_pieriandx
         * glims_is_validation
         * redcap_sample_type
         * redcap_is_complete
