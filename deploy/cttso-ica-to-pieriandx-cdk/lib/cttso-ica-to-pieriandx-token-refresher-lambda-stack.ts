@@ -111,6 +111,17 @@ export class CttsoIcaToPieriandxTokenRefreshLambdaStack extends Stack {
             new PolicyStatement({
                     actions: [
                         "secretsmanager:ListSecrets",
+                    ],
+                    resources: [
+                        "*"
+                    ]
+                }
+            )
+        )
+
+        lambda_function.addToRolePolicy(
+            new PolicyStatement({
+                    actions: [
                         "secretsmanager:DescribeSecret",
                         "secretsmanager:GetSecretValue",
                         "secretsmanager:CreateSecret",
