@@ -10,7 +10,7 @@ get_aws_ssm_parameter () {
   # Get AWS SSM Parameter
   local ssm_parameter_path="$1"
     aws ssm get-parameter \
-    --parameter-name "${ssm_parameter_path}" | \
+    --name "${ssm_parameter_path}" | \
   jq --raw-output \
     '.Parameter.Value'
 }
@@ -74,8 +74,39 @@ function handler () {
       '
   )"
 
-  # Success
-  aws secretsmanager update-secret \
-    --secret-id "${TOKEN_SECRET_ID}" \
-    --secret-string "${input_secret_json_str}"
+  # Check secret exists 0 for false, 1 for true
+  secret_exists="$( \
+    aws secretsmanager list-secrets \
+      --filters "$( \
+        jq --null-input --raw-output \
+          '
+            [
+              {
+                "Key": "name",
+                "Values": [
+                  "PierianDx/UserAuthToken"
+                ]
+              }
+            ]
+          ' \
+      )" | \
+    jq --raw-output \
+      '
+        .SecretList | length
+      ' \
+  )"
+
+  if [[ "${secret_exists}" == "1" ]]; then
+      # Just update the secret
+      echo "Updating token" 1>&2
+      aws secretsmanager update-secret \
+        --secret-id "${TOKEN_SECRET_ID}" \
+        --secret-string "${input_secret_json_str}"
+  else
+      echo "Creating secret and token" 1>&2
+      aws secretsmanager create-secret \
+        --name "${TOKEN_SECRET_ID}" \
+        --secret-string "${input_secret_json_str}"
+  fi
+
 }
