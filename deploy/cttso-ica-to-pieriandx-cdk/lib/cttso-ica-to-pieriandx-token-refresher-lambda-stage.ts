@@ -24,9 +24,9 @@ export class CttsoIcaToPieriandxTokenRefreshLambdaStage extends Stage {
     ) {
         super(scope, id, props);
 
-        const lambda_batch_stack = new CttsoIcaToPieriandxTokenRefreshLambdaStack(this, `${props.stack_prefix}-tokenRefresh-lambda-stack`, props);
+        const lambda_batch_stack = new CttsoIcaToPieriandxTokenRefreshLambdaStack(this, props.stack_prefix, props);
 
-        Tags.of(lambda_batch_stack).add(`${props.stack_prefix}-token-refresh-lambda-stack`, props.stack_prefix);
+        Tags.of(lambda_batch_stack).add("Stack", props.stack_prefix);
 
         this.tokenRefreshLambdaFunctionArnOutput = lambda_batch_stack.tokenRefreshLambdaFunctionArnOutput
         this.tokenRefreshLambdaFunctionSSMParameterOutput = lambda_batch_stack.tokenRefreshLambdaFunctionSSMParameterOutput
