@@ -66,31 +66,21 @@ export class CttsoIcaToPieriandxPipelineStack extends Stack {
             crossAccountKeys: true
         })
 
-        // Collect manual approval step
+        // Create manual approval step in a wave
         const wave_pre_steps = []  // Default, if stack suffix is prod we add a Manual Approval Step
         if ( props.stack_suffix === "prod"){
             wave_pre_steps.push(
                 new pipelines.ManualApprovalStep("PromoteToProd")
             )
         }
-
-        // Add stacks and docker image build docker image as a 'wave'
-        // https://docs.aws.amazon.com/cdk/api/v2/docs/aws-cdk-lib.pipelines-readme.html#using-docker-image-assets-in-the-pipeline
-        const pipeline_wave = pipeline.addWave(
-            "build-docker-image-wave",
+        const manual_approval_stage_wave = pipeline.addWave(
+            "manual-approval-wave",
             {
                 pre: wave_pre_steps,
-                post: [
-                    this.createBuildStage(
-                        props.stack_prefix,
-                        ECR_REPOSITORY_NAME,
-                        props.stack_suffix,
-                        commit_id
-                    )
-                ]
             }
         )
 
+        // First stage is the batch stage (which generates an ssm parameter required for downstream steps
         // Generate the batch stage
         const batch_stage = new CttsoIcaToPieriandxBatchStage(this, props.stack_prefix + "-BatchStage", {
             stack_prefix: `${props.stack_prefix}-batch-stack`,
@@ -101,9 +91,15 @@ export class CttsoIcaToPieriandxPipelineStack extends Stack {
             stack_suffix: props.stack_suffix
         })
 
-        // Add the batch stage to the pipeline wave
-        pipeline_wave.addStage(
+
+        // Add the batch stage to the pipeline
+        pipeline.addStage(
             batch_stage
+        )
+
+        // Create wave for lambda stacks
+        const pipeline_lambdas_wave = pipeline.addWave(
+            "build-lambdas-wave",
         )
 
         const redcap_lambda_stage = new CttsoIcaToPieriandxRedcapLambdaStage(this, props.stack_prefix + "-RedCapLambdaStage", {
@@ -116,7 +112,7 @@ export class CttsoIcaToPieriandxPipelineStack extends Stack {
         })
 
         // Add the redcap stage to the pipeline wave
-        pipeline_wave.addStage(
+        pipeline_lambdas_wave.addStage(
             redcap_lambda_stage
         )
 
@@ -131,7 +127,7 @@ export class CttsoIcaToPieriandxPipelineStack extends Stack {
         })
 
         // Add the validation lambda stage to the pipeline wave
-        pipeline_wave.addStage(
+        pipeline_lambdas_wave.addStage(
             validation_lambda_stage
         )
 
@@ -146,12 +142,28 @@ export class CttsoIcaToPieriandxPipelineStack extends Stack {
         })
 
         // Add the token_refresh lambda stage to the pipeline wave
-        pipeline_wave.addStage(
+        pipeline_lambdas_wave.addStage(
             token_refresh_lambda_stage
         )
 
         // Add the launch all available payloads and update cttso lims sheet to the pipeline wave
         // TODO
+
+        // Add stacks and docker image build docker image as a 'wave'
+        // https://docs.aws.amazon.com/cdk/api/v2/docs/aws-cdk-lib.pipelines-readme.html#using-docker-image-assets-in-the-pipeline
+        const pipeline_build_wave = pipeline.addWave(
+            "build-docker-image-wave",
+            {
+                post: [
+                    this.createBuildStage(
+                        props.stack_prefix,
+                        ECR_REPOSITORY_NAME,
+                        props.stack_suffix,
+                        commit_id
+                    )
+                ]
+            }
+        )
     }
 
     // Create the build stage
