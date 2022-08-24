@@ -39,7 +39,7 @@ export class CttsoIcaToPieriandxTokenRefreshLambdaStack extends Stack {
             `${props.stack_prefix}-LambdaExecutionRole`,
             {
                 assumedBy: new ServicePrincipal("lambda.amazonaws.com"),
-                roleName: props.stack_prefix + "-lambda-role",
+                roleName: props.stack_prefix + "-lr",
                 managedPolicies: [
                     ManagedPolicy.fromAwsManagedPolicyName(
                         'service-role/AWSLambdaBasicExecutionRole'
@@ -68,7 +68,7 @@ export class CttsoIcaToPieriandxTokenRefreshLambdaStack extends Stack {
          // Create a schedule for the lambda
         const lambda_schedule_rule = new Rule(
             this,
-            props.stack_prefix + "-LF-trig",
+            props.stack_prefix + "-lf-trig",
             {
                 schedule: Schedule.expression("rate(30 minutes)")
             }
