@@ -42,16 +42,16 @@ LOGIN_URL="${SERVICE_URL}/login"
 
 function handler () {
   auth_token="$( \
-  curl \
-    --fail \
-    --silent \
-    --location \
-    --request GET "${LOGIN_URL}" \
-    --header "Accept: application/json" \
-    --header "X-Auth-Email: ${SERVICE_USERNAME}" \
-    --header "X-Auth-Key: ${SERVICE_PASSWORD}" \
-    --header "X-Auth-Institution: ${SERVICE_INSTITUTION}" \
-    --write-out "%header{X-Auth-Token}" \
+    curl \
+      --fail \
+      --silent \
+      --location \
+      --request GET "${LOGIN_URL}" \
+      --header "Accept: application/json" \
+      --header "X-Auth-Email: ${SERVICE_USERNAME}" \
+      --header "X-Auth-Key: ${SERVICE_PASSWORD}" \
+      --header "X-Auth-Institution: ${SERVICE_INSTITUTION}" \
+      --write-out "%header{X-Auth-Token}" \
   )"
 
   # Failure
@@ -108,5 +108,7 @@ function handler () {
         --name "${TOKEN_SECRET_ID}" \
         --secret-string "${input_secret_json_str}"
   fi
+
+  echo "Succesfully updated token"
 
 }

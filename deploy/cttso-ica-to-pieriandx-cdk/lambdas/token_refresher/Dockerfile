@@ -32,7 +32,7 @@ RUN yum update -y && \
       autoreconf -fi && \
       ./configure \
         --with-ssl \
-        --prefix /usr/bin && \
+        --prefix /usr/ && \
       make && \
       make install \
     ) && \
