@@ -10,6 +10,7 @@ get_aws_ssm_parameter () {
   # Get AWS SSM Parameter
   local ssm_parameter_path="$1"
     aws ssm get-parameter \
+    --output json \
     --name "${ssm_parameter_path}" | \
   jq --raw-output \
     '.Parameter.Value'
@@ -29,6 +30,7 @@ SERVICE_INSTITUTION="$( \
 )"
 SERVICE_PASSWORD="$( \
   aws secretsmanager get-secret-value \
+    --output json \
     --secret-id 'PierianDx/UserPassword' | \
   jq --raw-output \
     '
@@ -77,6 +79,7 @@ function handler () {
   # Check secret exists 0 for false, 1 for true
   secret_exists="$( \
     aws secretsmanager list-secrets \
+      --output json \
       --filters "$( \
         jq --null-input --raw-output \
           '
@@ -109,6 +112,6 @@ function handler () {
         --secret-string "${input_secret_json_str}"
   fi
 
-  echo "Succesfully updated token"
+  echo "Successfully created/updated token" 1>&2
 
 }

@@ -15,8 +15,8 @@ import time
 from .globals import \
     PIERIANDX_CDK_SSM_LIST, \
     PIERIANDX_CDK_SSM_PATH, \
-    PIERIANDX_USER_PASSWORD_SECRETS_MANAGER_PATH, \
-    PIERIANDX_USER_PASSWORD_SECRETS_MANAGER_KEY, \
+    PIERIANDX_USER_AUTH_TOKEN_SECRETS_MANAGER_PATH, \
+    PIERIANDX_USER_AUTH_TOKEN_SECRETS_MANAGER_KEY, \
     MAX_ATTEMPTS_GET_CASES, LIST_CASES_RETRY_TIME
 
 from .miscell import \
@@ -37,7 +37,7 @@ def get_pieriandx_env_vars() -> Tuple:
     PIERIANDX_USER_EMAIL -> From ssm parameter store
     PIERIANDX_INSTITUTION -> From ssm parameter store
     PIERIANDX_BASE_URL -> From ssm parameter store
-    PIERIANDX_USER_PASSWORD -> From secrets manager
+    PIERIANDX_USER_AUTH_TOKEN -> From secrets manager
     """
 
     ssm_client: SSMClient = get_boto3_ssm_client()
@@ -72,32 +72,32 @@ def get_pieriandx_env_vars() -> Tuple:
         output_dict[env_var] = parameter_value
 
     # Set PIERIANDX_USER_PASSWORD based on secret
-    if "PIERIANDX_USER_PASSWORD" in os.environ:
+    if "PIERIANDX_USER_AUTH_TOKEN" in os.environ:
         # Already here!
-        output_dict["PIERIANDX_USER_PASSWORD"] = os.environ["PIERIANDX_USER_PASSWORD"]
+        output_dict["PIERIANDX_USER_AUTH_TOKEN"] = os.environ["PIERIANDX_USER_AUTH_TOKEN"]
     else:
         # Get the secrets manager client
         secrets_manager_client: SecretsManagerClient = get_boto3_secretsmanager_client()
         response = secrets_manager_client.get_secret_value(
-            SecretId=str(PIERIANDX_USER_PASSWORD_SECRETS_MANAGER_PATH)
+            SecretId=str(PIERIANDX_USER_AUTH_TOKEN_SECRETS_MANAGER_PATH)
         )
         secrets_json = json.loads(response.get("SecretString"))
-        if PIERIANDX_USER_PASSWORD_SECRETS_MANAGER_KEY not in secrets_json.keys():
-            logger.error(f"Could not find secrets key in {PIERIANDX_USER_PASSWORD_SECRETS_MANAGER_PATH}")
+        if PIERIANDX_USER_AUTH_TOKEN_SECRETS_MANAGER_KEY not in secrets_json.keys():
+            logger.error(f"Could not find secrets key in {PIERIANDX_USER_AUTH_TOKEN_SECRETS_MANAGER_PATH}")
             raise ValueError
 
-        output_dict["PIERIANDX_USER_PASSWORD"] = secrets_json[PIERIANDX_USER_PASSWORD_SECRETS_MANAGER_KEY]
+        output_dict["PIERIANDX_USER_AUTH_TOKEN"] = secrets_json[PIERIANDX_USER_AUTH_TOKEN_SECRETS_MANAGER_KEY]
 
     return (
         output_dict.get("PIERIANDX_USER_EMAIL"),
-        output_dict.get("PIERIANDX_USER_PASSWORD"),
+        output_dict.get("PIERIANDX_USER_AUTH_TOKEN"),
         output_dict.get("PIERIANDX_INSTITUTION"),
         output_dict.get("PIERIANDX_BASE_URL")
     )
 
 
 def get_pieriandx_client(email: str = os.environ.get("PIERIANDX_USER_EMAIL", None),
-                         password: str = os.environ.get("PIERIANDX_USER_PASSWORD", None),
+                         auth_token: str = os.environ.get("PIERIANDX_USER_AUTH_TOKEN", None),
                          institution: str = os.environ.get("PIERIANDX_INSTITUTION", None),
                          base_url: str = os.environ.get("PIERIANDX_BASE_URL", None)) -> Client:
     """
@@ -105,7 +105,7 @@ def get_pieriandx_client(email: str = os.environ.get("PIERIANDX_USER_EMAIL", Non
     PIERIANDX_BASE_URL
     PIERIANDX_INSTITUTION
     PIERIANDX_USER_EMAIL
-    PIERIANDX_USER_PASSWORD
+    PIERIANDX_USER_AUTH_TOKEN
     :return:
     """
 
@@ -115,8 +115,8 @@ def get_pieriandx_client(email: str = os.environ.get("PIERIANDX_USER_EMAIL", Non
     if email is None:
         logger.error(f"Please set the environment variable 'PIERIANDX_USER_EMAIL'")
         missing_env_vars = True
-    if password is None:
-        logger.error(f"Please set the environment variable 'PIERIANDX_USER_PASSWORD'")
+    if auth_token is None:
+        logger.error(f"Please set the environment variable 'PIERIANDX_USER_AUTH_TOKEN'")
         missing_env_vars = True
     if institution is None:
         logger.error(f"Please set the environment variable 'PIERIANDX_INSTITUTION'")
@@ -131,9 +131,10 @@ def get_pieriandx_client(email: str = os.environ.get("PIERIANDX_USER_EMAIL", Non
 
     # Return client object
     return Client(email=email,
-                  key=password,
+                  key=auth_token,
                   institution=institution,
-                  base_url=base_url)
+                  base_url=base_url,
+                  key_is_auth_token=True)
 
 
 def get_pieriandx_df() -> pd.DataFrame:
@@ -145,13 +146,13 @@ def get_pieriandx_df() -> pd.DataFrame:
       * library_id (second bit of case accession number)
       * pieriandx_case_id
       * pieriandx_case_accession_number
-      * pieriandx_case_creation_date
+      * pieriandx_case_creation_date  (as dt object)
     """
-    email, password, institution, base_url = get_pieriandx_env_vars()
+    email, auth_token, institution, base_url = get_pieriandx_env_vars()
 
     pyriandx_client = get_pieriandx_client(
         email=email,
-        password=password,
+        auth_token=auth_token,
         institution=institution,
         base_url=base_url
     )
@@ -190,6 +191,9 @@ def get_pieriandx_df() -> pd.DataFrame:
         }
     )
 
+    # Convert case creation date to datetime object
+    cases_df["pieriandx_case_creation_date"] = pd.to_datetime(cases_df["pieriandx_case_creation_date"])
+
     # Get subject id and library id
     cases_df["subject_id"] = cases_df.apply(
         lambda x: get_subject_id_from_accession_number(x.pieriandx_case_accession_number),
@@ -209,8 +213,15 @@ def get_pieriandx_df() -> pd.DataFrame:
     )
 
     logger.info("Collected cases information and returning all accession numbers")
+    columns_to_return = [
+        "subject_id",
+        "library_id",
+        "pieriandx_case_id",
+        "pieriandx_case_accession_number",
+        "pieriandx_case_creation_date"
+    ]
 
-    return cases_df
+    return cases_df[columns_to_return]
 
 
 def get_subject_id_from_accession_number(accession_number: str) -> Union[str, None]:
@@ -326,16 +337,17 @@ def get_pieriandx_status_for_missing_sample(case_id: str) -> pd.Series:
       * library_id (second bit of case accession number)
       * pieriandx_case_id
       * pieriandx_case_accession_number
+      * pieriandx_case_identified
       * pieriandx_workflow_id
       * pieriandx_workflow_status
       * pieriandx_report_status
       * pieriandx_report_signed_out - currently ignored
     """
-    email, password, institution, base_url = get_pieriandx_env_vars()
+    email, auth_token, institution, base_url = get_pieriandx_env_vars()
 
     pyriandx_client = get_pieriandx_client(
         email=email,
-        password=password,
+        auth_token=auth_token,
         institution=institution,
         base_url=base_url
     )
@@ -364,6 +376,7 @@ def get_pieriandx_status_for_missing_sample(case_id: str) -> pd.Series:
             "library_id": pd.NA,
             "pieriandx_case_id": case_id,
             "pieriandx_case_accession_number": response.get("specimens")[0].get("accessionNumber"),
+            "pieriandx_case_identified": response.get("identified", False),
             "pieriandx_workflow_id": pd.NA,
             "pieriandx_workflow_status": pd.NA,
             "pieriandx_report_status": pd.NA
@@ -376,7 +389,7 @@ def get_pieriandx_status_for_missing_sample(case_id: str) -> pd.Series:
         "library_id": library_id
     })
 
-    informatics_jobs_list: List = response.get("informaticsJobs")
+    informatics_jobs_list: List = response.get("informaticsJobs", [])
     if len(informatics_jobs_list) == 0:
         logger.info(f"No informatics jobs available for case {case_id}")
     else:
@@ -384,7 +397,7 @@ def get_pieriandx_status_for_missing_sample(case_id: str) -> pd.Series:
         case_dict["pieriandx_workflow_id"] = informatics_job["id"]
         case_dict["pieriandx_workflow_status"] = informatics_job["status"]
 
-    reports_list: List = response.get("reports")
+    reports_list: List = response.get("reports", [])
     if len(reports_list) == 0:
         logger.info(f"No reports available for case {case_id}")
     else:

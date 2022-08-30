@@ -43,7 +43,7 @@ The following environment variables are expected:
   * PIERIANDX_AWS_ACCESS_KEY_ID
   * PIERIANDX_AWS_SECRET_ACCESS_KEY
   * PIERIANDX_USER_EMAIL
-  * PIERIANDX_USER_PASSWORD
+  * PIERIANDX_USER_AUTH_TOKEN
 """,
                             formatter_class=argparse.RawTextHelpFormatter)
 

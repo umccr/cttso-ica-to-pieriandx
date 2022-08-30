@@ -80,7 +80,7 @@ The following environment variables are expected:
   * PIERIANDX_AWS_ACCESS_KEY_ID
   * PIERIANDX_AWS_SECRET_ACCESS_KEY
   * PIERIANDX_USER_EMAIL
-  * PIERIANDX_USER_PASSWORD
+  * PIERIANDX_USER_AUTH_TOKEN
 
 optional arguments:
   -h, --help            show this help message and exit
@@ -111,7 +111,7 @@ The following environment variables are expected:
   * PIERIANDX_BASE_URL
   * PIERIANDX_INSTITUTION
   * PIERIANDX_USER_EMAIL
-  * PIERIANDX_USER_PASSWORD
+  * PIERIANDX_USER_AUTH_TOKEN
 
 
 optional arguments:
@@ -141,7 +141,7 @@ The following environment variables are expected:
   * PIERIANDX_BASE_URL
   * PIERIANDX_INSTITUTION
   * PIERIANDX_USER_EMAIL
-  * PIERIANDX_USER_PASSWORD
+  * PIERIANDX_USER_AUTH_TOKEN
 
 optional arguments:
   -h, --help            show this help message and exit
@@ -189,7 +189,7 @@ to add `ICA_ACCESS_TOKEN` to your environment
 ### PIERIANDX_USER_EMAIL
 * Your email address used to log in to PierianDx
 
-### PIERIANDX_USER_PASSWORD
+### PIERIANDX_USER_AUTH_TOKEN
 * Your password used to log in to PierianDx
 
 ## Launching via AWS Lambda:

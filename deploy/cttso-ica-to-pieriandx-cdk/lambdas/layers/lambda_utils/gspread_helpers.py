@@ -4,6 +4,8 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 import os
 import pandas as pd
+import numpy as np
+from time import sleep
 from gspread_pandas import Spread
 
 # Locals
@@ -80,30 +82,30 @@ def get_cttso_samples_from_glims() -> pd.DataFrame:
     :return: A pandas DataFrame with the following columns
       * subject_id
       * library_id
+      * sequence_run_name
       * glims_is_validation -> Is this a validation sample? Determined by ProjectName is equal to "Validation"
     """
 
     if os.environ.get("GSPREAD_PANDAS_CONFIG_DIR") is None:
         set_google_secrets()
 
-    glims_df: pd.DataFrame = Spread(spread=get_glims_sheet_id(), sheet="Sheet1").sheet_to_df()
+    glims_df: pd.DataFrame = Spread(spread=get_glims_sheet_id(), sheet="Sheet1").sheet_to_df(index=0)
     glims_df = glims_df.query("Type=='ctDNA' & Assay=='ctTSO'")
     glims_df["glims_is_validation"] = glims_df.apply(
-        lambda x: True if x.ProjectName.lower() == "validation" else False,
+        lambda x: True if x.ProjectName.lower() in ["validation", "control"] else False,
         axis="columns"
     )
 
     glims_df = glims_df.rename(
         columns={
             "SubjectID": "subject_id",
+            "IlluminaID": "sequence_run_name",
             "LibraryID": "library_id"
         }
     )
 
-    # Drop duplicate rows
-    glims_df = glims_df.drop_duplicates()
-
-    return glims_df[["subject_id", "library_id", "glims_is_validation"]]
+    # Drop duplicate rows and return
+    return glims_df[["subject_id", "library_id", "sequence_run_name", "glims_is_validation"]].drop_duplicates()
 
 
 def update_cttso_lims_row(new_row: pd.Series, row_number: int):
@@ -113,6 +115,9 @@ def update_cttso_lims_row(new_row: pd.Series, row_number: int):
     :param row_number:
     :return:
     """
+
+    new_row = new_row.replace({pd.NaT: None}).replace({'NaT': None}).replace({np.NaN: ""})
+
     series_length = new_row.shape[0]
     column_range = get_alphabet()[:series_length]
     sheet_obj = Spread(spread=get_cttso_lims_sheet_id(), sheet="Sheet1")
@@ -125,7 +130,7 @@ def update_cttso_lims_row(new_row: pd.Series, row_number: int):
 
 def append_row_to_cttso_lims(new_row: pd.Series):
     """
-    Update cttso lims row
+    Add a cttso lims row
     :param new_row:
     :return:
     """
@@ -145,6 +150,36 @@ def append_row_to_cttso_lims(new_row: pd.Series):
         end=f"{column_range[-1]}{num_rows+2}",
         vals=new_row.map(str).tolist()
     )
+
+
+def append_df_to_cttso_lims(new_df: pd.DataFrame, replace=False):
+    """
+    Add a new dataframe
+    :param new_df:
+    :param replace:
+    :return:
+    """
+    # Open up the sheet object
+    sheet_obj = Spread(spread=get_cttso_lims_sheet_id(), sheet="Sheet1")
+
+    # Perform a proper NA replacement
+    # https://github.com/pandas-dev/pandas/issues/29024#issuecomment-1098052276
+    new_df = new_df.replace({pd.NaT: None}).replace({'NaT': None}).replace({np.NaN: ""})
+
+    if replace:
+        # Add an extra 1000 rows to the bottom of the page
+        sheet_obj.df_to_sheet(
+            pd.concat(
+                [
+                    new_df,
+                    pd.DataFrame(columns=new_df.columns, index=range(1000))
+                ]
+            ),
+            index=False, replace=replace, fill_value=""
+        )
+    else:
+        # Update the sheet object with the list
+        sheet_obj.df_to_sheet(new_df, index=False, replace=replace, fill_value="")
 
 
 def get_cttso_lims() -> (pd.DataFrame, pd.DataFrame):
@@ -178,15 +213,24 @@ def get_cttso_lims() -> (pd.DataFrame, pd.DataFrame):
         * pieriandx_report_signed_out  - currently ignored
       ,
       A pandas DataFrame with the following columns:
-        * subject_id
-        * library_id
+        * cttso_lims_index
         * excel_row_number
     )
     """
 
     cttso_lims_df: pd.DataFrame = Spread(spread=get_cttso_lims_sheet_id(), sheet="Sheet1").sheet_to_df(index=0)
 
-    excel_row_number_df = cttso_lims_df[["subject_id", "library_id"]]
-    excel_row_number_df["excel_row_number"] = excel_row_number_df.index + 2  # Conversion to 1-based index plus single header row
+    cttso_lims_df = cttso_lims_df.replace("", pd.NA)
+
+    # Replace booleans
+    cttso_lims_df = cttso_lims_df.replace({
+        "TRUE": True,
+        "FALSE": False
+    })
+
+    excel_row_number_df: pd.DataFrame = pd.DataFrame({"cttso_lims_index": cttso_lims_df.index})
+
+    # Conversion to 1-based index plus single header row
+    excel_row_number_df["excel_row_number"] = excel_row_number_df.index + 2
 
     return cttso_lims_df, excel_row_number_df

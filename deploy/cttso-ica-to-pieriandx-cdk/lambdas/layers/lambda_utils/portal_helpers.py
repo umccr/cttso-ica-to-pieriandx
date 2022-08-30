@@ -58,21 +58,35 @@ def get_portal_sequence_run_data_df() -> pd.DataFrame:
     )
     portal_auth = get_portal_creds(portal_url_endpoint)
 
-    req: Response = requests.get(
-        url=portal_url_endpoint,
-        auth=portal_auth,
-        params={
-            "rowsPerPage": PORTAL_MAX_ROWS_PER_PAGE,
-        }
-    )
+    all_results = []
+    page_number = 1
 
-    req_dict: Dict = req.json()
+    while True:
+        req: Response = requests.get(
+            url=portal_url_endpoint,
+            auth=portal_auth,
+            params={
+                "rowsPerPage": PORTAL_MAX_ROWS_PER_PAGE,
+                "page": page_number
+            }
+        )
 
-    results: List
-    if (results := req_dict.get("results", None)) is None:
-        raise ValueError
+        req_dict: Dict = req.json()
 
-    portal_cttso_sequence_runs_df = pd.DataFrame(results)
+        results: List
+        if (results := req_dict.get("results", None)) is None:
+            raise ValueError
+
+        # Extend all results
+        all_results.extend(results)
+
+        # Get next page or break
+        if req_dict.get("links", {}).get("next", None) is not None:
+            page_number += 1
+        else:
+            break
+
+    portal_cttso_sequence_runs_df = pd.DataFrame(all_results)
 
     portal_cttso_sequence_runs_df = portal_cttso_sequence_runs_df.rename(
         columns={
@@ -103,7 +117,7 @@ def get_portal_workflow_run_data_df() -> pd.DataFrame:
       * portal_wfr_end                -> The end timestamp of the workflow
       * portal_wfr_status             -> The status of the workflow run
       * portal_sequence_run_name      -> The sequence run name from this cttso sample
-      * portal_is_failed_run         -> Did the sequence run assosciated with the fastq inputs of this workflow pass or fail
+      * portal_is_failed_run          -> Did the sequence run associated with the fastq inputs of this workflow pass or fail
     """
 
     portal_base_url = get_portal_base_url()
@@ -112,24 +126,39 @@ def get_portal_workflow_run_data_df() -> pd.DataFrame:
     )
     portal_auth = get_portal_creds(portal_url_endpoint)
 
-    req: Response = requests.get(
-        url=portal_url_endpoint,
-        auth=portal_auth,
-        params={
-            "rowsPerPage": PORTAL_MAX_ROWS_PER_PAGE,
-            "type_name": PORTAL_CTTSO_TYPE_NAME,
-            "ordering": PORTAL_WORKFLOW_ORDERING,
-        }
-    )
+    # Initialise page and appended list
+    all_results = []
+    page_number = 1
 
-    req_dict: Dict = req.json()
+    while True:
+        req: Response = requests.get(
+            url=portal_url_endpoint,
+            auth=portal_auth,
+            params={
+                "rowsPerPage": PORTAL_MAX_ROWS_PER_PAGE,
+                "type_name": PORTAL_CTTSO_TYPE_NAME,
+                "ordering": PORTAL_WORKFLOW_ORDERING,
+                "page": page_number
+            }
+        )
 
-    results: List
-    if (results := req_dict.get("results", None)) is None:
-        raise ValueError
+        req_dict: Dict = req.json()
+
+        results: List
+        if (results := req_dict.get("results", None)) is None:
+            raise ValueError
+
+        # Extend all results
+        all_results.extend(results)
+
+        # Get next page
+        if req_dict.get("links", {}).get("next", None) is not None:
+            page_number += 1
+        else:
+            break
 
     # Convret to dataframe
-    portal_cttso_workflow_runs_df = pd.DataFrame(results)
+    portal_cttso_workflow_runs_df = pd.DataFrame(all_results)
 
     # Rename df appropriately
     portal_cttso_workflow_runs_df = portal_cttso_workflow_runs_df.rename(
@@ -172,6 +201,10 @@ def get_portal_workflow_run_data_df() -> pd.DataFrame:
         if mini_df.shape[0] == 1:
             mini_dfs.append(mini_df)
             continue
+        ## DEBUG
+        if subject_id == "SBJ00595" and library_id.startswith("L2100178"):
+            print(mini_df)
+
         # Remove portal failed runs if one has passed
         if len(mini_df["portal_is_failed_run"].unique().tolist()) > 1:
             only_succeeded_sequence_runs_df: pd.DataFrame = mini_df.query("portal_is_failed_run == False")
@@ -210,6 +243,9 @@ def get_portal_workflow_run_data_df() -> pd.DataFrame:
 
     # Merge everything back together
     portal_cttso_workflow_runs_df = pd.concat(mini_dfs)
+
+    # Convert portal_wfr_end to date before returning
+    portal_cttso_workflow_runs_df['portal_wfr_end'] = pd.to_datetime(portal_cttso_workflow_runs_df['portal_wfr_end'])
 
     return portal_cttso_workflow_runs_df[
         [
@@ -293,6 +329,8 @@ def get_ica_workflow_run_id_from_portal(subject_id: str, library_id: str) -> str
         PORTAL_API_BASE_URL=portal_base_url
     )
     portal_auth = get_portal_creds(portal_url_endpoint)
+
+    # FIXME - iterate over pages
 
     req: Response = requests.get(
         url=portal_url_endpoint,

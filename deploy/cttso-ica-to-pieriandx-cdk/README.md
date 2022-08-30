@@ -18,6 +18,69 @@ AWS SSM Parameters for the dev pipeline stack can be found in _params-dev.json_.
 
 AWS SSM Parameters for the prod pipeline stack can be found in _params-prod.json_.
 
+## Initialising the LIMS
+
+If the lims sheet needs to be rebuit, then the following steps may be of use.
+
+Open up a python console and run the following:
+
+```python3
+from lambda_utils.gspread_helpers import set_google_secrets
+from gspread_pandas import Spread
+import pandas as pd
+
+# Set google secrets
+set_google_secrets()
+
+# Create the new spreadsheet
+new_spread = Spread(spread="ctTSO LIMS", 
+                    sheet="Sheet1", 
+                    create_spread=True)
+
+new_headers = [
+    "subject_id",
+    "library_id",
+    "in_glims",
+    "in_portal",
+    "in_redcap",
+    "in_pieriandx",
+    "glims_is_validation",
+    "redcap_sample_type",
+    "redcap_is_complete",
+    "portal_wfr_id",
+    "portal_wfr_end",
+    "portal_wfr_status",
+    "portal_sequence_run_name",
+    "portal_is_failed_run",
+    "pieriandx_case_id",
+    "pieriandx_case_accession_number",
+    "pieriandx_case_creation_date",
+    "pieriandx_case_identified",
+    "pieriandx_workflow_id",
+    "pieriandx_workflow_status",
+    "pieriandx_report_status",
+]
+
+headers_df = pd.DataFrame(columns=new_headers)
+
+new_spread.df_to_sheet(headers_df, headers=True, index=False, replace=True)
+
+# Auth update
+# Allow users to read
+new_spread.add_permission(
+    "all@umccr.org|reader"
+)
+
+# Allow yourself to edit
+# You may need to manually add extra rows as some point
+new_spread.add_permission(
+    "alexis.lucattini@umccr.org|writer"
+)
+
+# Show url - to set ssm parameter
+print(new_spread.url)
+```
+
 ## Helpful scripts
 
 ### scripts/update-params.sh

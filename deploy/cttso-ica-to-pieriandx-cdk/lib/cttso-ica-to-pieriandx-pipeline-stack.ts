@@ -10,6 +10,7 @@ import { CodeBuildStep } from "aws-cdk-lib/pipelines";
 import {CttsoIcaToPieriandxRedcapLambdaStage} from "./cttso-ica-to-pieriandx-redcap-lambda-stage";
 import {CttsoIcaToPieriandxValidationLambdaStage} from "./cttso-ica-to-pieriandx-validation-lambda-stage";
 import {CttsoIcaToPieriandxTokenRefreshLambdaStage} from "./cttso-ica-to-pieriandx-token-refresher-lambda-stage";
+import {CttsoIcaToPieriandxLimsMakerLambdaStage} from "./cttso-ica-to-pieriandx-lims-make-stage";
 
 
 interface CttsoIcaToPieriandxPipelineStackProps extends StackProps {
@@ -146,8 +147,28 @@ export class CttsoIcaToPieriandxPipelineStack extends Stack {
             token_refresh_lambda_stage
         )
 
-        // Add the launch all available payloads and update cttso lims sheet to the pipeline wave
-        // TODO
+        // Add the launch all available payloads and update cttso lims sheet as a new pipeline wave
+        // Create wave for lambda stacks
+        // Due to metadata restrictions in dev, this lims is a prod-only component
+        if ( props.stack_suffix === "prod") {
+            const pipeline_lims_wave = pipeline.addWave(
+                "build-lims-wave",
+            )
+            const lims_maker_lambda_stage = new CttsoIcaToPieriandxLimsMakerLambdaStage(this,
+                props.stack_prefix + "-LimsMakerLambdaStage",
+                {
+                    stack_prefix: `${props.stack_prefix}-lims-maker-lambda-stack`,
+                    env: {
+                        account: props.aws_account_id,
+                        region: props.aws_region
+                    },
+                    stack_suffix: props.stack_suffix
+                }
+            )
+            pipeline_lims_wave.addStage(
+                lims_maker_lambda_stage
+            )
+        }
 
         // Add stacks and docker image build docker image as a 'wave'
         // https://docs.aws.amazon.com/cdk/api/v2/docs/aws-cdk-lib.pipelines-readme.html#using-docker-image-assets-in-the-pipeline

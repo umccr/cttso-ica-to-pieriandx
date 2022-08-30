@@ -70,7 +70,7 @@ export class CttsoIcaToPieriandxTokenRefreshLambdaStack extends Stack {
             this,
             props.stack_prefix + "-lf-trig",
             {
-                schedule: Schedule.expression("rate(30 minutes)")
+                schedule: Schedule.expression("rate(5 minutes)")
             }
         )
 
