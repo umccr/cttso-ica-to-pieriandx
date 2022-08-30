@@ -24,3 +24,6 @@ are nested under deploy/cttso-ica-to-pieriandx-cdk.
 * Updated user to create cases in PierianDx from alexisl@unimelb.edu to services@umccr.org
 
 * Fixed issue for users wanting to launch redcap payloads manually
+
+* Updated to cdk 2.39.1
+

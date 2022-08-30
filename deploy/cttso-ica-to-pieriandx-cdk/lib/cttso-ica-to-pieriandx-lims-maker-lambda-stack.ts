@@ -16,7 +16,7 @@ import {
     SSM_REDCAP_LAMBDA_FUNCTION_ARN_VALUE, GLIMS_SSM_PARAMETER_PATH
 } from "../constants";
 import {Rule, Schedule} from "aws-cdk-lib/aws-events";
-import {LambdaFunction as LambdaFunctionTarget} from "aws-cdk-lib/aws-events-targets/lib/lambda";
+import { LambdaFunction as LambdaFunctionTarget } from "aws-cdk-lib/aws-events-targets"
 
 
 interface CttsoIcaToPieriandxLimsMakerLambdaStackProps extends StackProps {
