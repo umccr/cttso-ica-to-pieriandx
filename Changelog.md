@@ -24,7 +24,7 @@ For changes in deployment, please see the [deployment changelog](deploy/cttso-ic
   * While clinical samples now go through "tso500_ctDNA_vcf_subpanel_workflow_university_of_melbourne"
 
 * Conda env 
-  * Updated to pyriandx 0.3.0rc1 to allow for token usage
+  * Updated to pyriandx 0.3.0 to allow for token usage
 
 * Readme
   * Swapped out password for auth_token in environment variables
