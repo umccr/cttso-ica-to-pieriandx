@@ -195,6 +195,16 @@ def get_portal_workflow_run_data_df() -> pd.DataFrame:
         axis="columns"
     )
 
+    # Only get workflows that have finished (running ones might confuse things a little)
+    finished_statuses = [
+        "aborted",
+        "failed",
+        "succeeded"
+    ]
+    portal_cttso_workflow_runs_df = portal_cttso_workflow_runs_df.query(
+        "portal_wfr_status.str.lower() in @finished_statuses"
+    )
+
     mini_dfs: List[pd.DataFrame] = []
     for (subject_id, library_id), mini_df in portal_cttso_workflow_runs_df.groupby(["subject_id", "library_id"]):
         mini_df = mini_df.drop_duplicates()
