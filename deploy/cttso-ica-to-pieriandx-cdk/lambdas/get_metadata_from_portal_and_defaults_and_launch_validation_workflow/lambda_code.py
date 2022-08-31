@@ -143,7 +143,8 @@ def lambda_handler(event, context):
     sample_df["external_specimen_id"] = sample_df.apply(
         lambda x: x.external_specimen_id
         if not x.external_specimen_id == ""
-        else "NA"
+        else "NA",
+        axis="columns"
     )
 
     # Assert expected values exist
