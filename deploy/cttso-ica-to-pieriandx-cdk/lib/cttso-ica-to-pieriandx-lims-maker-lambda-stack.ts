@@ -13,7 +13,7 @@ import {
     SSM_PIERIANDX_PATH,
     SSM_LIMS_LAMBDA_FUNCTION_ARN_VALUE,
     SSM_VALIDATION_LAMBDA_FUNCTION_ARN_VALUE,
-    SSM_REDCAP_LAMBDA_FUNCTION_ARN_VALUE, GLIMS_SSM_PARAMETER_PATH
+    SSM_CLINICAL_LAMBDA_FUNCTION_ARN_VALUE, GLIMS_SSM_PARAMETER_PATH, REDCAP_LAMBDA_FUNCTION_SSM_KEY
 } from "../constants";
 import {Rule, Schedule} from "aws-cdk-lib/aws-events";
 import { LambdaFunction as LambdaFunctionTarget } from "aws-cdk-lib/aws-events-targets"
@@ -118,7 +118,6 @@ export class CttsoIcaToPieriandxLimsMakerLambdaStack extends Stack {
             "parameter" + GLIMS_SSM_PARAMETER_PATH
         ]
 
-
         // Add access to google lims
         lambda_function.addToRolePolicy((
             new PolicyStatement({
@@ -171,12 +170,44 @@ export class CttsoIcaToPieriandxLimsMakerLambdaStack extends Stack {
         )
 
         // Add redcap lambda execution to lambda policy
-        // And validation lambda execution to lambda policy
         // Step 1 is get the resource from SSM
         const redcap_lambda_function_ssm = StringParameter.fromStringParameterName(
             this,
+            `${props.stack_prefix}-redcap-lambda-function-arn`,
+            REDCAP_LAMBDA_FUNCTION_SSM_KEY
+        )
+        // Step 2: Add ssm to policy
+        lambda_function.addToRolePolicy(
+            new PolicyStatement({
+                    actions: [
+                        "ssm:GetParameter"
+                    ],
+                    resources: [
+                        redcap_lambda_function_ssm.parameterArn
+                    ]
+                }
+            )
+        )
+        // Step 3: Add Invoke Function permission arn
+        lambda_function.addToRolePolicy(
+            new PolicyStatement({
+                actions: [
+                    "lambda:InvokeFunction"
+                ],
+                resources: [
+                    redcap_lambda_function_ssm.stringValue
+                ]
+            })
+        )
+
+
+        // Add clinical lambda execution to lambda policy
+        // And validation lambda execution to lambda policy
+        // Step 1 is get the resource from SSM
+        const clinical_lambda_function_ssm = StringParameter.fromStringParameterName(
+            this,
             `${props.stack_prefix}-redcap-to-pieriandx-function-arn`,
-            SSM_REDCAP_LAMBDA_FUNCTION_ARN_VALUE
+            SSM_CLINICAL_LAMBDA_FUNCTION_ARN_VALUE
         )
         const validation_lambda_function_ssm = StringParameter.fromStringParameterName(
             this,
@@ -190,7 +221,7 @@ export class CttsoIcaToPieriandxLimsMakerLambdaStack extends Stack {
                         "ssm:GetParameter"
                     ],
                     resources: [
-                        redcap_lambda_function_ssm.parameterArn,
+                        clinical_lambda_function_ssm.parameterArn,
                         validation_lambda_function_ssm.parameterArn
                     ]
                 }
@@ -203,7 +234,7 @@ export class CttsoIcaToPieriandxLimsMakerLambdaStack extends Stack {
                     "lambda:InvokeFunction"
                 ],
                 resources: [
-                    redcap_lambda_function_ssm.stringValue,
+                    clinical_lambda_function_ssm.stringValue,
                     validation_lambda_function_ssm.stringValue
                 ]
             })

@@ -11,7 +11,7 @@ import {
     REDCAP_LAMBDA_FUNCTION_SSM_KEY,
     SECRETS_MANAGER_PIERIANDX_PATH, SSM_LAMBDA_FUNCTION_ARN_VALUE,
     SSM_PIERIANDX_PATH,
-    SSM_REDCAP_LAMBDA_FUNCTION_ARN_VALUE
+    SSM_CLINICAL_LAMBDA_FUNCTION_ARN_VALUE
 } from "../constants";
 
 
@@ -216,7 +216,7 @@ export class CttsoIcaToPieriandxRedcapLambdaStack extends Stack {
             props.stack_prefix + "ssm-cdk-lambda-parameter",
             {
                 stringValue: lambda_function.functionArn,
-                parameterName: SSM_REDCAP_LAMBDA_FUNCTION_ARN_VALUE,
+                parameterName: SSM_CLINICAL_LAMBDA_FUNCTION_ARN_VALUE,
             }
         )
 

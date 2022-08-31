@@ -27,7 +27,7 @@ export const SECRETS_MANAGER_ICA_SECRETS_PATH: string = "IcaSecrets"
 
 // Redcap connection things
 export const REDCAP_LAMBDA_FUNCTION_SSM_KEY: string = "redcap-apis-lambda-function"
-export const SSM_REDCAP_LAMBDA_FUNCTION_ARN_VALUE: string = "redcap-to-pieriandx-lambda-function"
+export const SSM_CLINICAL_LAMBDA_FUNCTION_ARN_VALUE: string = "redcap-to-pieriandx-lambda-function"
 export const SSM_PIERIANDX_PATH: string = "/cdk/cttso-ica-to-pieriandx"
 export const SECRETS_MANAGER_PIERIANDX_PATH: string = "PierianDx"
 
@@ -43,4 +43,3 @@ export const SSM_TOKEN_REFRESH_LAMBDA_FUNCTION_ARN_VALUE: string = "token-refres
 
 // Output things
 export const SSM_LAMBDA_FUNCTION_ARN_VALUE: string = "cttso-ica-to-pieriandx-lambda-function"
-
