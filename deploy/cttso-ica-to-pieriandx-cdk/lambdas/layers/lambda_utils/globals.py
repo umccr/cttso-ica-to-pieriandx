@@ -46,8 +46,11 @@ LIST_CASES_RETRY_TIME = 5
 
 LOGGER_STYLE = "%(asctime)s - %(levelname)-8s - %(module)-25s - %(funcName)-40s : LineNo. %(lineno)-4d - %(message)s"
 # Redcap lambda path
-REDCAP_LAMBDA_FUNCTION_SSM_PARAMETER_PATH = "redcap-apis-lambda-function"
-REDCAP_PROJECT_NAME_PARAMETER_PATH = "/cdk/cttso-ica-to-pieriandx/redcap_project_name"
+REDCAP_PROJECT_NAME_SSM_PARAMETER_PATH = "/cdk/cttso-ica-to-pieriandx/redcap_project_name"
+REDCAP_APIS_LAMBDA_FUNCTION_ARN_SSM_PARAMETER: str = "redcap-apis-lambda-function"
+
+# Clinical lambda path
+CLINICAL_LAMBDA_FUNCTION_SSM_PARAMETER_PATH = "redcap-to-pieriandx-lambda-function"
 
 # Validation lambda path
 VALIDATION_LAMBDA_FUNCTION_ARN_SSM_PARAMETER_PATH = "validation-sample-to-pieriandx-lambda-function"
@@ -133,9 +136,6 @@ PORTAL_FIELDS: List = [
     "external_sample_id",
     "external_subject_id"
 ]
-
-REDCAP_APIS_FUNCTION_ARN_SSM_PARAMETER: str = "redcap-apis-lambda-function"
-REDCAP_PROJECT_NAME_SSM_PARAMETER: str = "/cdk/cttso-ica-to-pieriandx/redcap_project_name"
 
 EXPECTED_ATTRIBUTES = [
     "sample_type",

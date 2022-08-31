@@ -8,8 +8,7 @@ from typing import Dict
 
 from .globals import \
     PIERIANDX_LAMBDA_LAUNCH_FUNCTION_ARN_SSM_PATH, \
-    REDCAP_APIS_FUNCTION_ARN_SSM_PARAMETER, \
-    VALIDATION_LAMBDA_FUNCTION_ARN_SSM_PARAMETER_PATH
+    VALIDATION_LAMBDA_FUNCTION_ARN_SSM_PARAMETER_PATH, CLINICAL_LAMBDA_FUNCTION_SSM_PARAMETER_PATH
 
 from .aws_helpers import \
         SSMClient, get_boto3_ssm_client
@@ -77,4 +76,4 @@ def get_clinical_lambda_arn():
     """
 
     # Get lambda function arn
-    return get_lambda_function_arn_from_ssm_parameter(REDCAP_APIS_FUNCTION_ARN_SSM_PARAMETER)
+    return get_lambda_function_arn_from_ssm_parameter(CLINICAL_LAMBDA_FUNCTION_SSM_PARAMETER_PATH)

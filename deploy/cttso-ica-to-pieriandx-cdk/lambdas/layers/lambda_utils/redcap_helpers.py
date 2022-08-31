@@ -11,8 +11,8 @@ from typing import List, Optional
 from requests import RequestException
 
 from .globals import \
-    REDCAP_PROJECT_NAME_PARAMETER_PATH, \
-    REDCAP_APIS_FUNCTION_ARN_SSM_PARAMETER, \
+    REDCAP_PROJECT_NAME_SSM_PARAMETER_PATH, \
+    REDCAP_APIS_LAMBDA_FUNCTION_ARN_SSM_PARAMETER, \
     AUS_TIMEZONE_SUFFIX, \
     REDCAP_RAW_FIELDS_CLINICAL, REDCAP_LABEL_FIELDS_CLINICAL, \
     CLINICAL_DEFAULTS
@@ -33,7 +33,7 @@ def get_redcap_project_name():
     ssm_client: SSMClient = get_boto3_ssm_client()
 
     return ssm_client.get_parameter(
-        Name=REDCAP_PROJECT_NAME_PARAMETER_PATH
+        Name=REDCAP_PROJECT_NAME_SSM_PARAMETER_PATH
     ).get("Parameter").get("Value")
 
 
@@ -41,7 +41,7 @@ def get_redcap_lambda_function_arn() -> str:
     ssm_client: SSMClient = get_boto3_ssm_client()
 
     return ssm_client.get_parameter(
-        Name=REDCAP_APIS_FUNCTION_ARN_SSM_PARAMETER
+        Name=REDCAP_APIS_LAMBDA_FUNCTION_ARN_SSM_PARAMETER
     ).get("Parameter").get("Value")
 
 
