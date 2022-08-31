@@ -138,6 +138,14 @@ def lambda_handler(event, context):
         }
     )
 
+    # Check if external specimen id is empty and if so, set to NA
+    # Can happen for validation samples
+    sample_df["external_specimen_id"] = sample_df.apply(
+        lambda x: x.external_specimen_id
+        if not x.external_specimen_id == ""
+        else "NA"
+    )
+
     # Assert expected values exist
     logger.info("Check we have all of the expected information")
     for expected_column in EXPECTED_ATTRIBUTES:

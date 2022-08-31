@@ -293,15 +293,15 @@ def split_subject_id_and_library_id_from_case_accession_number(case_accession_nu
     """
     case_accession_number_regex_obj = re.fullmatch(r"^(SBJ\d+)_(L\d+)(?:_\d+)?$", case_accession_number)
     if case_accession_number_regex_obj is None:
-        logger.warning(f"Could not split the subject id and library id from the case accession number '{case_accession_number}'")
+        logger.debug(f"Could not split the subject id and library id from the case accession number '{case_accession_number}'")
         raise ValueError
     subject_id = case_accession_number_regex_obj.group(1)
     if subject_id is None:
-        logger.warning(f"Could not collect the subject id from the case accession number '{case_accession_number}'")
+        logger.debug(f"Could not collect the subject id from the case accession number '{case_accession_number}'")
         raise ValueError
     library_id = case_accession_number_regex_obj.group(2)
     if library_id is None:
-        logger.warning(f"Could not collect the library id from the case accession number '{case_accession_number}'")
+        logger.debug(f"Could not collect the library id from the case accession number '{case_accession_number}'")
         raise ValueError
     return subject_id, library_id
 
