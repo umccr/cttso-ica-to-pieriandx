@@ -429,7 +429,9 @@ def append_to_cttso_lims(merged_df: pd.DataFrame, cttso_lims_df: pd.DataFrame, e
         # i.e the merged_df must have at least one more over in_* columns set to true
         # compared to the current column in the spreadsheet
         # Or we report this issue
-        if pd.isnull(cttso_lims_df_row["pieriandx_case_id"]) and new_cttso_lims_row["pieriandx_case_id"] == "pending":
+        if pd.isnull(cttso_lims_df_row["pieriandx_case_id"]) and \
+                not pd.isnull(new_cttso_lims_row["pieriandx_case_id"]) and \
+                new_cttso_lims_row["pieriandx_case_id"] == "pending":
             logger.info("Case ID for a pieriandx has been set to pending, so updating value in cttso lims.")
         elif new_cttso_lims_row[in_rows].compare(cttso_lims_df_row[in_rows]).query("self == True and other == False").shape[0] == 0:
             # This means that nothing has changed between the 'in_' steps. Pfft, skip it.
