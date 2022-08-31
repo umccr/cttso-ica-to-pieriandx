@@ -262,6 +262,7 @@ def submit_library_to_pieriandx(subject_id: str, library_id: str, workflow_run_i
         raise ValueError
 
     logger.info("Successfully launched and returning submission lambda")
+    logger.info(f"Payload returned '{response_payload}' from arn: '{lambda_arn}'")
 
     # Step 8 - Return case accession number and metadata information to user
     return response_payload
@@ -287,6 +288,9 @@ def submit_libraries_to_pieriandx(processing_df: pd.DataFrame):
     )
 
     for index, row in processing_df.iterrows():
+        logger.info(f"Submitting the following subject id / library id to PierianDx")
+        logger.info(f"SubjectID='{row.subject_id}', LibraryID='{row.library_id}', Workflow Run ID='{row.portal_wfr_id}'")
+        logger.info(f"Submitted to arn: '{row.submission_arn}'")
         submit_library_to_pieriandx(subject_id=row.subject_id,
                                     library_id=row.library_id,
                                     workflow_run_id=row.portal_wfr_id,
