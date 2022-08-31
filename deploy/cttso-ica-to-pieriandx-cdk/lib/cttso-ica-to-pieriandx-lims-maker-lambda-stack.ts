@@ -69,7 +69,8 @@ export class CttsoIcaToPieriandxLimsMakerLambdaStack extends Stack {
                 ),
                 role: lambda_role,
                 timeout: Duration.seconds(900),  // Maximum length of lambda duration is 15 minutes
-                retryAttempts: 0  // Never perform a retry if it fails
+                retryAttempts: 0,  // Never perform a retry if it fails
+                memorySize: 2048  // Don't want pandas to kill the lambda
             }
         )
 
