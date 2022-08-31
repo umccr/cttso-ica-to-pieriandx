@@ -68,7 +68,7 @@ export class CttsoIcaToPieriandxLimsMakerLambdaStack extends Stack {
                     }
                 ),
                 role: lambda_role,
-                timeout: Duration.seconds(1500),
+                timeout: Duration.seconds(900),
             }
         )
 
