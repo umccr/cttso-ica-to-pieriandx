@@ -126,7 +126,7 @@ export class CttsoIcaToPieriandxLimsMakerLambdaStack extends Stack {
                     "ssm:GetParameter"
                 ],
                 resources: [
-                    glims_ssm_parameter_path_as_array + "/*"
+                    glims_ssm_parameter_path_as_array.join(":") + "/*"
                 ]
             })
         ))
