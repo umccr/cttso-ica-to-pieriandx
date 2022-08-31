@@ -5,11 +5,17 @@ Enumerate globals
 """
 from enum import Enum
 
+
 class SampleType(Enum):
     PATIENTCARE = "patientcare"
     CLINICAL_TRIAL = "clinical_trial"
     VALIDATION = "validation"
     PROFICIENCY_TESTING = "proficiency_testing"
+
+
+class PanelType(Enum):
+    VALIDATION = "tso500_ctDNA_vcf_workflow_university_of_melbourne"
+    PATIENTCARE = "tso500_ctDNA_vcf_subpanel_workflow_university_of_melbourne"
 
 
 class Ethnicity(Enum):

@@ -4,7 +4,7 @@
 Read in the accession csv or json
 """
 
-from typing import List, Dict, Optional
+from typing import List, Dict, Optional, Union
 from pathlib import Path
 import pandas as pd
 import gzip
@@ -325,6 +325,26 @@ def read_input_csv(input_csv: Path) -> pd.DataFrame:
     return pd.read_csv(input_csv, header=0, comment="#")
 
 
+def handle_date(datetime_str_or_obj: Union[str, datetime]) -> datetime:
+    if isinstance(datetime_str_or_obj, str):
+        return date_parser(datetime_str_or_obj)
+    elif isinstance(datetime_str_or_obj, datetime):
+        return datetime_str_or_obj
+    else:
+        logger.error(f"Couldn't handle date-str-or-obj of type '{type(datetime_str_or_obj)}'")
+        raise ValueError
+
+
+def datetime_obj_to_utc(datetime_obj: datetime) -> datetime:
+    if datetime_obj.tzinfo is None:
+        # Assume utc time and just append
+        datetime_obj = datetime_obj.replace(tzinfo=timezone.utc)
+    else:
+        datetime_obj.astimezone(pytz.utc)
+
+    return datetime_obj.replace(microsecond=0)
+
+
 def sanitise_data_frame(input_df: pd.DataFrame) -> pd.DataFrame:
     # Copy dataframe and convert blanks to nas
     input_df = input_df.copy().replace("", pd.NA)
@@ -556,15 +576,13 @@ def sanitise_data_frame(input_df: pd.DataFrame) -> pd.DataFrame:
             continue
         # Get the input df date column as a utc date object
         input_df[date_column] = input_df[date_column].apply(
-            lambda x: date_parser(x).
-                      replace(tzinfo=timezone.utc).
-                      astimezone(pytz.utc).replace(microsecond=0)
+            lambda x: datetime_obj_to_utc(handle_date(x))
                       if not pd.isnull(x)
                       else x
         )
 
     # Confirm dates are not later than now
-    current_datetime = datetime.utcnow().astimezone(pytz.utc)
+    current_datetime = datetime_obj_to_utc(datetime.utcnow())
     for date_column in ["date_accessioned", "date_received", "date_collected", "date_of_birth"]:
         if date_column not in input_df.columns:
             continue

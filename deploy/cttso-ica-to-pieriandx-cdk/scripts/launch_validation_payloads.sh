@@ -62,7 +62,7 @@ fi
 AWS_LAMBDA_FUNCTION="$( \
   aws ssm get-parameter \
     --output json \
-    --name "redcap-to-pieriandx-lambda-function" | \
+    --name "validation-sample-to-pieriandx-lambda-function" | \
   jq --raw-output \
     '.Parameter.Value'
 )"

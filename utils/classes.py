@@ -15,11 +15,11 @@ from datetime import datetime
 from requests import Response
 import json
 
-from utils.enums import Ethnicity, Race, Gender, SampleType
+from utils.enums import Ethnicity, Race, Gender, SampleType, PanelType
 from utils.errors import RunNotFoundError, \
     CaseNotFoundError, RunExistsError, CaseCreationError, \
     SequencingRunCreationError, JobCreationError
-from utils.globals import DAG, PANEL_NAME, \
+from utils.globals import DAG, \
     MAX_CASE_FILE_UPLOAD_ATTEMPTS, CASE_FILE_RETRY_TIME, \
     MAX_CASE_CREATION_ATTEMPTS, CASE_CREATION_RETRY_TIME, \
     MAX_RUN_CREATION_ATTEMPTS, RUN_CREATION_RETRY_TIME, \
@@ -409,7 +409,6 @@ class Case:
     # List of globals that exist for all cases
     dag_name = "cromwell_tso500_ctdna_workflow_1.0.1"
     dag_description = "tso500_ctdna_workflow"
-    panel_name = "tso500_ctDNA_vcf_workflow_university_of_melbourne"
 
     # Set identified as object
     identified: bool
@@ -712,12 +711,14 @@ class DeIdentifiedCase(Case):
             "disease": self.disease.to_dict(),
             "identified": self.identified,
             "indication": self.indication,
-            "panelName": PANEL_NAME,
+            "panelName": PanelType[self.sample_type.name].value,
             "sampleType": self.sample_type.value,
             "specimens": [
                 self.specimen.to_dict()
             ]
         }
+
+        return data
 
     @classmethod
     def from_dict(cls, case_dict: Dict):
@@ -761,7 +762,7 @@ class IdentifiedCase(Case):
                 physician.to_dict()
                 for physician in self.requesting_physicians
             ],
-            "panelName": PANEL_NAME,
+            "panelName": PanelType[self.sample_type.name].value,
             "sampleType": self.sample_type.value,
             "specimens": [
                 self.specimen.to_dict()

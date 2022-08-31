@@ -14,7 +14,7 @@ logger = get_logger()
 
 
 def get_pieriandx_client(email: str = environ.get("PIERIANDX_USER_EMAIL", None),
-                         password: str = environ.get("PIERIANDX_USER_PASSWORD", None),
+                         token: str = environ.get("PIERIANDX_USER_AUTH_TOKEN", None),
                          instiution: str = environ.get("PIERIANDX_INSTITUTION", None),
                          base_url: str = environ.get("PIERIANDX_BASE_URL", None)) -> Client:
     """
@@ -22,7 +22,7 @@ def get_pieriandx_client(email: str = environ.get("PIERIANDX_USER_EMAIL", None),
     PIERIANDX_BASE_URL
     PIERIANDX_INSTITUTION
     PIERIANDX_USER_EMAIL
-    PIERIANDX_USER_PASSWORD
+    PIERIANDX_USER_AUTH_TOKEN
     :return:
     """
 
@@ -32,8 +32,8 @@ def get_pieriandx_client(email: str = environ.get("PIERIANDX_USER_EMAIL", None),
     if email is None:
         logger.error(f"Please set the environment variable 'PIERIANDX_USER_EMAIL'")
         missing_env_vars = True
-    if password is None:
-        logger.error(f"Please set the environment variable 'PIERIANDX_USER_PASSWORD'")
+    if token is None:
+        logger.error(f"Please set the environment variable 'PIERIANDX_USER_AUTH_TOKEN'")
         missing_env_vars = True
     if instiution is None:
         logger.error(f"Please set the environment variable 'PIERIANDX_INSTITUTION'")
@@ -48,6 +48,7 @@ def get_pieriandx_client(email: str = environ.get("PIERIANDX_USER_EMAIL", None),
 
     # Return client object
     return Client(email=email,
-                  key=password,
+                  key=token,
                   institution=instiution,
-                  base_url=base_url)
+                  base_url=base_url,
+                  key_is_auth_token=True)

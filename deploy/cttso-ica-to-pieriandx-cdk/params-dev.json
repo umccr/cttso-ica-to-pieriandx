@@ -7,8 +7,9 @@
   "/cdk/cttso-ica-to-pieriandx/env_vars/pieriandx_institution": "melbournetest",
   "/cdk/cttso-ica-to-pieriandx/env_vars/pieriandx_aws_region": "us-east-1",
   "/cdk/cttso-ica-to-pieriandx/env_vars/pieriandx_aws_s3_prefix": "s3://pdx-cgwxfer-test/melbournetest",
-  "/cdk/cttso-ica-to-pieriandx/env_vars/pieriandx_user_email": "alexisl@unimelb.edu.au",
+  "/cdk/cttso-ica-to-pieriandx/env_vars/pieriandx_user_email": "services@umccr.org",
   "/cdk/cttso-ica-to-pieriandx/artifacts/pipeline_artifact_bucket_name": "umccr-cttso-ica-to-pieriandx-cdk-artifacts-dev",
   "/cdk/cttso-ica-to-pieriandx/branch_source": "dev",
-  "/cdk/cttso-ica-to-pieriandx/redcap_project_name": "UMCCR ctTSO500"
+  "/cdk/cttso-ica-to-pieriandx/redcap_project_name": "UMCCR ctTSO500",
+  "/cdk/cttso-ica-to-pieriandx/cttso_lims_sheet_id": "1KGB9iCjzo-sbqZKwrM96iFWB4oZUnD9KCKtkrvKyMjo"
 }

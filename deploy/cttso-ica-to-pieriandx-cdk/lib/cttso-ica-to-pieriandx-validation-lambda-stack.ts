@@ -8,14 +8,13 @@ import { Role, ManagedPolicy, ServicePrincipal, PolicyStatement } from "aws-cdk-
 import { Secret } from "aws-cdk-lib/aws-secretsmanager";
 import {
     DATA_PORTAL_API_ID_SSM_PARAMETER, DATA_PORTAL_API_DOMAIN_NAME_SSM_PARAMETER,
-    REDCAP_LAMBDA_FUNCTION_SSM_KEY,
+    SSM_VALIDATION_LAMBDA_FUNCTION_ARN_VALUE,
     SECRETS_MANAGER_PIERIANDX_PATH, SSM_LAMBDA_FUNCTION_ARN_VALUE,
     SSM_PIERIANDX_PATH,
-    SSM_REDCAP_LAMBDA_FUNCTION_ARN_VALUE
 } from "../constants";
 
 
-interface CttsoIcaToPieriandxRedcapLambdaStackProps extends StackProps {
+interface CttsoIcaToPieriandxValidationLambdaStackProps extends StackProps {
     stack_prefix: string
     env: {
         account: string
@@ -23,12 +22,12 @@ interface CttsoIcaToPieriandxRedcapLambdaStackProps extends StackProps {
     }
 }
 
-export class CttsoIcaToPieriandxRedcapLambdaStack extends Stack {
+export class CttsoIcaToPieriandxValidationLambdaStack extends Stack {
 
-    public readonly lambdaFunctionArnOutput: CfnOutput
-    public readonly lambdaFunctionSSMParameterOutput: CfnOutput
+    public readonly validationLambdaFunctionArnOutput: CfnOutput
+    public readonly validationLambdaFunctionSSMParameterOutput: CfnOutput
 
-    constructor(scope: Construct, id: string, props: CttsoIcaToPieriandxRedcapLambdaStackProps) {
+    constructor(scope: Construct, id: string, props: CttsoIcaToPieriandxValidationLambdaStackProps) {
         super(scope, id, props)
 
         // Pull out env parameters from property
@@ -54,13 +53,13 @@ export class CttsoIcaToPieriandxRedcapLambdaStack extends Stack {
         // Create DockerImage-based lambda Function
         const lambda_function = new DockerImageFunction(
             this,
-            props.stack_prefix + "-lf", {
+            props.stack_prefix + "-LF", {
                 functionName: props.stack_prefix + "-lf",
-                description: "redcap to cttso submission lambda function deployed using AWS CDK with Docker Image",
+                description: "validation sample to cttso submission lambda function deployed using AWS CDK with Docker Image",
                 code: DockerImageCode.fromImageAsset(
                     "./lambdas/",
                     {
-                        file: "get_metadata_from_portal_and_redcap_and_launch_clinical_workflow/Dockerfile"
+                        file: "get_metadata_from_portal_and_defaults_and_launch_validation_workflow/Dockerfile"
                     }
                 ),
                 role: lambda_role,
@@ -107,7 +106,6 @@ export class CttsoIcaToPieriandxRedcapLambdaStack extends Stack {
             )
         )
 
-
         // Add pieriandx secrets access to lambda policy
         const pieriandx_secrets_path = Secret.fromSecretNameV2(
             this,
@@ -145,37 +143,6 @@ export class CttsoIcaToPieriandxRedcapLambdaStack extends Stack {
                     ]
                 }
             )
-        )
-
-        // Add redcap lambda execution to lambda policy
-        // Step 1 is get the resource from SSM
-        const redcap_lambda_function_ssm = StringParameter.fromStringParameterName(
-            this,
-            `${props.stack_prefix}-redcap-lambda-function-arn`,
-            REDCAP_LAMBDA_FUNCTION_SSM_KEY
-        )
-        // Step 2: Add ssm to policy
-        lambda_function.addToRolePolicy(
-            new PolicyStatement({
-                    actions: [
-                        "ssm:GetParameter"
-                    ],
-                    resources: [
-                        redcap_lambda_function_ssm.parameterArn
-                    ]
-                }
-            )
-        )
-        // Step 3: Add Invoke Function permission arn
-        lambda_function.addToRolePolicy(
-            new PolicyStatement({
-                actions: [
-                    "lambda:InvokeFunction"
-                ],
-                resources: [
-                    redcap_lambda_function_ssm.stringValue
-                ]
-            })
         )
 
         // Need to be able to invoke cttso-ica-to-pieriandx-lambda-function value
@@ -216,20 +183,19 @@ export class CttsoIcaToPieriandxRedcapLambdaStack extends Stack {
             props.stack_prefix + "ssm-cdk-lambda-parameter",
             {
                 stringValue: lambda_function.functionArn,
-                parameterName: SSM_REDCAP_LAMBDA_FUNCTION_ARN_VALUE,
+                parameterName: SSM_VALIDATION_LAMBDA_FUNCTION_ARN_VALUE,
             }
         )
 
         // Assign values to cfn outputs
-        this.lambdaFunctionArnOutput = new CfnOutput(this, "lambdaFunctionArn", {
+        this.validationLambdaFunctionArnOutput = new CfnOutput(this, "validationLambdaFunctionArn", {
             value: lambda_function.functionArn,
         });
 
         // Add ssm parameter
-        this.lambdaFunctionSSMParameterOutput = new CfnOutput(this, "lambdaFunctionSSMParameterArn", {
+        this.validationLambdaFunctionSSMParameterOutput = new CfnOutput(this, "validationLambdaFunctionSSMParameterArn", {
             value: ssm_parameter.parameterArn,
         });
-
     }
 
 }

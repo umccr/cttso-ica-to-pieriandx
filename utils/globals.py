@@ -79,9 +79,6 @@ DAG = {
 # All data is de-identified
 IDENTIFIED = False
 
-# The panel name is also set
-PANEL_NAME = "tso500_ctDNA_vcf_workflow_university_of_melbourne"
-
 # The name of the cttso files
 CTTSO_FILE_SUFFIXES = [
     "_Fusions.csv",

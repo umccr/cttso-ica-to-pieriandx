@@ -5,7 +5,8 @@ mypy_boto3_lambda==1.24.0
 mypy_boto3_secretsmanager==1.24.11.post3
 mypy_boto3_ssm==1.24.0
 pandas==1.4.3
-pyriandx==0.2.0
+pyriandx==0.3.0
 pytz==2022.1
 requests==2.25.1
 python-dateutil==2.8.2
+gspread_pandas==3.2.2

@@ -31,5 +31,16 @@ export const SSM_REDCAP_LAMBDA_FUNCTION_ARN_VALUE: string = "redcap-to-pieriandx
 export const SSM_PIERIANDX_PATH: string = "/cdk/cttso-ica-to-pieriandx"
 export const SECRETS_MANAGER_PIERIANDX_PATH: string = "PierianDx"
 
+// Validation API things
+export const SSM_VALIDATION_LAMBDA_FUNCTION_ARN_VALUE: string = "validation-sample-to-pieriandx-lambda-function"
+
+// LIMS things
+export const GLIMS_SSM_PARAMETER_PATH: string = "/umccr/google/drive"
+export const SSM_LIMS_LAMBDA_FUNCTION_ARN_VALUE: string = "cttso-lims-update-and-launch-lambda-function"
+
+// Token refresher things
+export const SSM_TOKEN_REFRESH_LAMBDA_FUNCTION_ARN_VALUE: string = "token-refresher-for-pieriandx-lambda-function"
+
 // Output things
 export const SSM_LAMBDA_FUNCTION_ARN_VALUE: string = "cttso-ica-to-pieriandx-lambda-function"
+

@@ -7,15 +7,19 @@ import { StringParameter } from "aws-cdk-lib/aws-ssm";
 import { Role, ManagedPolicy, ServicePrincipal, PolicyStatement } from "aws-cdk-lib/aws-iam";
 import { Secret } from "aws-cdk-lib/aws-secretsmanager";
 import {
-    DATA_PORTAL_API_ID_SSM_PARAMETER, DATA_PORTAL_API_DOMAIN_NAME_SSM_PARAMETER,
-    REDCAP_LAMBDA_FUNCTION_SSM_KEY,
-    SECRETS_MANAGER_PIERIANDX_PATH, SSM_LAMBDA_FUNCTION_ARN_VALUE,
+    DATA_PORTAL_API_ID_SSM_PARAMETER,
+    DATA_PORTAL_API_DOMAIN_NAME_SSM_PARAMETER,
+    SECRETS_MANAGER_PIERIANDX_PATH,
     SSM_PIERIANDX_PATH,
-    SSM_REDCAP_LAMBDA_FUNCTION_ARN_VALUE
+    SSM_LIMS_LAMBDA_FUNCTION_ARN_VALUE,
+    SSM_VALIDATION_LAMBDA_FUNCTION_ARN_VALUE,
+    SSM_REDCAP_LAMBDA_FUNCTION_ARN_VALUE, GLIMS_SSM_PARAMETER_PATH
 } from "../constants";
+import {Rule, Schedule} from "aws-cdk-lib/aws-events";
+import { LambdaFunction as LambdaFunctionTarget } from "aws-cdk-lib/aws-events-targets"
 
 
-interface CttsoIcaToPieriandxRedcapLambdaStackProps extends StackProps {
+interface CttsoIcaToPieriandxLimsMakerLambdaStackProps extends StackProps {
     stack_prefix: string
     env: {
         account: string
@@ -23,12 +27,12 @@ interface CttsoIcaToPieriandxRedcapLambdaStackProps extends StackProps {
     }
 }
 
-export class CttsoIcaToPieriandxRedcapLambdaStack extends Stack {
+export class CttsoIcaToPieriandxLimsMakerLambdaStack extends Stack {
 
     public readonly lambdaFunctionArnOutput: CfnOutput
     public readonly lambdaFunctionSSMParameterOutput: CfnOutput
 
-    constructor(scope: Construct, id: string, props: CttsoIcaToPieriandxRedcapLambdaStackProps) {
+    constructor(scope: Construct, id: string, props: CttsoIcaToPieriandxLimsMakerLambdaStackProps) {
         super(scope, id, props)
 
         // Pull out env parameters from property
@@ -56,15 +60,15 @@ export class CttsoIcaToPieriandxRedcapLambdaStack extends Stack {
             this,
             props.stack_prefix + "-lf", {
                 functionName: props.stack_prefix + "-lf",
-                description: "redcap to cttso submission lambda function deployed using AWS CDK with Docker Image",
+                description: "lambda function to create lims sheet and deploy available workflows",
                 code: DockerImageCode.fromImageAsset(
                     "./lambdas/",
                     {
-                        file: "get_metadata_from_portal_and_redcap_and_launch_clinical_workflow/Dockerfile"
+                        file: "launch_available_payloads_and_update_cttso_lims_sheet/Dockerfile"
                     }
                 ),
                 role: lambda_role,
-                timeout: Duration.seconds(300),
+                timeout: Duration.seconds(1500),
             }
         )
 
@@ -107,6 +111,25 @@ export class CttsoIcaToPieriandxRedcapLambdaStack extends Stack {
             )
         )
 
+        // Get GDrive ssm parameter paths
+        const glims_ssm_parameter_path_as_array = [
+            "arn", "aws", "ssm",
+            env.region, env.account,
+            "parameter" + GLIMS_SSM_PARAMETER_PATH
+        ]
+
+
+        // Add access to google lims
+        lambda_function.addToRolePolicy((
+            new PolicyStatement({
+                actions: [
+                    "ssm:GetParameter"
+                ],
+                resources: [
+                    glims_ssm_parameter_path_as_array + "/*"
+                ]
+            })
+        ))
 
         // Add pieriandx secrets access to lambda policy
         const pieriandx_secrets_path = Secret.fromSecretNameV2(
@@ -148,11 +171,17 @@ export class CttsoIcaToPieriandxRedcapLambdaStack extends Stack {
         )
 
         // Add redcap lambda execution to lambda policy
+        // And validation lambda execution to lambda policy
         // Step 1 is get the resource from SSM
         const redcap_lambda_function_ssm = StringParameter.fromStringParameterName(
             this,
-            `${props.stack_prefix}-redcap-lambda-function-arn`,
-            REDCAP_LAMBDA_FUNCTION_SSM_KEY
+            `${props.stack_prefix}-redcap-to-pieriandx-function-arn`,
+            SSM_REDCAP_LAMBDA_FUNCTION_ARN_VALUE
+        )
+        const validation_lambda_function_ssm = StringParameter.fromStringParameterName(
+            this,
+            `${props.stack_prefix}-validation-to-pieriandx-function-arn`,
+            SSM_VALIDATION_LAMBDA_FUNCTION_ARN_VALUE
         )
         // Step 2: Add ssm to policy
         lambda_function.addToRolePolicy(
@@ -161,7 +190,8 @@ export class CttsoIcaToPieriandxRedcapLambdaStack extends Stack {
                         "ssm:GetParameter"
                     ],
                     resources: [
-                        redcap_lambda_function_ssm.parameterArn
+                        redcap_lambda_function_ssm.parameterArn,
+                        validation_lambda_function_ssm.parameterArn
                     ]
                 }
             )
@@ -173,41 +203,25 @@ export class CttsoIcaToPieriandxRedcapLambdaStack extends Stack {
                     "lambda:InvokeFunction"
                 ],
                 resources: [
-                    redcap_lambda_function_ssm.stringValue
+                    redcap_lambda_function_ssm.stringValue,
+                    validation_lambda_function_ssm.stringValue
                 ]
             })
         )
 
-        // Need to be able to invoke cttso-ica-to-pieriandx-lambda-function value
-        // Step 1: Get the resource object
-        const pieriandx_launch_function_arn = StringParameter.fromStringParameterName(
+        // Create a rule to trigger this lambda
+        const lambda_schedule_rule = new Rule(
             this,
-            `${props.stack_prefix}-cttso-ica-to-pieriandx-lambda-function-arn`,
-            SSM_LAMBDA_FUNCTION_ARN_VALUE
+            props.stack_prefix + "-lf-trig",
+            {
+                schedule: Schedule.expression("rate(60 minutes)")
+            }
         )
-
-        // Step 2: Add ssm to policy
-        lambda_function.addToRolePolicy(
-            new PolicyStatement({
-                    actions: [
-                        "ssm:GetParameter"
-                    ],
-                    resources: [
-                        pieriandx_launch_function_arn.parameterArn
-                    ]
-                }
+        // Add target for lambda schedule
+        lambda_schedule_rule.addTarget(
+            new LambdaFunctionTarget(
+                lambda_function
             )
-        )
-        // Step 3: Add invoke function to policy
-        lambda_function.addToRolePolicy(
-            new PolicyStatement({
-                actions: [
-                    "lambda:InvokeFunction"
-                ],
-                resources: [
-                    pieriandx_launch_function_arn.stringValue
-                ]
-            })
         )
 
         // Create the ssm parameter to represent the cttso lambda function
@@ -216,7 +230,7 @@ export class CttsoIcaToPieriandxRedcapLambdaStack extends Stack {
             props.stack_prefix + "ssm-cdk-lambda-parameter",
             {
                 stringValue: lambda_function.functionArn,
-                parameterName: SSM_REDCAP_LAMBDA_FUNCTION_ARN_VALUE,
+                parameterName: SSM_LIMS_LAMBDA_FUNCTION_ARN_VALUE,
             }
         )
 
@@ -229,7 +243,5 @@ export class CttsoIcaToPieriandxRedcapLambdaStack extends Stack {
         this.lambdaFunctionSSMParameterOutput = new CfnOutput(this, "lambdaFunctionSSMParameterArn", {
             value: ssm_parameter.parameterArn,
         });
-
     }
-
 }

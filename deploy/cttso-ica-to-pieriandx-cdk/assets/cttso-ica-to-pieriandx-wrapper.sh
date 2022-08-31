@@ -61,7 +61,7 @@ print_help(){
         * ICA_ACCESS_TOKEN
         * PIERIANDX_AWS_S3_PREFIX
         * PIERIANDX_AWS_ACCESS_KEY_ID
-        * PIERIANDX_USER_PASSWORD
+        * PIERIANDX_USER_AUTH_TOKEN
         "
 
 }
@@ -143,22 +143,22 @@ ICA_ACCESS_TOKEN="$(aws secretsmanager get-secret-value --secret-id 'IcaSecretsP
                     jq --raw-output '.SecretString' \
                   )"
 
-# Passwords
+# Auth_tokens
 PIERIANDX_AWS_ACCESS_KEY_ID="$(aws secretsmanager get-secret-value --secret-id 'PierianDx/AWSAccessKeyID' | \
                                jq --raw-output '.SecretString | fromjson | .PierianDxAWSAccessKeyID' \
                               )"
 PIERIANDX_AWS_SECRET_ACCESS_KEY="$(aws secretsmanager get-secret-value --secret-id 'PierianDx/AWSSecretAccessKey' | \
                                    jq --raw-output '.SecretString | fromjson | .PierianDxAWSSecretAccessKey' \
                                  )"
-PIERIANDX_USER_PASSWORD="$(aws secretsmanager get-secret-value --secret-id 'PierianDx/UserPassword' | \
-                           jq --raw-output '.SecretString | fromjson | .PierianDxUserPassword' \
+PIERIANDX_USER_AUTH_TOKEN="$(aws secretsmanager get-secret-value --secret-id 'PierianDx/UserAuthToken' | \
+                           jq --raw-output '.SecretString | fromjson | .PierianDxUserAuthToken' \
                           )"
 
 # Export env vars
 export ICA_ACCESS_TOKEN
 export PIERIANDX_AWS_ACCESS_KEY_ID
 export PIERIANDX_AWS_SECRET_ACCESS_KEY
-export PIERIANDX_USER_PASSWORD
+export PIERIANDX_USER_AUTH_TOKEN
 
 # Run the workflow
 (

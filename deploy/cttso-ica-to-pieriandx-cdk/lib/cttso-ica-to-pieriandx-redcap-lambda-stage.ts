@@ -24,9 +24,9 @@ export class CttsoIcaToPieriandxRedcapLambdaStage extends Stage {
     ) {
         super(scope, id, props);
 
-        const lambda_batch_stack = new CttsoIcaToPieriandxRedcapLambdaStack(this, `${props.stack_prefix}-redcap-lambda-stack`, props);
+        const lambda_batch_stack = new CttsoIcaToPieriandxRedcapLambdaStack(this, props.stack_prefix, props);
 
-        Tags.of(lambda_batch_stack).add(`${props.stack_prefix}-redcap-lambda-stack`, props.stack_prefix);
+        Tags.of(lambda_batch_stack).add("Stack", props.stack_prefix);
 
         this.redcapLambdaFunctionArnOutput = lambda_batch_stack.lambdaFunctionArnOutput
         this.redcapLambdaFunctionSSMParameterOutput = lambda_batch_stack.lambdaFunctionSSMParameterOutput
