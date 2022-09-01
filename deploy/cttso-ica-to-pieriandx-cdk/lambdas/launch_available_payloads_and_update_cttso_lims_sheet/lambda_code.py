@@ -261,6 +261,11 @@ def submit_library_to_pieriandx(subject_id: str, library_id: str, workflow_run_i
         logger.error(f"Payload was {response_payload}")
         raise ValueError
 
+    if "errorMessage" in response_payload.keys():
+        logger.info(f"Could not successfully launch ica-to-pieriandx workflow for "
+                    f"subject id '{subject_id}' / library id '{library_id}'")
+        raise ValueError
+
     logger.info("Successfully launched and returning submission lambda")
     logger.info(f"Payload returned '{response_payload}' from arn: '{lambda_arn}'")
 
@@ -287,14 +292,21 @@ def submit_libraries_to_pieriandx(processing_df: pd.DataFrame):
         axis="columns"
     )
 
+    processing_df["submission_succeeded"] = False
+
     for index, row in processing_df.iterrows():
         logger.info(f"Submitting the following subject id / library id to PierianDx")
         logger.info(f"SubjectID='{row.subject_id}', LibraryID='{row.library_id}', Workflow Run ID='{row.portal_wfr_id}'")
         logger.info(f"Submitted to arn: '{row.submission_arn}'")
-        submit_library_to_pieriandx(subject_id=row.subject_id,
-                                    library_id=row.library_id,
-                                    workflow_run_id=row.portal_wfr_id,
-                                    lambda_arn=row.submission_arn)
+        try:
+            submit_library_to_pieriandx(subject_id=row.subject_id,
+                                        library_id=row.library_id,
+                                        workflow_run_id=row.portal_wfr_id,
+                                        lambda_arn=row.submission_arn)
+        except ValueError:
+            pass
+        else:
+            processing_df.loc[index, "submission_succeeded"] = True
 
     return processing_df
 
@@ -583,7 +595,10 @@ def update_merged_df_with_processing_df(merged_df, processing_df) -> pd.DataFram
     # Set the pieriandx case id to these samples as 'pending'
     for index, row in processing_df.iterrows():
         # Update the merged df row by the index of processing df
-        merged_df.loc[row.name, "pieriandx_case_id"] = "pending"
+        if row.submission_succeded:
+            merged_df.loc[row.name, "pieriandx_case_id"] = "pending"
+        else:
+            merged_df.loc[row.name, "pieriandx_case_id"] = "failed"
 
     return merged_df
 
@@ -862,7 +877,19 @@ def update_cttso_lims(update_df: pd.DataFrame, cttso_lims_df: pd.DataFrame, exce
             f"pieriandx_case_id=='{row.pieriandx_case_id}'"
         ).squeeze()
 
+        if isinstance(cttso_lims_row, pd.DataFrame) and cttso_lims_row.shape[0] == 0:
+            # Empty dataframe, which suggests the case id was
+            # Previously pending and is now an actual case
+            cttso_lims_row = cttso_lims_df.query(
+                f"subject_id=='{row.subject_id}' and "
+                f"library_id=='{row.library_id}' and "
+                f"pieriandx_case_id=='pending'"
+            ).squeeze()
+
         # Ensure the squeezing actually worked
+        if isinstance(cttso_lims_row, pd.DataFrame) and cttso_lims_row.shape[0] == 0:
+            logger.info("Not sure what happened here, could not find the row of interest")
+            continue
         if not isinstance(cttso_lims_row, pd.Series):
             logger.info("Got multiple rows in the dataframe for "
                         f"subject_id = '{row.subject_id}', "
@@ -1215,6 +1242,8 @@ def lambda_handler(event, context):
         pieriandx_jobs_missing_series: List = []
         for index, row in pieriandx_incomplete_jobs_df.iterrows():
             case_id = row["pieriandx_case_id"]
+            if case_id == "failed":
+                continue
             if case_id == "pending":
                 case_id = get_pieriandx_case_id_from_merged_df_for_pending_case(row, merged_df)
 
@@ -1230,6 +1259,11 @@ def lambda_handler(event, context):
 
             # Update cttso lims df
             update_cttso_lims(pieriandx_job_status_missing_df, cttso_lims_df, excel_row_number_mapping_df)
+
+            # Reimport the data sheet after updating
+            cttso_lims_df: pd.DataFrame
+            excel_row_number_mapping_df: pd.DataFrame
+            cttso_lims_df, excel_row_number_mapping_df = get_cttso_lims()
 
     # Get pieriandx df samples in merged df that are not in pieriandx_df
     processing_df = get_libraries_for_processing(merged_df)

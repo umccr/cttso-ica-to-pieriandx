@@ -56,7 +56,14 @@ CLINICAL_LAMBDA_FUNCTION_SSM_PARAMETER_PATH = "redcap-to-pieriandx-lambda-functi
 VALIDATION_LAMBDA_FUNCTION_ARN_SSM_PARAMETER_PATH = "validation-sample-to-pieriandx-lambda-function"
 
 AUS_TIMEZONE = pytz.timezone("Australia/Melbourne")
-AUS_TIMEZONE_SUFFIX = datetime.now(AUS_TIMEZONE).strftime("%z")
+AUS_TIME = datetime.now(AUS_TIMEZONE)
+AUS_TIME_CURRENT_DEFAULT_DICT = {
+    "date_accessioned": AUS_TIME.date().isoformat(),
+    "date_collected": AUS_TIME.date().isoformat(),
+    "time_collected": AUS_TIME.strftime("%H:%M"),
+    "date_received": AUS_TIME.date().isoformat()
+}
+AUS_TIMEZONE_SUFFIX = AUS_TIME.strftime("%z")
 UTC_TIMEZONE = pytz.timezone("UTC")
 # Current time with timezone suffix
 CURRENT_TIME = UTC_TIMEZONE.localize(datetime.utcnow())
@@ -71,11 +78,12 @@ VALIDATION_DEFAULTS = {
     "requesting_physicians_last_name": "Grimmond",
     "first_name": "John",
     "last_name": "Doe",
-    "date_of_birth": datetime.fromtimestamp(0).astimezone(UTC_TIMEZONE),
+    "date_of_birth": datetime.fromtimestamp(0).astimezone(UTC_TIMEZONE).date().isoformat(),
     "specimen_type": 122561005,
-    "date_accessioned": CURRENT_TIME,
-    "date_collected": CURRENT_TIME,
-    "date_received": CURRENT_TIME,
+    "date_accessioned": CURRENT_TIME.date().isoformat(),
+    "date_collected": CURRENT_TIME.date().isoformat(),
+    "time_collected": CURRENT_TIME.strftime("%H:%M"),
+    "date_received": CURRENT_TIME.date().isoformat(),
     "gender": "unknown",
     "ethnicity": "unknown",
     "race": "unknown",
@@ -93,9 +101,9 @@ CLINICAL_DEFAULTS = {
     "requesting_physicians_last_name": "Grimmond",
     "disease_id": 285645000,
     "disease_name": "Disseminated malignancy of unknown primary",
-    "date_collected": CURRENT_TIME,
-    "time_collected": CURRENT_TIME,
-    "date_received": CURRENT_TIME,
+    "date_collected": CURRENT_TIME.date().isoformat(),
+    "time_collected": CURRENT_TIME.strftime("%H:%M"),
+    "date_received": CURRENT_TIME.date().isoformat(),
     "patient_urn": "NA",
     "sample_type": "Patient Care Sample",
     "gender": "unknown",

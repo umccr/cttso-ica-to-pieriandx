@@ -15,7 +15,7 @@ from .globals import \
     REDCAP_APIS_LAMBDA_FUNCTION_ARN_SSM_PARAMETER, \
     AUS_TIMEZONE_SUFFIX, \
     REDCAP_RAW_FIELDS_CLINICAL, REDCAP_LABEL_FIELDS_CLINICAL, \
-    CLINICAL_DEFAULTS
+    CLINICAL_DEFAULTS, AUS_TIME_CURRENT_DEFAULT_DICT
 
 from .aws_helpers import \
     SSMClient, get_boto3_ssm_client, \
@@ -148,40 +148,11 @@ def get_clinical_metadata_from_redcap_for_subject(subject_id: str, library_id: s
             "id_sbj": "subject_id",
             "libraryid": "library_id",
             "mrn": "patient_urn",
-            "disease": "disease_id"
+            "disease": "disease_id",
+            "date_collection": "date_collected",
+            "date_receipt": "date_received"
         }
     )
-
-    # Update time_collected field since it might not exist
-    redcap_raw_df["time_collected"] = redcap_raw_df["time_collected"].apply(
-        lambda x: x if not pd.isnull(x) else "00:00"
-    )
-
-    # Update date fields
-    redcap_raw_df["date_collected"] = redcap_raw_df.apply(
-        lambda x: x.date_collection + "T" + x.time_collected + f":00{AUS_TIMEZONE_SUFFIX}",
-        axis="columns"
-    )
-
-    # Add time to 'date_receipt' string
-    redcap_raw_df["date_received"] = redcap_raw_df.apply(
-        lambda x: x.date_receipt + f"T00:00:00{AUS_TIMEZONE_SUFFIX}",
-        axis="columns"
-    )
-
-    # Subset columns for redcap raw df
-    redcap_raw_df = redcap_raw_df[
-        [
-            "disease_id",
-            "requesting_physicians_first_name",
-            "requesting_physicians_last_name",
-            "subject_id",
-            "library_id",
-            "date_collected",
-            "date_received",
-            "patient_urn"
-        ]
-    ]
 
     # Get label data from redcap
     # If data doesn't exist and missing data allowed, we fill in with defaults later on
@@ -224,6 +195,60 @@ def get_clinical_metadata_from_redcap_for_subject(subject_id: str, library_id: s
         ]
     ]
 
+    # First lets assert that our rows are the same for both raw and label
+    if not redcap_raw_df.shape[0] == redcap_label_df.shape[0]:
+        logger.error("Did not get the same number of rows for raw and label queries")
+        raise AssertionError
+
+    # Replace null values with NAs
+    redcap_raw_df = redcap_raw_df.replace({None: pd.NA, "": pd.NA})
+
+    # Update the date field with na values if not set (for validation samples only)
+    validation_samples_index = redcap_label_df.query(
+        "sample_type.str.lower()=='validation'"
+    ).index
+    clinical_samples_index = redcap_label_df.query(
+        "not sample_type=='validation'"
+    ).index
+
+    # Replace na values for date_collection or date_received, or date_receipt if None or null
+    # Update time_collected field in both  since it might not exist
+    # Update for validation samples
+    for date_column in ["date_collected", "date_received", "time_collected"]:
+        redcap_raw_df.loc[validation_samples_index, date_column] = \
+            redcap_raw_df.loc[validation_samples_index, date_column].fillna(AUS_TIME_CURRENT_DEFAULT_DICT[date_column])
+    # Update for clinical samples
+    for date_column in ["time_collected"]:
+        redcap_raw_df.loc[clinical_samples_index, date_column] = \
+            redcap_raw_df.loc[clinical_samples_index, date_column].fillna(AUS_TIME_CURRENT_DEFAULT_DICT[date_column])
+
+
+    # Update date fields
+    redcap_raw_df["date_collected"] = redcap_raw_df.apply(
+        lambda x: x.date_collected + "T" + x.time_collected + f":00{AUS_TIMEZONE_SUFFIX}",
+        axis="columns"
+    )
+
+    # Add time to 'date_receipt' string
+    redcap_raw_df["date_received"] = redcap_raw_df.apply(
+        lambda x: x.date_received + f"T00:00:00{AUS_TIMEZONE_SUFFIX}",
+        axis="columns"
+    )
+
+    # Subset columns for redcap raw df
+    redcap_raw_df = redcap_raw_df[
+        [
+            "disease_id",
+            "requesting_physicians_first_name",
+            "requesting_physicians_last_name",
+            "subject_id",
+            "library_id",
+            "date_collected",
+            "date_received",
+            "patient_urn"
+        ]
+    ]
+
     # Merge redcap data
     redcap_df: pd.DataFrame = pd.merge(
         redcap_raw_df, redcap_label_df,
@@ -247,9 +272,9 @@ def get_clinical_metadata_from_redcap_for_subject(subject_id: str, library_id: s
                     "patient_urn": CLINICAL_DEFAULTS["patient_urn"],
                     "disease_id": CLINICAL_DEFAULTS["disease_id"],
                     "disease_name": CLINICAL_DEFAULTS["disease_name"],
-                    "date_collected": CLINICAL_DEFAULTS["date_collected"],
-                    "time_collected": CLINICAL_DEFAULTS["time_collected"],
-                    "date_received": CLINICAL_DEFAULTS["date_received"],
+                    "date_collected": AUS_TIME_CURRENT_DEFAULT_DICT["date_collected"],
+                    "time_collected": AUS_TIME_CURRENT_DEFAULT_DICT["time_collected"],
+                    "date_received": AUS_TIME_CURRENT_DEFAULT_DICT["date_received"],
                     "sample_type": CLINICAL_DEFAULTS["sample_type"],
                     "gender": CLINICAL_DEFAULTS["gender"],
                     "pierian_metadata_complete": CLINICAL_DEFAULTS["pierian_metadata_complete"],
