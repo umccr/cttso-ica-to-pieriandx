@@ -273,7 +273,7 @@ def submit_library_to_pieriandx(subject_id: str, library_id: str, workflow_run_i
     return response_payload
 
 
-def submit_libraries_to_pieriandx(processing_df: pd.DataFrame):
+def submit_libraries_to_pieriandx(processing_df: pd.DataFrame) -> pd.DataFrame:
     """
     Submit libraries to pieriandx through their respective lambdas
     :param processing_df: A pandas dataframe with the following columns
@@ -1270,7 +1270,7 @@ def lambda_handler(event, context):
 
     # Launch payloads for pieriandx_df samples that have no case id - if existent
     if not processing_df.shape[0] == 0:
-        submit_libraries_to_pieriandx(processing_df)
+        processing_df = submit_libraries_to_pieriandx(processing_df)
 
         # Update merged df with pending processing df case ids
         merged_df = update_merged_df_with_processing_df(merged_df, processing_df)
