@@ -991,18 +991,33 @@ def get_duplicate_case_ids(lims_df: pd.DataFrame) -> List:
             by="pieriandx_case_id",
             na_position="first"
         )
+
         mini_df_indexes = mini_df.index
         last_row: pd.Series = mini_df.loc[mini_df_indexes[-1], :]
-        if not pd.isnull(last_row["pieriandx_workflow_status"]) and last_row[
-            "pieriandx_workflow_status"] == "complete" and \
-                not pd.isnull(last_row["pieriandx_report_status"]) and last_row[
-            "pieriandx_report_status"] == "complete":
+        if not pd.isnull(last_row["pieriandx_workflow_status"]) and \
+                last_row["pieriandx_workflow_status"] == "complete" and \
+                not pd.isnull(last_row["pieriandx_report_status"]) and \
+                last_row["pieriandx_report_status"] == "complete":
             # Append all other rows as rows to remove
             case_ids_to_remove.extend(mini_df.loc[mini_df_indexes[:-1], "pieriandx_case_id"].tolist())
-        elif not pd.isnull(last_row["pieriandx_case_id"]) and pd.isnull(last_row["pieriandx_workflow_status"]) and pd.isnull(last_row["pieriandx_report_status"]):
+        elif not pd.isnull(last_row["pieriandx_case_id"]) and not pd.isnull(last_row["pieriandx_case_creation_date"]) \
+                and pd.isnull(last_row["pieriandx_workflow_status"]) and pd.isnull(last_row["pieriandx_report_status"]):
             # Case of L2100166
             # Two accession numbers created on the same day but the first one is used not the second
             # In this case, check if the last row is created over one week ago, if so then remove it
+            # Only if the other case id has values though
+            non_last_row_cases: pd.DataFrame = mini_df.loc[
+                mini_df_indexes[:-1],
+                [
+                    "pieriandx_case_id",
+                    "pieriandx_workflow_status",
+                    "pieriandx_report_status"
+                ]
+            ]
+
+            if len(non_last_row_cases.dropna(how='any')) == 0:
+                continue
+
             date_one_week_ago = datetime.utcnow().date() - timedelta(days=7)
             if pd.Timestamp(last_row["pieriandx_case_creation_date"]).date() < date_one_week_ago:
                 # This last row is over a week old and has no workflow status or report status so remove it
