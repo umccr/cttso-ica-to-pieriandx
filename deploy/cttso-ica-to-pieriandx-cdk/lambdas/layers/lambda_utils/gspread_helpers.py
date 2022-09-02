@@ -175,11 +175,22 @@ def append_df_to_cttso_lims(new_df: pd.DataFrame, replace=False):
                     pd.DataFrame(columns=new_df.columns, index=range(1000))
                 ]
             ),
-            index=False, replace=replace, fill_value=""
+            index=False, replace=True, fill_value=""
         )
     else:
+        # Get existing sheet
+        existing_sheet = sheet_obj.sheet_to_df(index=0)
         # Update the sheet object with the list
-        sheet_obj.df_to_sheet(new_df, index=False, replace=replace, fill_value="")
+        sheet_obj.df_to_sheet(
+            pd.concat(
+                [
+                    existing_sheet,
+                    new_df,
+                    pd.DataFrame(columns=existing_sheet.columns, index=range(1000))
+                ]
+            ),
+            index=False, replace=True, fill_value=""
+        )
 
 
 def get_cttso_lims() -> (pd.DataFrame, pd.DataFrame):

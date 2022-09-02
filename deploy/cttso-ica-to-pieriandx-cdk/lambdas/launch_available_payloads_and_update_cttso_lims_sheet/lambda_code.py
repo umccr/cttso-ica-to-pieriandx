@@ -409,6 +409,7 @@ def append_to_cttso_lims(merged_df: pd.DataFrame, cttso_lims_df: pd.DataFrame, e
                            f"for subject '{row.subject_id}', "
                            f"library id '{row.library_id}'"
                            )
+            continue
 
         # Collect new cttso lims row
         new_cttso_lims_row = merged_df.\
@@ -464,6 +465,7 @@ def append_to_cttso_lims(merged_df: pd.DataFrame, cttso_lims_df: pd.DataFrame, e
         )["excel_row_number"].item()
 
         # Update the row
+        print(f"Updating row {excel_row_number} with {new_cttso_lims_row.tojson()}")
         update_cttso_lims_row(
             new_cttso_lims_row,
             excel_row_number
@@ -1276,9 +1278,14 @@ def lambda_handler(event, context):
             update_cttso_lims(pieriandx_job_status_missing_df, cttso_lims_df, excel_row_number_mapping_df)
 
             # Reimport the data sheet after updating
+            sleep(3)
             cttso_lims_df: pd.DataFrame
             excel_row_number_mapping_df: pd.DataFrame
             cttso_lims_df, excel_row_number_mapping_df = get_cttso_lims()
+
+            # And perform another cleanup on new info
+            merged_df, cttso_lims_df, excel_row_number_mapping_df = \
+                cleanup_duplicate_rows(merged_df, cttso_lims_df, excel_row_number_mapping_df)
 
     # Get pieriandx df samples in merged df that are not in pieriandx_df
     processing_df = get_libraries_for_processing(merged_df)
