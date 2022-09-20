@@ -11,6 +11,7 @@ import {
     DATA_PORTAL_API_DOMAIN_NAME_SSM_PARAMETER,
     SECRETS_MANAGER_PIERIANDX_PATH,
     SSM_PIERIANDX_PATH,
+    SSM_LAMBDA_FUNCTION_ARN_VALUE,
     SSM_LIMS_LAMBDA_FUNCTION_ARN_VALUE,
     SSM_VALIDATION_LAMBDA_FUNCTION_ARN_VALUE,
     SSM_CLINICAL_LAMBDA_FUNCTION_ARN_VALUE, GLIMS_SSM_PARAMETER_PATH, REDCAP_LAMBDA_FUNCTION_SSM_KEY
@@ -202,6 +203,22 @@ export class CttsoIcaToPieriandxLimsMakerLambdaStack extends Stack {
             })
         )
 
+        // Step 4: Add Get Parameter to SSM_LAMBDA_FUNCTION_ARN_VALUE property
+        const cttso_ica_to_pieriandx = StringParameter.fromStringParameterName(
+            this,
+            `${props.stack_prefix}-ica-to-pieriandx-function-arn`,
+            SSM_LAMBDA_FUNCTION_ARN_VALUE
+        )
+        lambda_function.addToRolePolicy(
+            new PolicyStatement({
+                actions: [
+                    "ssm:GetParameter"
+                ],
+                resources: [
+                    cttso_ica_to_pieriandx.stringValue
+                ]
+            })
+        )
 
         // Add clinical lambda execution to lambda policy
         // And validation lambda execution to lambda policy
@@ -229,6 +246,7 @@ export class CttsoIcaToPieriandxLimsMakerLambdaStack extends Stack {
                 }
             )
         )
+
         // Step 3: Add Invoke Function permission arn
         lambda_function.addToRolePolicy(
             new PolicyStatement({
@@ -241,6 +259,8 @@ export class CttsoIcaToPieriandxLimsMakerLambdaStack extends Stack {
                 ]
             })
         )
+
+        //
 
         // Create a rule to trigger this lambda
         const lambda_schedule_rule = new Rule(
