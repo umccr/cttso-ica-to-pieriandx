@@ -89,7 +89,7 @@ To update an ssm parameter, edit the respective _params.json_ and log into the a
 
 Run `update-params.sh` in your console and changed ssm parameters will be updated.
 
-### scripts/update-pieriandx-passowrd.sh
+### scripts/update-pieriandx-password.sh
 
 The PierianDx password must be updated every three months and is a manual process. 
 
@@ -104,9 +104,9 @@ This will prompt the user for the new password and will update the AWS secretsma
 To update the direct payloads from Google LIMS this script asks the user to provide a subject ID and library ID
 in order to trigger the cttso submission collecting all of the available data from Google LIMS. 
 
-### scripts/launch_redcap_payloads
+### scripts/launch_clinical_payloads
 
-In order to trigger a pieriandx run the launch redcap payloads script takes in a list of json strings via a file.
+In order to trigger a pieriandx run the launch payloads for clinical samples script, which takes in a list of json strings via a file.
 
 An example of the payloads file is as below:
 
@@ -114,3 +114,31 @@ An example of the payloads file is as below:
 { "subject_id": "SBJ12345", "library_id": "L000123", "ica_workflow_run_id": "wfr.abcdef123456" }
 { "subject_id": "SBJ67890", "library_id": "L000456", "ica_workflow_run_id": "wfr.a1b2c3d4e5f6" }
 ```
+
+And then launch like so
+
+```bash
+./scripts/launch_clinical_payloads --payloads-file "payloads.jsonl"
+```
+
+### scripts/launch_validation_payloads
+
+In order to trigger a pieriandx run the launch payloads for validation samples script, which takes in a list of json strings via a file.
+An example of the payloads file is as below:
+
+```json lines
+{ "subject_id": "SBJ12345", "library_id": "L000123", "ica_workflow_run_id": "wfr.abcdef123456" }
+{ "subject_id": "SBJ67890", "library_id": "L000456", "ica_workflow_run_id": "wfr.a1b2c3d4e5f6" }
+```
+
+And then launch like so
+
+```bash
+./scripts/launch_validation_payloads --payloads-file "payloads.jsonl"
+```
+
+### scripts/wake_up_lambdas
+
+Lambdas sometimes go to sleep if they haven't been used for a few days, if you run either of the launch payload scripts
+above and you get an error stating that you need to wake up the lambdas before launching, please run this and wait
+for its completion.
