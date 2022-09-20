@@ -409,7 +409,7 @@ export class CttsoIcaToPieriandxBatchStack extends Stack {
                 },
                 container: {
                     image: image_repo,
-                    vcpus: 1,
+                    vcpus: 2,
                     user: "cttso_ica_to_pieriandx_user:cttso_ica_to_pieriandx_group",
                     memoryLimitMiB: 1024,
                     command: [
@@ -495,7 +495,7 @@ export class CttsoIcaToPieriandxBatchStack extends Stack {
                     "JOBQUEUE": job_queue.jobQueueName,
                     "JOBNAME_PREFIX": `${props.stack_prefix}_`,
                     "MEM": "1000",
-                    "VCPUS": "1"
+                    "VCPUS": "2"
                 },
                 role: lambda_role
             }
