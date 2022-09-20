@@ -7,3 +7,14 @@ node_modules
 .cdk.staging
 cdk.context.json
 cdk.out
+
+# Json files
+*.jsonl
+
+# Also json files if people are launching payloads from this directory
+*.json
+# But some jsons are needed
+!cdk*.json
+!package*.json
+!params*.json
+!tsconfig.json

@@ -33,6 +33,9 @@ Cells are indexed by Subject and Library ID values, the following items can be u
 Values with new Subject and Library ID values will be appended
 """
 from mypy_boto3_lambda.client import LambdaClient
+from mypy_boto3_lambda.type_defs import GetFunctionResponseTypeDef, FunctionConfigurationTypeDef, InvocationResponseTypeDef
+from mypy_boto3_lambda.literals import StateType as LambdaFunctionStateType
+from mypy_boto3_ssm import SSMClient
 import pandas as pd
 from typing import Dict, List, Union
 import json
@@ -40,7 +43,7 @@ from time import sleep
 from datetime import datetime, timedelta
 
 from lambda_utils.arns import get_validation_lambda_arn, get_clinical_lambda_arn
-from lambda_utils.aws_helpers import get_boto3_lambda_client
+from lambda_utils.aws_helpers import get_boto3_lambda_client, get_boto3_ssm_client
 from lambda_utils.gspread_helpers import \
     get_cttso_samples_from_glims, get_cttso_lims, update_cttso_lims_row, \
     append_df_to_cttso_lims
@@ -48,6 +51,11 @@ from lambda_utils.logger import get_logger
 from lambda_utils.pieriandx_helpers import get_pieriandx_df, get_pieriandx_status_for_missing_sample
 from lambda_utils.portal_helpers import get_portal_workflow_run_data_df
 from lambda_utils.redcap_helpers import get_full_redcap_data_df
+from lambda_utils.globals import \
+    PIERIANDX_LAMBDA_LAUNCH_FUNCTION_ARN_SSM_PATH, \
+    REDCAP_APIS_LAMBDA_FUNCTION_ARN_SSM_PARAMETER, \
+    CLINICAL_LAMBDA_FUNCTION_SSM_PARAMETER_PATH, \
+    VALIDATION_LAMBDA_FUNCTION_ARN_SSM_PARAMETER_PATH
 
 logger = get_logger()
 
@@ -1220,6 +1228,63 @@ def get_pieriandx_case_id_from_merged_df_for_pending_case(cttso_lims_series, mer
     return pieriandx_case_id
 
 
+def lambdas_awake() -> bool:
+    """
+    Go through the lambdas that are required for this service and make sure that they're all awake
+    """
+    required_lambdas_ssm_parameter_paths: List[str] = [
+        PIERIANDX_LAMBDA_LAUNCH_FUNCTION_ARN_SSM_PATH,
+        REDCAP_APIS_LAMBDA_FUNCTION_ARN_SSM_PARAMETER,
+        CLINICAL_LAMBDA_FUNCTION_SSM_PARAMETER_PATH,
+        VALIDATION_LAMBDA_FUNCTION_ARN_SSM_PARAMETER_PATH
+    ]
+
+    # Initialise failed arns
+    inactivate_required_lambda_arns: List[str] = []
+
+    # Get ssm client
+    ssm_client: SSMClient = get_boto3_ssm_client()
+    lambda_client: LambdaClient = get_boto3_lambda_client()
+
+    # Get lambda arns
+    required_lambdas_arns: List[str] = []
+    lambda_ssm_parameter: str
+    for lambda_ssm_parameter in required_lambdas_ssm_parameter_paths:
+        required_lambdas_arns.append(
+            ssm_client.get_parameter(Name=lambda_ssm_parameter).get("Parameter").get("Value")
+        )
+
+    # Find inactive lambdas
+    lambda_arn: str
+    for lambda_arn in required_lambdas_ssm_parameter_paths:
+        lambda_function_response: GetFunctionResponseTypeDef = lambda_client.get_function(
+            FunctionName=lambda_arn
+        )
+
+        lambda_configuration_dict: FunctionConfigurationTypeDef = lambda_function_response.get("Configuration")
+
+        state: LambdaFunctionStateType = lambda_configuration_dict.get("State")
+
+        if not state.lower() == "active":
+            logger.warning(f"Required lambda function '{lambda_arn}' is inactive, and is being warmed up")
+            inactivate_required_lambda_arns.append(lambda_arn)
+
+    # Check if we have any inactive lambdas
+    if len(inactivate_required_lambda_arns) == 0:
+        return True
+
+    # Wake up lambdas
+    lambda_arn: str
+    for lambda_arn in inactivate_required_lambda_arns:
+        logger.info(f"Waking up lambda 'lambda_arn'")
+        lambda_invoke_response: InvocationResponseTypeDef = lambda_client.invoke(
+            FunctionName=lambda_arn,
+            Payload=json.dumps({})
+        )
+
+    return False
+
+
 def lambda_handler(event, context):
     """
     Neither event or context are used by the handler as this job is scheduled hourly
@@ -1292,6 +1357,9 @@ def lambda_handler(event, context):
 
     # Launch payloads for pieriandx_df samples that have no case id - if existent
     if not processing_df.shape[0] == 0:
+        if not lambdas_awake():
+            logger.error("Some of the required lambdas were asleep, waking them up now and reprocessing in an hour")
+
         processing_df = submit_libraries_to_pieriandx(processing_df)
 
         # Update merged df with pending processing df case ids
