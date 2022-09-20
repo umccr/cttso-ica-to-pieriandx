@@ -59,10 +59,18 @@ fi
 
 
 # Defaults / Globals
-AWS_LAMBDA_FUNCTION="$( \
+AWS_LAMBDA_VALIDATION_LAUNCH_FUNCTION="$( \
   aws ssm get-parameter \
     --output json \
     --name "validation-sample-to-pieriandx-lambda-function" | \
+  jq --raw-output \
+    '.Parameter.Value'
+)"
+
+AWS_LAMBDA_LAUNCH_PIERIANDX_FUNCTION="$( \
+  aws ssm get-parameter \
+    --output json \
+    --name "cttso-ica-to-pieriandx-lambda-function" | \
   jq --raw-output \
     '.Parameter.Value'
 )"
@@ -85,9 +93,30 @@ else
   exit 1
 fi
 
+# Two lambda functions we need to make sure are warmed up before we start
+LAMBDA_FUNCTIONS_ARRAY=( \
+  "${AWS_LAMBDA_VALIDATION_LAUNCH_FUNCTION}" \
+  "${AWS_LAMBDA_LAUNCH_PIERIANDX_FUNCTION}" \
+)
+
+echo "Checking all required lambdas are active" 1>&2
+for lambda_function in "${LAMBDA_FUNCTIONS_ARRAY[@]}"; do
+  lambda_state="$( \
+    aws lambda get-function \
+      --output json \
+      --function-name "${lambda_function}" | \
+      jq --raw-output '.Configuration.State' \
+  )"
+  if [[ ! "${lambda_state,,}" == "active" ]]; then
+    echo "Got lambda state of '${lambda_state}' for '${lambda_function}'" 1>&2
+    echo "Please run the wake-up-lambdas.sh script then re-run this script" 1>&2
+    exit 1
+  fi
+done
+echo "All lambdas are active" 1>&2
+
 counter=0
 array_length="$(wc -l "${payloads_file}")"
-
 while read -r payload_line || [ -n "${payload_line}" ]; do
   # https://stackoverflow.com/questions/12916352/shell-script-read-missing-last-payload_line
 
@@ -116,19 +145,17 @@ while read -r payload_line || [ -n "${payload_line}" ]; do
 
   echo "Launch sample ${counter} out of ${array_length}: Payload is"
   echo aws lambda invoke \
-    --function-name "${AWS_LAMBDA_FUNCTION}" \
+    --function-name "${AWS_LAMBDA_VALIDATION_LAUNCH_FUNCTION}" \
     --invocation-type "RequestResponse" \
     --payload "${payload_json_str}" \
     --cli-binary-format "raw-in-base64-out" \
     "${lambda_output_file}"
 
   aws lambda invoke \
-      --function-name "${AWS_LAMBDA_FUNCTION}" \
+      --function-name "${AWS_LAMBDA_VALIDATION_LAUNCH_FUNCTION}" \
       --invocation-type "RequestResponse" \
       --payload "${payload_json_str}" \
       --cli-binary-format "raw-in-base64-out" \
       "${lambda_output_file}"
-
-  echo "Wrote output of lambda to '${lambda_output_file}'"
 
 done < "${payloads_file}"
