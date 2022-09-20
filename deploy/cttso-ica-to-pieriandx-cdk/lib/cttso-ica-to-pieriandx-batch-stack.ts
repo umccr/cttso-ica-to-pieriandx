@@ -353,7 +353,7 @@ export class CttsoIcaToPieriandxBatchStack extends Stack {
                     type: ComputeResourceType.ON_DEMAND,
                     allocationStrategy: AllocationStrategy.BEST_FIT,
                     desiredvCpus: 0,
-                    maxvCpus: 5,
+                    maxvCpus: 1,
                     minvCpus: 0,
                     image: MachineImage.genericLinux(
                         {
