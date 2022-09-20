@@ -10,6 +10,8 @@ cdk.out
 
 # Json files
 *.jsonl
+# But provide the example jsonl payloads file
+!examples/payloads_file.jsonl
 
 # Also json files if people are launching payloads from this directory
 *.json

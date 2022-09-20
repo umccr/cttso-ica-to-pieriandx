@@ -351,7 +351,7 @@ export class CttsoIcaToPieriandxBatchStack extends Stack {
                 serviceRole: batch_service_role,
                 computeResources: {
                     type: ComputeResourceType.ON_DEMAND,
-                    allocationStrategy: AllocationStrategy.BEST_FIT,
+                    allocationStrategy: AllocationStrategy.BEST_FIT_PROGRESSIVE,
                     desiredvCpus: 0,
                     maxvCpus: 1,
                     minvCpus: 0,

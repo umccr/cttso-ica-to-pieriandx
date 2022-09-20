@@ -12,7 +12,7 @@ This merges inputs from the following sources
 * PierianDx
 
 This will also launch validation samples that do not have RedCap information, where
-the GLIMS value ProjectName is set to "Validation" and launch with the default outputs.
+the GLIMS value ProjectName is set to "Validation" or "Control" and launch with the default outputs.
 
 Cells are indexed by Subject and Library ID values, the following items can be updated:
 * RedCap Status
