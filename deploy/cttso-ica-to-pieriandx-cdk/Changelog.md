@@ -3,6 +3,19 @@
 Changes in this log refer only to changes that make it to the 'main' branch and
 are nested under deploy/cttso-ica-to-pieriandx-cdk.  
 
+## 2022-09-22
+
+> Author: Alexis Lucattini
+> Email: [Alexis.Lucattini@ummcr.org](mailto:alexis.lucattini@umccr.org)
+
+### Wake up Lambdas
+
+* Lambdas are woken up before payloads are submitted, documentation added to deployment ReadMe
+
+### Run jobs sequentially
+
+* Set max availble vCPUs to 3 and specify 2 cpus per batch run instance
+
 ## 2022-08-30  
 
 > Author: Alexis Lucattini
