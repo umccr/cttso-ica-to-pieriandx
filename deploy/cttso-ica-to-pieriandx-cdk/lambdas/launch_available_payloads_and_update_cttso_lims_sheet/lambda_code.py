@@ -1256,7 +1256,7 @@ def lambdas_awake() -> bool:
 
     # Find inactive lambdas
     lambda_arn: str
-    for lambda_arn in required_lambdas_ssm_parameter_paths:
+    for lambda_arn in required_lambdas_arns:
         lambda_function_response: GetFunctionResponseTypeDef = lambda_client.get_function(
             FunctionName=lambda_arn
         )

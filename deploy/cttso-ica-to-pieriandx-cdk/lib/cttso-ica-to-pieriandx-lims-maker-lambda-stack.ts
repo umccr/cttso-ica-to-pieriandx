@@ -217,7 +217,7 @@ export class CttsoIcaToPieriandxLimsMakerLambdaStack extends Stack {
             `${props.stack_prefix}-validation-to-pieriandx-function-arn`,
             SSM_VALIDATION_LAMBDA_FUNCTION_ARN_VALUE
         )
-        const cttso_ica_to_pieriandx_ssm_parameter = StringParameter.fromStringParameterName(
+        const cttso_ica_to_pieriandx_ssm = StringParameter.fromStringParameterName(
             this,
             `${props.stack_prefix}-ica-to-pieriandx-function-arn`,
             SSM_LAMBDA_FUNCTION_ARN_VALUE
@@ -231,7 +231,7 @@ export class CttsoIcaToPieriandxLimsMakerLambdaStack extends Stack {
                     resources: [
                         clinical_lambda_function_ssm.parameterArn,
                         validation_lambda_function_ssm.parameterArn,
-                        cttso_ica_to_pieriandx_ssm_parameter.parameterArn
+                        cttso_ica_to_pieriandx_ssm.parameterArn
                     ]
                 }
             )
@@ -247,7 +247,7 @@ export class CttsoIcaToPieriandxLimsMakerLambdaStack extends Stack {
                 resources: [
                     clinical_lambda_function_ssm.stringValue,
                     validation_lambda_function_ssm.stringValue,
-                    cttso_ica_to_pieriandx_ssm_parameter.stringValue
+                    cttso_ica_to_pieriandx_ssm.stringValue
                 ]
             })
         )
