@@ -586,6 +586,7 @@ def update_merged_df_with_processing_df(merged_df, processing_df) -> pd.DataFram
       * library_id
       * portal_wfr_id
       * is_validation_sample
+      * submission_succeeded
     :return: A pandas dataframe with the following columns
       * subject_id
       * library_id
@@ -605,7 +606,7 @@ def update_merged_df_with_processing_df(merged_df, processing_df) -> pd.DataFram
     # Set the pieriandx case id to these samples as 'pending'
     for index, row in processing_df.iterrows():
         # Update the merged df row by the index of processing df
-        if row.submission_succeded:
+        if row.submission_succeeded:
             merged_df.loc[row.name, "pieriandx_case_id"] = "pending"
         else:
             merged_df.loc[row.name, "pieriandx_case_id"] = "failed"
