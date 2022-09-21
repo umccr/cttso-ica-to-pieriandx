@@ -204,7 +204,7 @@ export class CttsoIcaToPieriandxLimsMakerLambdaStack extends Stack {
         )
 
         // Step 4: Add Get Parameter to SSM_LAMBDA_FUNCTION_ARN_VALUE property
-        const cttso_ica_to_pieriandx = StringParameter.fromStringParameterName(
+        const cttso_ica_to_pieriandx_ssm_parameter = StringParameter.fromStringParameterName(
             this,
             `${props.stack_prefix}-ica-to-pieriandx-function-arn`,
             SSM_LAMBDA_FUNCTION_ARN_VALUE
@@ -215,7 +215,7 @@ export class CttsoIcaToPieriandxLimsMakerLambdaStack extends Stack {
                     "ssm:GetParameter"
                 ],
                 resources: [
-                    cttso_ica_to_pieriandx.stringValue
+                    cttso_ica_to_pieriandx_ssm_parameter.parameterArn
                 ]
             })
         )
