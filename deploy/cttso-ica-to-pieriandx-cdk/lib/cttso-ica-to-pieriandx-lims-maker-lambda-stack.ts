@@ -195,27 +195,11 @@ export class CttsoIcaToPieriandxLimsMakerLambdaStack extends Stack {
         lambda_function.addToRolePolicy(
             new PolicyStatement({
                 actions: [
+                    "lambda:GetFunction",
                     "lambda:InvokeFunction"
                 ],
                 resources: [
                     redcap_lambda_function_ssm.stringValue
-                ]
-            })
-        )
-
-        // Step 4: Add Get Parameter to SSM_LAMBDA_FUNCTION_ARN_VALUE property
-        const cttso_ica_to_pieriandx_ssm_parameter = StringParameter.fromStringParameterName(
-            this,
-            `${props.stack_prefix}-ica-to-pieriandx-function-arn`,
-            SSM_LAMBDA_FUNCTION_ARN_VALUE
-        )
-        lambda_function.addToRolePolicy(
-            new PolicyStatement({
-                actions: [
-                    "ssm:GetParameter"
-                ],
-                resources: [
-                    cttso_ica_to_pieriandx_ssm_parameter.parameterArn
                 ]
             })
         )
@@ -233,6 +217,11 @@ export class CttsoIcaToPieriandxLimsMakerLambdaStack extends Stack {
             `${props.stack_prefix}-validation-to-pieriandx-function-arn`,
             SSM_VALIDATION_LAMBDA_FUNCTION_ARN_VALUE
         )
+        const cttso_ica_to_pieriandx_ssm_parameter = StringParameter.fromStringParameterName(
+            this,
+            `${props.stack_prefix}-ica-to-pieriandx-function-arn`,
+            SSM_LAMBDA_FUNCTION_ARN_VALUE
+        )
         // Step 2: Add ssm to policy
         lambda_function.addToRolePolicy(
             new PolicyStatement({
@@ -241,7 +230,8 @@ export class CttsoIcaToPieriandxLimsMakerLambdaStack extends Stack {
                     ],
                     resources: [
                         clinical_lambda_function_ssm.parameterArn,
-                        validation_lambda_function_ssm.parameterArn
+                        validation_lambda_function_ssm.parameterArn,
+                        cttso_ica_to_pieriandx_ssm_parameter.parameterArn
                     ]
                 }
             )
@@ -251,11 +241,13 @@ export class CttsoIcaToPieriandxLimsMakerLambdaStack extends Stack {
         lambda_function.addToRolePolicy(
             new PolicyStatement({
                 actions: [
+                    "lambda:GetFunction",
                     "lambda:InvokeFunction"
                 ],
                 resources: [
                     clinical_lambda_function_ssm.stringValue,
-                    validation_lambda_function_ssm.stringValue
+                    validation_lambda_function_ssm.stringValue,
+                    cttso_ica_to_pieriandx_ssm_parameter.stringValue
                 ]
             })
         )
