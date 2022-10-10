@@ -473,7 +473,7 @@ def append_to_cttso_lims(merged_df: pd.DataFrame, cttso_lims_df: pd.DataFrame, e
         )["excel_row_number"].item()
 
         # Update the row
-        print(f"Updating row {excel_row_number} with {new_cttso_lims_row.tojson()}")
+        logger.info(f"Updating row {excel_row_number} with {new_cttso_lims_row.to_json()}")
         update_cttso_lims_row(
             new_cttso_lims_row,
             excel_row_number
