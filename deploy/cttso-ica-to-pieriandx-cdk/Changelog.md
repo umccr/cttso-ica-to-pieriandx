@@ -3,6 +3,15 @@
 Changes in this log refer only to changes that make it to the 'main' branch and
 are nested under deploy/cttso-ica-to-pieriandx-cdk.  
 
+## 2022-11-16
+
+> Author: Alexis Lucattini
+> Email: [Alexis.Lucattini@ummcr.org](mailto:alexis.lucattini@umccr.org)
+
+### Fixes
+
+* Reduce number of items returned by portal from 1000 to 100 to prevent internal server errors.
+
 ## 2022-09-22
 
 > Author: Alexis Lucattini
