@@ -296,6 +296,7 @@ def submit_libraries_to_pieriandx(processing_df: pd.DataFrame) -> pd.DataFrame:
     num_submissions = processing_df.shape[0]
 
     if num_submissions > MAX_SUBMISSIONS:
+        logger.info(f"Dropping submission number from {num_submissions} to {MAX_SUBMISSIONS}")
         processing_df = processing_df.head(MAX_SUBMISSIONS)
 
     # Validation df
