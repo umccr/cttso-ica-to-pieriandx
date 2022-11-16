@@ -55,7 +55,8 @@ from lambda_utils.globals import \
     PIERIANDX_LAMBDA_LAUNCH_FUNCTION_ARN_SSM_PATH, \
     REDCAP_APIS_LAMBDA_FUNCTION_ARN_SSM_PARAMETER, \
     CLINICAL_LAMBDA_FUNCTION_SSM_PARAMETER_PATH, \
-    VALIDATION_LAMBDA_FUNCTION_ARN_SSM_PARAMETER_PATH
+    VALIDATION_LAMBDA_FUNCTION_ARN_SSM_PARAMETER_PATH, \
+    MAX_SUBMISSIONS
 
 logger = get_logger()
 
@@ -291,6 +292,12 @@ def submit_libraries_to_pieriandx(processing_df: pd.DataFrame) -> pd.DataFrame:
       * is_validation_sample
     :return:
     """
+    # Get number of rows to submit
+    num_submissions = processing_df.shape[0]
+
+    if num_submissions > MAX_SUBMISSIONS:
+        logger.info(f"Dropping submission number from {num_submissions} to {MAX_SUBMISSIONS}")
+        processing_df = processing_df.head(MAX_SUBMISSIONS)
 
     # Validation df
     processing_df["submission_arn"] = processing_df.apply(
