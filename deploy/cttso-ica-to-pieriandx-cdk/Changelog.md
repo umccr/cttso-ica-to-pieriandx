@@ -11,6 +11,7 @@ are nested under deploy/cttso-ica-to-pieriandx-cdk.
 ### Fixes
 
 * Reduce number of items returned by portal from 1000 to 100 to prevent internal server errors.
+* Version control gspread to prevent pip install failure for lambdas
 
 ## 2022-09-22
 
