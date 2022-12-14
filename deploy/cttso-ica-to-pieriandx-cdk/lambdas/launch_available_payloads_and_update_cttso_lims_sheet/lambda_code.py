@@ -34,8 +34,11 @@ Values with new Subject and Library ID values will be appended
 """
 from mypy_boto3_lambda.client import LambdaClient
 from mypy_boto3_lambda.type_defs import GetFunctionResponseTypeDef, FunctionConfigurationTypeDef, InvocationResponseTypeDef
+
 from mypy_boto3_lambda.literals import StateType as LambdaFunctionStateType
 from mypy_boto3_ssm import SSMClient
+from botocore.exceptions import ClientError
+
 import pandas as pd
 from typing import Dict, List, Union
 import json
@@ -56,7 +59,7 @@ from lambda_utils.globals import \
     REDCAP_APIS_LAMBDA_FUNCTION_ARN_SSM_PARAMETER, \
     CLINICAL_LAMBDA_FUNCTION_SSM_PARAMETER_PATH, \
     VALIDATION_LAMBDA_FUNCTION_ARN_SSM_PARAMETER_PATH, \
-    MAX_SUBMISSIONS
+    MAX_SUBMISSIONS_PER_LIMS_UPDATE_CYCLE, MAX_ATTEMPTS_WAKE_LAMBDAS
 
 logger = get_logger()
 
@@ -238,48 +241,54 @@ def submit_library_to_pieriandx(subject_id: str, library_id: str, workflow_run_i
     """
     lambda_client: LambdaClient = get_boto3_lambda_client()
 
-    lambda_function_response = lambda_client.invoke(
-        FunctionName=lambda_arn,
-        InvocationType="RequestResponse",
-        Payload=json.dumps({
+    lambda_payload: Dict = {
             "subject_id": subject_id,
             "library_id": library_id,
             "ica_workflow_run_id": workflow_run_id
-        })
+    }
+
+    logger.info(f"Launching lambda function {lambda_arn} with the following payload {json.dumps(lambda_payload)}")
+
+    lambda_function_response = lambda_client.invoke(
+        FunctionName=lambda_arn,
+        InvocationType="Event",
+        Payload=json.dumps(lambda_payload)
     )
 
     # Check status code
-    if not lambda_function_response.get("StatusCode") == 200:
+    if not lambda_function_response.get("StatusCode") == 202:
         logger.error(f"Bad exit code when retrieving response from "
                      f"lambda client {lambda_arn}")
         raise ValueError
 
-    # Check payload
-    if "Payload" not in list(lambda_function_response.keys()):
-        logger.error("Could not retrieve payload, submission to batch likely failed")
-        logger.error(f"Client response was {lambda_function_response}")
-        raise ValueError
+    # No payload returned since we use the 'event', to prevent multiple lambda submissions from boto3
 
-    # Check response
-    response_payload: Dict = json.loads(lambda_function_response.get("Payload").read())
-
-    # Check response payload
-    if response_payload is None or not isinstance(response_payload, Dict):
-        logger.error("Could not get response payload as a dict")
-        logger.error(f"Client response was {lambda_function_response}")
-        logger.error(f"Payload was {response_payload}")
-        raise ValueError
-
-    if "errorMessage" in response_payload.keys():
-        logger.info(f"Could not successfully launch ica-to-pieriandx workflow for "
-                    f"subject id '{subject_id}' / library id '{library_id}'")
-        raise ValueError
-
-    logger.info("Successfully launched and returning submission lambda")
-    logger.info(f"Payload returned '{response_payload}' from arn: '{lambda_arn}'")
-
-    # Step 8 - Return case accession number and metadata information to user
-    return response_payload
+    # # Check payload
+    # if "Payload" not in list(lambda_function_response.keys()):
+    #     logger.error("Could not retrieve payload, submission to batch likely failed")
+    #     logger.error(f"Client response was {lambda_function_response}")
+    #     raise ValueError
+    #
+    # # Check response
+    # response_payload: Dict = json.loads(lambda_function_response.get("Payload").read())
+    #
+    # # Check response payload
+    # if response_payload is None or not isinstance(response_payload, Dict):
+    #     logger.error("Could not get response payload as a dict")
+    #     logger.error(f"Client response was {lambda_function_response}")
+    #     logger.error(f"Payload was {response_payload}")
+    #     raise ValueError
+    #
+    # if "errorMessage" in response_payload.keys():
+    #     logger.info(f"Could not successfully launch ica-to-pieriandx workflow for "
+    #                 f"subject id '{subject_id}' / library id '{library_id}'")
+    #     raise ValueError
+    #
+    # logger.info("Successfully launched and returning submission lambda")
+    # logger.info(f"Payload returned '{response_payload}' from arn: '{lambda_arn}'")
+    #
+    # # Step 8 - Return case accession number and metadata information to user
+    # return response_payload
 
 
 def submit_libraries_to_pieriandx(processing_df: pd.DataFrame) -> pd.DataFrame:
@@ -295,9 +304,9 @@ def submit_libraries_to_pieriandx(processing_df: pd.DataFrame) -> pd.DataFrame:
     # Get number of rows to submit
     num_submissions = processing_df.shape[0]
 
-    if num_submissions > MAX_SUBMISSIONS:
-        logger.info(f"Dropping submission number from {num_submissions} to {MAX_SUBMISSIONS}")
-        processing_df = processing_df.head(MAX_SUBMISSIONS)
+    if num_submissions > MAX_SUBMISSIONS_PER_LIMS_UPDATE_CYCLE:
+        logger.info(f"Dropping submission number from {num_submissions} to {MAX_SUBMISSIONS_PER_LIMS_UPDATE_CYCLE}")
+        processing_df = processing_df.head(MAX_SUBMISSIONS_PER_LIMS_UPDATE_CYCLE)
 
     # Validation df
     processing_df["submission_arn"] = processing_df.apply(
@@ -1283,13 +1292,34 @@ def lambdas_awake() -> bool:
 
     # Wake up lambdas
     lambda_arn: str
-    for lambda_arn in inactivate_required_lambda_arns:
-        logger.info(f"Waking up lambda 'lambda_arn'")
-        lambda_invoke_response: InvocationResponseTypeDef = lambda_client.invoke(
-            FunctionName=lambda_arn,
-            Payload=json.dumps({})
-        )
+    wake_attempt_iter: int = 0
+    while wake_attempt_iter < MAX_ATTEMPTS_WAKE_LAMBDAS:
+        # Increment loop
+        wake_attempt_iter += 1
 
+        # Check if inactivated items is empty
+        if len(inactivate_required_lambda_arns) == 0:
+            return True
+
+        # Iterate existing clients, check how many are inactive
+        for lambda_arn in inactivate_required_lambda_arns:
+            logger.info(f"Waking up lambda '{lambda_arn}'")
+            try:
+                lambda_invoke_response: InvocationResponseTypeDef = lambda_client.invoke(
+                    FunctionName=lambda_arn,
+                    Payload=json.dumps({})
+                )
+            except ClientError:
+                # Next time
+                pass
+            else:
+                # Lambda is awake, remove from list
+                _ = inactivate_required_lambda_arns.pop(inactivate_required_lambda_arns.index(lambda_arn))
+
+        # Small wait for lambdas to wake up
+        sleep(5)
+
+    logger.info("Couldn't wake up all of the downstream lambdas in time!")
     return False
 
 
