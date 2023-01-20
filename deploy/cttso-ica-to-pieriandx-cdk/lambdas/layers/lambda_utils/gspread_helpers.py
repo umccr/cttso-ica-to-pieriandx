@@ -83,7 +83,8 @@ def get_cttso_samples_from_glims() -> pd.DataFrame:
       * subject_id
       * library_id
       * sequence_run_name
-      * glims_is_validation -> Is this a validation sample? Determined by ProjectName is equal to "Validation"
+      * glims_is_validation -> Is this a validation sample? Determined by ProjectName is equal to "Validation" or "Control"
+      * glims_is_research -> Is this a research sample? Determined by ProjectName is equal to "Research"
     """
 
     if os.environ.get("GSPREAD_PANDAS_CONFIG_DIR") is None:
@@ -93,6 +94,10 @@ def get_cttso_samples_from_glims() -> pd.DataFrame:
     glims_df = glims_df.query("Type=='ctDNA' & Assay=='ctTSO'")
     glims_df["glims_is_validation"] = glims_df.apply(
         lambda x: True if x.ProjectName.lower() in ["validation", "control"] else False,
+        axis="columns"
+    )
+    glims_df["glims_is_research"] = glims_df.apply(
+        lambda x: True if x.ProjectName.lower() in ["research"] else False,
         axis="columns"
     )
 
@@ -105,7 +110,7 @@ def get_cttso_samples_from_glims() -> pd.DataFrame:
     )
 
     # Drop duplicate rows and return
-    return glims_df[["subject_id", "library_id", "sequence_run_name", "glims_is_validation"]].drop_duplicates()
+    return glims_df[["subject_id", "library_id", "sequence_run_name", "glims_is_validation", "glims_is_research"]].drop_duplicates()
 
 
 def update_cttso_lims_row(new_row: pd.Series, row_number: int):
@@ -207,6 +212,7 @@ def get_cttso_lims() -> (pd.DataFrame, pd.DataFrame):
         * in_redcap
         * in_pieriandx
         * glims_is_validation
+        * glims_is_research
         * redcap_sample_type
         * redcap_is_complete
         * portal_wfr_id
@@ -218,6 +224,7 @@ def get_cttso_lims() -> (pd.DataFrame, pd.DataFrame):
         * pieriandx_case_accession_number
         * pieriandx_case_creation_date
         * pieriandx_case_identified
+        * pieriandx_panel_type
         * pieriandx_workflow_id
         * pieriandx_workflow_status
         * pieriandx_report_status

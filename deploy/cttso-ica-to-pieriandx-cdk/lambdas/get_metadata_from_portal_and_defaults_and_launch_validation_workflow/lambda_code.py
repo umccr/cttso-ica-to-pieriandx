@@ -21,7 +21,7 @@ import pytz
 
 from lambda_utils.arns import get_cttso_ica_to_pieriandx_lambda_function_arn
 from lambda_utils.aws_helpers import get_boto3_lambda_client
-from lambda_utils.globals import CLINICAL_DEFAULTS, VALIDATION_DEFAULTS, CURRENT_TIME, EXPECTED_ATTRIBUTES
+from lambda_utils.globals import VALIDATION_DEFAULTS, CURRENT_TIME, EXPECTED_ATTRIBUTES
 from lambda_utils.miscell import handle_date, datetime_obj_to_utc_isoformat
 from lambda_utils.pieriandx_helpers import \
     validate_case_accession_number, get_new_case_accession_number, get_existing_pieriandx_case_accession_numbers
@@ -44,6 +44,7 @@ def lambda_handler(event, context):
         "library_id": "L1234567",
         "case_accession_number": "SBJID_LIBID_123",
         "ica_workflow_run_id": "wfr.123abc",
+        "panel_type": "main"
     }
     """
 
@@ -75,7 +76,7 @@ def lambda_handler(event, context):
                      f"for subject id '{subject_id}' / library id '{library_id}'")
         raise ValueError
 
-    # Update sample_df with valudation defaults
+    # Update sample_df with validation defaults
     sample_df["sample_type"] = VALIDATION_DEFAULTS["sample_type"]
     sample_df["indication"] = VALIDATION_DEFAULTS["indication"]
     sample_df["disease_id"] = VALIDATION_DEFAULTS["disease_id"]
@@ -156,6 +157,10 @@ def lambda_handler(event, context):
                 f"did not find it in columns {', '.join(sample_df.columns.tolist())}"
             )
             raise ValueError
+
+    if (panel_type := event.get("panel_type", None)) is None:
+        panel_type = VALIDATION_DEFAULTS["panel_type"].name.lower()
+    sample_df["panel_type"] = panel_type
 
     # Launch batch lambda function
     accession_json: Dict = sample_df.to_dict(orient="records")[0]
