@@ -17,7 +17,8 @@ from .globals import \
     PIERIANDX_CDK_SSM_PATH, \
     PIERIANDX_USER_AUTH_TOKEN_SECRETS_MANAGER_PATH, \
     PIERIANDX_USER_AUTH_TOKEN_SECRETS_MANAGER_KEY, \
-    MAX_ATTEMPTS_GET_CASES, LIST_CASES_RETRY_TIME
+    MAX_ATTEMPTS_GET_CASES, LIST_CASES_RETRY_TIME, \
+    PanelType
 
 from .miscell import \
     change_case
@@ -27,6 +28,7 @@ from .aws_helpers import \
     SecretsManagerClient, get_boto3_secretsmanager_client
 
 from .logger import get_logger
+
 
 logger = get_logger()
 
@@ -338,6 +340,7 @@ def get_pieriandx_status_for_missing_sample(case_id: str) -> pd.Series:
       * pieriandx_case_id
       * pieriandx_case_accession_number
       * pieriandx_case_identified
+      * pieriandx_panel_type
       * pieriandx_workflow_id
       * pieriandx_workflow_status
       * pieriandx_report_status
@@ -377,6 +380,7 @@ def get_pieriandx_status_for_missing_sample(case_id: str) -> pd.Series:
             "pieriandx_case_id": case_id,
             "pieriandx_case_accession_number": response.get("specimens")[0].get("accessionNumber"),
             "pieriandx_case_identified": response.get("identified", False),
+            "pieriandx_panel_type": PanelType(response.get("panelName")).name,
             "pieriandx_workflow_id": pd.NA,
             "pieriandx_workflow_status": pd.NA,
             "pieriandx_report_status": pd.NA
@@ -405,4 +409,3 @@ def get_pieriandx_status_for_missing_sample(case_id: str) -> pd.Series:
         case_dict["pieriandx_report_status"] = report["status"]
 
     return pd.Series(case_dict)
-

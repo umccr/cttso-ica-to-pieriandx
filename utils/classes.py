@@ -417,12 +417,14 @@ class Case:
                  disease: Disease,
                  indication: str,
                  sample_type: SampleType,
+                 panel_type: PanelType,
                  specimen: Specimen):
         """
         Initialise the case object
         :param case_accession_number:
         :param disease:
         :param sample_type:
+        :param panel_type:
         :param specimen:
         """
 
@@ -431,6 +433,7 @@ class Case:
         self.disease: Disease = disease
         self.indication: str = indication
         self.sample_type: SampleType = sample_type
+        self.panel_type: PanelType = panel_type
         self.specimen: Specimen = specimen
 
         # Added afterwards
@@ -711,7 +714,7 @@ class DeIdentifiedCase(Case):
             "disease": self.disease.to_dict(),
             "identified": self.identified,
             "indication": self.indication,
-            "panelName": PanelType[self.sample_type.name].value,
+            "panelName": self.panel_type.value,
             "sampleType": self.sample_type.value,
             "specimens": [
                 self.specimen.to_dict()
@@ -730,6 +733,7 @@ class DeIdentifiedCase(Case):
         return cls(case_accession_number=case_dict.get("accession_number"),
                    disease=case_dict.get("disease_obj"),
                    sample_type=SampleType(case_dict.get("sample_type")),
+                   panel_type=PanelType[case_dict.get("panel_type").upper()],
                    # Still need to load this
                    specimen=DeIdentifiedSpecimen.from_dict(case_dict),
                    indication=case_dict.get("indication"))
@@ -762,7 +766,7 @@ class IdentifiedCase(Case):
                 physician.to_dict()
                 for physician in self.requesting_physicians
             ],
-            "panelName": PanelType[self.sample_type.name].value,
+            "panelName": self.panel_type.value,
             "sampleType": self.sample_type.value,
             "specimens": [
                 self.specimen.to_dict()
@@ -778,11 +782,16 @@ class IdentifiedCase(Case):
         :param case_dict:
         :return:
         """
-        return cls(case_accession_number=case_dict.get("accession_number"),
-                   disease=case_dict.get("disease_obj"),
-                   sample_type=SampleType(case_dict.get("sample_type")),
-                   requesting_physicians=[Physician.from_dict(physician)
-                                          for physician in case_dict.get("requesting_physicians")],
-                   # Still need to load this
-                   specimen=IdentifiedSpecimen.from_dict(case_dict),
-                   indication=case_dict.get("indication"))
+        return cls(
+            case_accession_number=case_dict.get("accession_number"),
+            disease=case_dict.get("disease_obj"),
+            sample_type=SampleType(case_dict.get("sample_type")),
+            panel_type=PanelType[case_dict.get("panel_type").upper()],
+            requesting_physicians=[
+                Physician.from_dict(physician)
+                for physician in case_dict.get("requesting_physicians")
+            ],
+            # Still need to load this
+            specimen=IdentifiedSpecimen.from_dict(case_dict),
+            indication=case_dict.get("indication")
+        )
