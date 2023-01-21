@@ -20,7 +20,7 @@ AWS SSM Parameters for the prod pipeline stack can be found in _params-prod.json
 
 ## Initialising the LIMS
 
-If the lims sheet needs to be rebuit, then the following steps may be of use.
+If the lims sheet needs to be rebuilt, then the following steps may be of use.
 
 Open up a python console and run the following:
 
@@ -87,7 +87,7 @@ print(new_spread.url)
 
 ### ./scripts/update-params.sh
 
-To update an ssm parameter, edit the respective _params.json_ and log into the appropriate AWS account. 
+To update a ssm parameter, edit the respective _params.json_ and log into the appropriate AWS account. 
 
 Run `update-params.sh` in your console and changed ssm parameters will be updated.
 
