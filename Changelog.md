@@ -4,6 +4,19 @@ Changes in this log refer only to changes that make it to the 'main' branch. and
 
 For changes in deployment, please see the [deployment changelog](deploy/cttso-ica-to-pieriandx-cdk/Changelog.md) 
 
+## 2023-01-23
+
+> Author: Alexis Lucattini
+> Email: [Alexis.Lucattini@ummcr.org](mailto:alexis.lucattini@umccr.org)
+
+### Updates
+
+* Updated panel from VALIDATION, PATIENTCARE names to MAIN, SUBPANEL respectively (https://github.com/umccr/cttso-ica-to-pieriandx/pull/19)
+  * This change better reflects the flexibility between panel and sample types.  
+  * Some clinical samples or research samples may need to go through the main panel
+  * We may also wish to test the subpanel with validation samples
+  
+
 ## 2022-08-30  
 
 > Author: Alexis Lucattini
