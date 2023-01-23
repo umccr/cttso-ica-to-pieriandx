@@ -18,7 +18,7 @@ AWS SSM Parameters for the dev pipeline stack can be found in _params-dev.json_.
 
 AWS SSM Parameters for the prod pipeline stack can be found in _params-prod.json_.
 
-## Initialising the LIMS
+## Initialising the ctTSO LIMS
 
 If the lims sheet needs to be rebuilt, then the following steps may be of use.
 
@@ -82,6 +82,29 @@ new_spread.add_permission(
 # Show url - to set ssm parameter
 print(new_spread.url)
 ```
+
+## ctTSO LIMS Decision Tree
+
+* Sample Types are determined by Google LIMS and RedCap
+  * If the ProjectName column in Google LIMS is set to _Validation_ or _Control_ in Google LIMS.
+    * Validation Sample goes through Validation Lambda
+  * If the RedCap entry for the sample is set to _Validation_
+    * Validation Sample goes through Validation Lambda
+  * If the RedCap entry for the sample is set to _PatientCare_
+    * Clinical Sample goes through Clinical Lambda
+
+* Panel Types are loosely coupled to the Sample Type
+  * If the Sample is a Validation Sample
+    * Panel Type will always be _MAIN_
+  * If the Sample is a Clinical Sample and the ProjectName in Google LIMS is set to Research
+    * Panel Type will be _MAIN_
+  * If the Sample is a Clinical Sample and the ProjectName in Google LIMS is _NOT_ set to Research
+    * Panel Type will be _SUBPANEL_
+
+The following diagram may be of assistance
+
+![decision tree diagram](images/cttso-ica-to-pieriandx-cdk-setup.png)
+
 
 ## Helpful scripts
 
