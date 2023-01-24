@@ -1,2 +1,2 @@
-{ "subject_id": "SBJ01234", "library_id": "L2200000",  "ica_workflow_run_id": "wfr.eac65d3bb53e461096807debaafe289e" }
-{ "subject_id": "SBJ05678", "library_id": "L2200001",  "ica_workflow_run_id": "wfr.c58ddcaf70bb4777a853cd1b56958af2" }
+{ "subject_id": "SBJ01234", "library_id": "L2200000",  "ica_workflow_run_id": "wfr.eac65d3bb53e461096807debaafe289e", "panel_type": "main" }
+{ "subject_id": "SBJ05678", "library_id": "L2200001",  "ica_workflow_run_id": "wfr.c58ddcaf70bb4777a853cd1b56958af2", "panel_type": "subpanel" }

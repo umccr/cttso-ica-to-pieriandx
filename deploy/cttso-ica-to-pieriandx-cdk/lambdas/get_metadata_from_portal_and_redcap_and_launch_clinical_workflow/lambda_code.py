@@ -108,7 +108,8 @@ def lambda_handler(event, context):
         "library_id": "L1234567",
         "case_accession_number": "SBJID_LIBID_123",
         "ica_workflow_run_id": "wfr.123abc",
-        "allow_missing_redcap_entry": false
+        "allow_missing_redcap_entry": false,
+        "panel_type": "main"
     }
     """
 
@@ -200,6 +201,9 @@ def lambda_handler(event, context):
         logger.info("Make sure pieriandx metadata is complete")
         merged_df = merged_df.query("pierian_metadata_complete=='Complete'")
 
+    if (panel_type := event.get("panel_type", None)) is None:
+        panel_type = CLINICAL_DEFAULTS["panel_type"].name.lower()
+
     # Check length
     if merged_df.shape[0] == 0:
         logger.error("PierianDx metadata was not 'Complete', exiting")
@@ -273,6 +277,9 @@ def lambda_handler(event, context):
         lambda x: CLINICAL_DEFAULTS["patient_name"][x.gender.lower()].split(" ")[-1],
         axis="columns"
     )
+
+    # Set panel type
+    merged_df["panel_type"] = panel_type
 
     # Step 7 - Launch batch lambda function
     accession_json: Dict = merged_df.to_dict(orient="records")[0]

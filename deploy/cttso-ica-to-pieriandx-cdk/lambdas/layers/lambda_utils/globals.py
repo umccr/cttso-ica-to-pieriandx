@@ -3,13 +3,20 @@
 """
 All globals
 """
-
+from enum import Enum
 # Even globals needs some imports
 from pathlib import Path
 from typing import List
 from datetime import datetime
 import pytz
 import re
+
+
+# Enums
+class PanelType(Enum):
+    MAIN = "tso500_ctDNA_vcf_workflow_university_of_melbourne"
+    SUBPANEL = "tso500_ctDNA_vcf_subpanel_workflow_university_of_melbourne"
+
 
 # GLOBALS
 PORTAL_API_BASE_URL_SSM_PATH = "/data_portal/backend/api_domain_name"
@@ -72,6 +79,7 @@ CURRENT_TIME = UTC_TIMEZONE.localize(datetime.utcnow())
 
 VALIDATION_DEFAULTS = {
     "sample_type": "validation",
+    "panel_type": PanelType.MAIN,
     "indication": "NA",
     "disease_id": 285645000,
     "disease_name": "Disseminated malignancy of unknown primary",
@@ -96,6 +104,7 @@ VALIDATION_DEFAULTS = {
 CLINICAL_DEFAULTS = {
     "is_identified": True,
     "specimen_type": 122561005,
+    "panel_type": PanelType.SUBPANEL,
     "indication": "NA",
     "hospital_number": 99,
     "date_of_birth": datetime.fromtimestamp(0).astimezone(UTC_TIMEZONE),
