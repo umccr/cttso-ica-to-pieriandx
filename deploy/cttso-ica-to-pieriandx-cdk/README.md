@@ -127,7 +127,7 @@ This will prompt the user for the new password and will update the AWS secretsma
 ### ./scripts/launch_direct_cttso_lambda_from_glims
 
 To update the direct payloads from Google LIMS this script asks the user to provide a subject ID and library ID
-in order to trigger the cttso submission collecting all of the available data from Google LIMS. 
+in order to trigger the cttso submission collecting all the available data from Google LIMS. 
 
 ### ./scripts/launch_clinical_payloads
 
@@ -145,6 +145,9 @@ And then launch like so
 ```bash
 ./scripts/launch_clinical_payloads --payloads-file "payloads.jsonl"
 ```
+
+Please note that the ica_workflow_run_id value is the "TSO_CTDNA_TUMOR_ONLY" workflow id. 
+It can also be found by hunting for the library id in biobots?
 
 ### ./scripts/launch_validation_payloads
 
@@ -230,7 +233,7 @@ git pull
 Now change to the deployment directory (the directory this readme is in)
 
 ```
-cd deploy/cttso-ica-to-pieriandx
+cd deploy/cttso-ica-to-pieriandx-cdk
 ```
 
 ### Wake up lamdas!
