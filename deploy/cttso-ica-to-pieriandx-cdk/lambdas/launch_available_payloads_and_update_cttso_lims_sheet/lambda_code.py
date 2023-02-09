@@ -171,6 +171,8 @@ def get_libraries_for_processing(merged_df) -> pd.DataFrame:
       * library_id
       * portal_wfr_id
       * is_validation_sample
+      * is_research_sample
+      * redcap_is_complete
     """
 
     # Initialise
@@ -179,7 +181,8 @@ def get_libraries_for_processing(merged_df) -> pd.DataFrame:
         "library_id",
         "portal_wfr_id",
         "is_validation_sample",
-        "is_research_sample"
+        "is_research_sample",
+        "redcap_is_complete"
     ]
 
     # Processing libraries must meet the following criteria
@@ -313,6 +316,8 @@ def submit_libraries_to_pieriandx(processing_df: pd.DataFrame) -> pd.DataFrame:
       * library_id
       * portal_wfr_id
       * is_validation_sample
+      * is_research_sample
+      * redcap_is_complete
     :return:
     """
     # Get number of rows to submit
@@ -344,10 +349,12 @@ def submit_libraries_to_pieriandx(processing_df: pd.DataFrame) -> pd.DataFrame:
         logger.info(f"SubjectID='{row.subject_id}', LibraryID='{row.library_id}', Workflow Run ID='{row.portal_wfr_id}'")
         logger.info(f"Submitted to arn: '{row.submission_arn}'")
         try:
-            submit_library_to_pieriandx(subject_id=row.subject_id,
-                                        library_id=row.library_id,
-                                        workflow_run_id=row.portal_wfr_id,
-                                        lambda_arn=row.submission_arn)
+            submit_library_to_pieriandx(
+                subject_id=row.subject_id,
+                library_id=row.library_id,
+                workflow_run_id=row.portal_wfr_id,
+                lambda_arn=row.submission_arn
+            )
         except ValueError:
             pass
         else:
