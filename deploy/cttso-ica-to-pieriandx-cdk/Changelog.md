@@ -3,6 +3,16 @@
 Changes in this log refer only to changes that make it to the 'main' branch and
 are nested under deploy/cttso-ica-to-pieriandx-cdk.  
 
+## 2023-02-10
+
+> Author: Alexis Lucattini
+> Email: [Alexis.Lucattini@ummcr.org](mailto:alexis.lucattini@umccr.org)
+
+### Fixes
+
+* Bugfix for redcap_is_complete column in ctTSO LIMS lambda (https://github.com/umccr/cttso-ica-to-pieriandx/pull/23)
+  * Fixes (https://github.com/umccr/cttso-ica-to-pieriandx/issues/22)
+
 ## 2023-01-23
 
 > Author: Alexis Lucattini
