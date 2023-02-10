@@ -23,7 +23,7 @@ are nested under deploy/cttso-ica-to-pieriandx-cdk.
 ### Enhancements
 
 * Allow for 20 lambda submissions per cycle (https://github.com/umccr/cttso-ica-to-pieriandx/pull/28)
-* Update lambda layers requirements file with updated boto3 and botocore to allow for new sso config syntax
+* Update lambda layers requirements file with updated boto3 and botocore to allow for new sso config syntax (https://github.com/umccr/cttso-ica-to-pieriandx/pull/25)
 
 ## 2023-01-23
 
