@@ -247,13 +247,14 @@ def get_libraries_for_processing(merged_df) -> pd.DataFrame:
     ]
 
 
-def submit_library_to_pieriandx(subject_id: str, library_id: str, workflow_run_id: str, lambda_arn: str):
+def submit_library_to_pieriandx(subject_id: str, library_id: str, workflow_run_id: str, lambda_arn: str, panel_type: str):
     """
     Submit library to pieriandx
     :param subject_id:
     :param library_id:
-    :param workflow_run_id
-    :param lambda_arn
+    :param workflow_run_id:
+    :param lambda_arn:
+    :param panel_type:
     :return:
     """
     lambda_client: LambdaClient = get_boto3_lambda_client()
@@ -261,7 +262,8 @@ def submit_library_to_pieriandx(subject_id: str, library_id: str, workflow_run_i
     lambda_payload: Dict = {
             "subject_id": subject_id,
             "library_id": library_id,
-            "ica_workflow_run_id": workflow_run_id
+            "ica_workflow_run_id": workflow_run_id,
+            "panel_type": panel_type
     }
 
     logger.info(f"Launching lambda function {lambda_arn} with the following payload {json.dumps(lambda_payload)}")
@@ -354,7 +356,8 @@ def submit_libraries_to_pieriandx(processing_df: pd.DataFrame) -> pd.DataFrame:
                 subject_id=row.subject_id,
                 library_id=row.library_id,
                 workflow_run_id=row.portal_wfr_id,
-                lambda_arn=row.submission_arn
+                lambda_arn=row.submission_arn,
+                panel_type=row.panel_type
             )
         except ValueError:
             pass
@@ -1467,3 +1470,7 @@ def lambda_handler(event, context):
     append_to_cttso_lims(merged_df, cttso_lims_df, excel_row_number_mapping_df)
 
     # End of process
+
+
+if __name__=="__main__":
+    lambda_handler(None, None)
