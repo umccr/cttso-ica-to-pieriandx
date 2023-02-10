@@ -339,7 +339,8 @@ def submit_libraries_to_pieriandx(processing_df: pd.DataFrame) -> pd.DataFrame:
     processing_df["panel_type"] = processing_df.apply(
         lambda x: "main"
         if (x.is_validation_sample or x.is_research_sample)
-        else "subpanel"
+        else "subpanel",
+        axis="columns"
     )
 
     processing_df["submission_succeeded"] = False
