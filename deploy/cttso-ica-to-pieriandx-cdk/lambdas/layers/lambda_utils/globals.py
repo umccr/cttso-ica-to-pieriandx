@@ -50,7 +50,7 @@ PIERIANDX_LAMBDA_LAUNCH_FUNCTION_ARN_SSM_PATH = "cttso-ica-to-pieriandx-lambda-f
 
 MAX_ATTEMPTS_GET_CASES = 5
 LIST_CASES_RETRY_TIME = 5
-MAX_SUBMISSIONS_PER_LIMS_UPDATE_CYCLE = 15
+MAX_SUBMISSIONS_PER_LIMS_UPDATE_CYCLE = 20
 MAX_ATTEMPTS_WAKE_LAMBDAS = 5
 
 LOGGER_STYLE = "%(asctime)s - %(levelname)-8s - %(module)-25s - %(funcName)-40s : LineNo. %(lineno)-4d - %(message)s"
