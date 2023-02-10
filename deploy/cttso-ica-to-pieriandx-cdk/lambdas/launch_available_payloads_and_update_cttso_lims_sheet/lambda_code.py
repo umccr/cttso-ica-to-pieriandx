@@ -1470,7 +1470,3 @@ def lambda_handler(event, context):
     append_to_cttso_lims(merged_df, cttso_lims_df, excel_row_number_mapping_df)
 
     # End of process
-
-
-if __name__=="__main__":
-    lambda_handler(None, None)
