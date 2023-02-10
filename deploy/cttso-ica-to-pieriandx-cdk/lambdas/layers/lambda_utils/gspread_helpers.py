@@ -5,7 +5,6 @@ from tempfile import TemporaryDirectory
 import os
 import pandas as pd
 import numpy as np
-from time import sleep
 from gspread_pandas import Spread
 
 # Locals
@@ -97,7 +96,7 @@ def get_cttso_samples_from_glims() -> pd.DataFrame:
         axis="columns"
     )
     glims_df["glims_is_research"] = glims_df.apply(
-        lambda x: True if x.ProjectName.lower() in ["research"] else False,
+        lambda x: True if x.Workflow.lower() in ["research"] else False,
         axis="columns"
     )
 
