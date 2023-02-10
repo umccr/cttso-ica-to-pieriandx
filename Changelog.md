@@ -4,6 +4,16 @@ Changes in this log refer only to changes that make it to the 'main' branch. and
 
 For changes in deployment, please see the [deployment changelog](deploy/cttso-ica-to-pieriandx-cdk/Changelog.md) 
 
+## 2023-02-10
+
+> Author: Alexis Lucattini
+> Email: [Alexis.Lucattini@ummcr.org](mailto:alexis.lucattini@umccr.org)
+
+### Updates
+
+* Upgraded Docker container base image (https://github.com/umccr/cttso-ica-to-pieriandx/pull/35)
+  * Fixes (https://github.com/umccr/cttso-ica-to-pieriandx/issues/33)
+
 ## 2023-01-23
 
 > Author: Alexis Lucattini
