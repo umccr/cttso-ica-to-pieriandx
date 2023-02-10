@@ -1246,7 +1246,10 @@ def cleanup_duplicate_rows(merged_df: pd.DataFrame, cttso_lims_df: pd.DataFrame,
         logger.warning(f"Still got duplicate rows for subject id, library id "
                        f"'{subject_id}', '{library_id}'")
         mini_dfs.append(mini_df)
-    cttso_lims_df_dedup = pd.concat(mini_dfs)
+    if len(mini_dfs) == 0:
+        logger.info("Glims is empty, skipping deduplication")
+    else:
+        cttso_lims_df_dedup = pd.concat(mini_dfs)
 
     cttso_lims_df_dedup = cttso_lims_df_dedup.sort_values(
         by=["portal_sequence_run_name", "portal_wfr_end", "pieriandx_case_creation_date"]
