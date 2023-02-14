@@ -397,7 +397,10 @@ def get_pieriandx_status_for_missing_sample(case_id: str) -> pd.Series:
     if len(informatics_jobs_list) == 0:
         logger.info(f"No informatics jobs available for case {case_id}")
     else:
-        informatics_job: Dict = informatics_jobs_list[-1]
+        informatics_job: Dict = sorted(
+            informatics_jobs_list,
+            key=lambda x: int(x.get("id"))
+        )[-1]
         case_dict["pieriandx_workflow_id"] = informatics_job["id"]
         case_dict["pieriandx_workflow_status"] = informatics_job["status"]
 
@@ -405,7 +408,10 @@ def get_pieriandx_status_for_missing_sample(case_id: str) -> pd.Series:
     if len(reports_list) == 0:
         logger.info(f"No reports available for case {case_id}")
     else:
-        report: Dict = reports_list[-1]
+        report: Dict = sorted(
+            reports_list,
+            key=lambda x: int(x.get("id"))
+        )[-1]
         case_dict["pieriandx_report_status"] = report["status"]
 
     return pd.Series(case_dict)
