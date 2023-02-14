@@ -3,7 +3,7 @@
 Changes in this log refer only to changes that make it to the 'main' branch and
 are nested under deploy/cttso-ica-to-pieriandx-cdk.  
 
-## 2023-02-10
+## 2023-02-15
 
 > Author: Alexis Lucattini
 > Email: [Alexis.Lucattini@ummcr.org](mailto:alexis.lucattini@umccr.org)
@@ -21,7 +21,14 @@ are nested under deploy/cttso-ica-to-pieriandx-cdk.
 * Use Workflow column name over ProjectName in GLIMS to determine column type (https://github.com/umccr/cttso-ica-to-pieriandx/issues/24)
   * Fixed by https://github.com/umccr/cttso-ica-to-pieriandx/pull/29
   * Updated flowchart to reflect this change (https://github.com/umccr/cttso-ica-to-pieriandx/pull/30)
-
+* Fix Research Sample not completing in validation pipeline edge case (https://github.com/umccr/cttso-ica-to-pieriandx/issues/38)
+  * Fixed by https://github.com/umccr/cttso-ica-to-pieriandx/pull/43
+* Fix unhelpful merged row logging error (https://github.com/umccr/cttso-ica-to-pieriandx/issues/39)
+  * Fixed by https://github.com/umccr/cttso-ica-to-pieriandx/pull/42
+* Removed debug line in portal helpers code (https://github.com/umccr/cttso-ica-to-pieriandx/issues/40)
+  * Fixed by https://github.com/umccr/cttso-ica-to-pieriandx/pull/44
+* Fixed issue where ctTSO lims was not always collecting the latest job or report (https://github.com/umccr/cttso-ica-to-pieriandx/issues/41)
+  * Fixed by https://github.com/umccr/cttso-ica-to-pieriandx/pull/45
 
 ### Enhancements
 
