@@ -333,7 +333,11 @@ def submit_libraries_to_pieriandx(processing_df: pd.DataFrame) -> pd.DataFrame:
     # Validation if is validation sample or IS research sample with no redcap information
     processing_df["submission_arn"] = processing_df.apply(
         lambda x: get_validation_lambda_arn()
-        if x.is_validation_sample or (x.is_research_sample and not x.redcap_is_complete)
+        if x.is_validation_sample or (x.is_research_sample and (
+                pd.isnull(x.redcap_is_complete) or
+                not x.redcap_is_complete.lower() == "complete"
+            )
+        )
         else get_clinical_lambda_arn(),
         axis="columns"
     )
