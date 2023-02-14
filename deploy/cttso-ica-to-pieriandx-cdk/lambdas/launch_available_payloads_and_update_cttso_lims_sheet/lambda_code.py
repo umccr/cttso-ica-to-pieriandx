@@ -1281,15 +1281,20 @@ def get_pieriandx_case_id_from_merged_df_for_pending_case(cttso_lims_series, mer
     :param merged_df: A pandas DataFrame with the following columns
     :return:
     """
+
+    subject_id: str = cttso_lims_series['subject_id']
+    library_id: str = cttso_lims_series['library_id']
+    portal_wfr_id: str = cttso_lims_series['portal_wfr_id']
+
     merged_rows = merged_df.query(
-        f"subject_id=='{cttso_lims_series['subject_id']}' and "
-        f"library_id=='{cttso_lims_series['library_id']}' and "
-        f"portal_wfr_id=='{cttso_lims_series['portal_wfr_id']}'"
+        f"subject_id=='{subject_id}' and "
+        f"library_id=='{library_id}' and "
+        f"portal_wfr_id=='{portal_wfr_id}'"
     )
 
     # Check we've gotten just one row
     if merged_rows.shape[0] == 0:
-        logger.warning("Cannot be found in merged df")
+        logger.warning(f"Subject '{subject_id}', library '{library_id}', '{portal_wfr_id}' cannot be found in merged df")
         return None
     if merged_rows.shape[0] > 1:
         # Returning the 'latest' id makes sense but what if it hasn't been created yet
