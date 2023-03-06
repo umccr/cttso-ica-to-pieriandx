@@ -196,7 +196,7 @@ def get_portal_workflow_run_data_df() -> pd.DataFrame:
     )
 
     # Only get workflows that have finished (running ones might confuse things a little)
-    finished_statuses = [
+    finished_statuses = [  # This array is used in the next command
         "aborted",
         "failed",
         "succeeded"
@@ -211,10 +211,6 @@ def get_portal_workflow_run_data_df() -> pd.DataFrame:
         if mini_df.shape[0] == 1:
             mini_dfs.append(mini_df)
             continue
-        ## DEBUG
-        if subject_id == "SBJ00595" and library_id.startswith("L2100178"):
-            print(mini_df)
-
         # Remove portal failed runs if one has passed
         if len(mini_df["portal_is_failed_run"].unique().tolist()) > 1:
             only_succeeded_sequence_runs_df: pd.DataFrame = mini_df.query("portal_is_failed_run == False")

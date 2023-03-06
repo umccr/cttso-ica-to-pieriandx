@@ -171,6 +171,8 @@ def get_libraries_for_processing(merged_df) -> pd.DataFrame:
       * library_id
       * portal_wfr_id
       * is_validation_sample
+      * is_research_sample
+      * redcap_is_complete
     """
 
     # Initialise
@@ -179,7 +181,8 @@ def get_libraries_for_processing(merged_df) -> pd.DataFrame:
         "library_id",
         "portal_wfr_id",
         "is_validation_sample",
-        "is_research_sample"
+        "is_research_sample",
+        "redcap_is_complete"
     ]
 
     # Processing libraries must meet the following criteria
@@ -244,13 +247,14 @@ def get_libraries_for_processing(merged_df) -> pd.DataFrame:
     ]
 
 
-def submit_library_to_pieriandx(subject_id: str, library_id: str, workflow_run_id: str, lambda_arn: str):
+def submit_library_to_pieriandx(subject_id: str, library_id: str, workflow_run_id: str, lambda_arn: str, panel_type: str):
     """
     Submit library to pieriandx
     :param subject_id:
     :param library_id:
-    :param workflow_run_id
-    :param lambda_arn
+    :param workflow_run_id:
+    :param lambda_arn:
+    :param panel_type:
     :return:
     """
     lambda_client: LambdaClient = get_boto3_lambda_client()
@@ -258,7 +262,8 @@ def submit_library_to_pieriandx(subject_id: str, library_id: str, workflow_run_i
     lambda_payload: Dict = {
             "subject_id": subject_id,
             "library_id": library_id,
-            "ica_workflow_run_id": workflow_run_id
+            "ica_workflow_run_id": workflow_run_id,
+            "panel_type": panel_type
     }
 
     logger.info(f"Launching lambda function {lambda_arn} with the following payload {json.dumps(lambda_payload)}")
@@ -313,6 +318,8 @@ def submit_libraries_to_pieriandx(processing_df: pd.DataFrame) -> pd.DataFrame:
       * library_id
       * portal_wfr_id
       * is_validation_sample
+      * is_research_sample
+      * redcap_is_complete
     :return:
     """
     # Get number of rows to submit
@@ -326,7 +333,11 @@ def submit_libraries_to_pieriandx(processing_df: pd.DataFrame) -> pd.DataFrame:
     # Validation if is validation sample or IS research sample with no redcap information
     processing_df["submission_arn"] = processing_df.apply(
         lambda x: get_validation_lambda_arn()
-        if x.is_validation_sample or (x.is_research_sample and not x.redcap_is_complete)
+        if x.is_validation_sample or (x.is_research_sample and (
+                pd.isnull(x.redcap_is_complete) or
+                not x.redcap_is_complete.lower() == "complete"
+            )
+        )
         else get_clinical_lambda_arn(),
         axis="columns"
     )
@@ -334,7 +345,8 @@ def submit_libraries_to_pieriandx(processing_df: pd.DataFrame) -> pd.DataFrame:
     processing_df["panel_type"] = processing_df.apply(
         lambda x: "main"
         if (x.is_validation_sample or x.is_research_sample)
-        else "subpanel"
+        else "subpanel",
+        axis="columns"
     )
 
     processing_df["submission_succeeded"] = False
@@ -344,10 +356,13 @@ def submit_libraries_to_pieriandx(processing_df: pd.DataFrame) -> pd.DataFrame:
         logger.info(f"SubjectID='{row.subject_id}', LibraryID='{row.library_id}', Workflow Run ID='{row.portal_wfr_id}'")
         logger.info(f"Submitted to arn: '{row.submission_arn}'")
         try:
-            submit_library_to_pieriandx(subject_id=row.subject_id,
-                                        library_id=row.library_id,
-                                        workflow_run_id=row.portal_wfr_id,
-                                        lambda_arn=row.submission_arn)
+            submit_library_to_pieriandx(
+                subject_id=row.subject_id,
+                library_id=row.library_id,
+                workflow_run_id=row.portal_wfr_id,
+                lambda_arn=row.submission_arn,
+                panel_type=row.panel_type
+            )
         except ValueError:
             pass
         else:
@@ -1239,7 +1254,10 @@ def cleanup_duplicate_rows(merged_df: pd.DataFrame, cttso_lims_df: pd.DataFrame,
         logger.warning(f"Still got duplicate rows for subject id, library id "
                        f"'{subject_id}', '{library_id}'")
         mini_dfs.append(mini_df)
-    cttso_lims_df_dedup = pd.concat(mini_dfs)
+    if len(mini_dfs) == 0:
+        logger.info("Glims is empty, skipping deduplication")
+    else:
+        cttso_lims_df_dedup = pd.concat(mini_dfs)
 
     cttso_lims_df_dedup = cttso_lims_df_dedup.sort_values(
         by=["portal_sequence_run_name", "portal_wfr_end", "pieriandx_case_creation_date"]
@@ -1267,15 +1285,20 @@ def get_pieriandx_case_id_from_merged_df_for_pending_case(cttso_lims_series, mer
     :param merged_df: A pandas DataFrame with the following columns
     :return:
     """
+
+    subject_id: str = cttso_lims_series['subject_id']
+    library_id: str = cttso_lims_series['library_id']
+    portal_wfr_id: str = cttso_lims_series['portal_wfr_id']
+
     merged_rows = merged_df.query(
-        f"subject_id=='{cttso_lims_series['subject_id']}' and "
-        f"library_id=='{cttso_lims_series['library_id']}' and "
-        f"portal_wfr_id=='{cttso_lims_series['portal_wfr_id']}'"
+        f"subject_id=='{subject_id}' and "
+        f"library_id=='{library_id}' and "
+        f"portal_wfr_id=='{portal_wfr_id}'"
     )
 
     # Check we've gotten just one row
     if merged_rows.shape[0] == 0:
-        logger.warning("Cannot be found in merged df")
+        logger.warning(f"Subject '{subject_id}', library '{library_id}', '{portal_wfr_id}' cannot be found in merged df")
         return None
     if merged_rows.shape[0] > 1:
         # Returning the 'latest' id makes sense but what if it hasn't been created yet

@@ -1,4 +1,4 @@
-FROM quay.io/condaforge/mambaforge:4.10.3-7
+FROM quay.io/condaforge/mambaforge:22.9.0-3
 
 # Set args
 ARG CONDA_GROUP_NAME="cttso_ica_to_pieriandx_group"

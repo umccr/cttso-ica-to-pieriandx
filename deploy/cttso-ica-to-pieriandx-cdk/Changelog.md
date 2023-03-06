@@ -3,6 +3,39 @@
 Changes in this log refer only to changes that make it to the 'main' branch and
 are nested under deploy/cttso-ica-to-pieriandx-cdk.  
 
+## 2023-02-15
+
+> Author: Alexis Lucattini
+> Email: [Alexis.Lucattini@ummcr.org](mailto:alexis.lucattini@umccr.org)
+
+### Fixes
+
+* Bugfix for redcap_is_complete column in ctTSO LIMS lambda (https://github.com/umccr/cttso-ica-to-pieriandx/pull/23)
+  * Fixes (https://github.com/umccr/cttso-ica-to-pieriandx/issues/22)
+* Fix issue if cttso lims is empty (from reset) 
+  * Fixed by https://github.com/umccr/cttso-ica-to-pieriandx/pull/26
+* Panel type needed axis=columns keyword argument
+  * Fixed by https://github.com/umccr/cttso-ica-to-pieriandx/pull/27
+* submission function needs to consider panel type as an option (https://github.com/umccr/cttso-ica-to-pieriandx/issues/32)
+  * Fixed by https://github.com/umccr/cttso-ica-to-pieriandx/pull/37
+* Use Workflow column name over ProjectName in GLIMS to determine column type (https://github.com/umccr/cttso-ica-to-pieriandx/issues/24)
+  * Fixed by https://github.com/umccr/cttso-ica-to-pieriandx/pull/29
+  * Updated flowchart to reflect this change (https://github.com/umccr/cttso-ica-to-pieriandx/pull/30)
+* Fix Research Sample not completing in validation pipeline edge case (https://github.com/umccr/cttso-ica-to-pieriandx/issues/38)
+  * Fixed by https://github.com/umccr/cttso-ica-to-pieriandx/pull/43
+* Fix unhelpful merged row logging error (https://github.com/umccr/cttso-ica-to-pieriandx/issues/39)
+  * Fixed by https://github.com/umccr/cttso-ica-to-pieriandx/pull/42
+* Removed debug line in portal helpers code (https://github.com/umccr/cttso-ica-to-pieriandx/issues/40)
+  * Fixed by https://github.com/umccr/cttso-ica-to-pieriandx/pull/44
+* Fixed issue where ctTSO lims was not always collecting the latest job or report (https://github.com/umccr/cttso-ica-to-pieriandx/issues/41)
+  * Fixed by https://github.com/umccr/cttso-ica-to-pieriandx/pull/45
+
+### Enhancements
+
+* Allow for 20 lambda submissions per cycle (https://github.com/umccr/cttso-ica-to-pieriandx/pull/28)
+* Update lambda layers requirements file with updated boto3 and botocore to allow for new sso config syntax (https://github.com/umccr/cttso-ica-to-pieriandx/pull/25) and (https://github.com/umccr/cttso-ica-to-pieriandx/pull/36)
+  * Fixes https://github.com/umccr/cttso-ica-to-pieriandx/issues/34
+
 ## 2023-01-23
 
 > Author: Alexis Lucattini
