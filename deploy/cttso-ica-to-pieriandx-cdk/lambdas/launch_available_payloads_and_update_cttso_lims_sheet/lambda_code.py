@@ -1041,11 +1041,29 @@ def get_duplicate_case_ids(lims_df: pd.DataFrame) -> List:
       * pieriandx_workflow_id
       * pieriandx_workflow_status
       * pieriandx_report_status
+      # Duplicate columns
+      * 'in_glims_lims',
+      * 'in_portal_lims',
+      * 'in_redcap_lims',
+      * 'in_pieriandx_lims',
+      * 'glims_is_validation_lims',
+      * 'glims_is_research_lims',
+      * 'redcap_sample_type_lims',
+      * 'redcap_is_complete_lims',
+      * 'portal_wfr_end_lims',
+      * 'portal_wfr_status_lims',
+      * 'portal_sequence_run_name_lims',
+      * 'portal_is_failed_run_lims',
+      * 'pieriandx_case_accession_number_lims',
+      * 'pieriandx_case_creation_date_lims'
     :return:
     """
 
     # Initialise list of case ids to drop
     case_ids_to_remove: List = []
+
+    # Get date one week ago (used in a few situations)
+    date_one_week_ago = datetime.utcnow().date() - timedelta(days=7)
 
     # Iterate through each grouping
     # Append rows to drop
@@ -1055,7 +1073,7 @@ def get_duplicate_case_ids(lims_df: pd.DataFrame) -> List:
     mini_df: pd.DataFrame
     for (subject_id, library_id, portal_wfr_id), mini_df in lims_df.groupby(
             ["subject_id", "library_id", "portal_wfr_id"]):
-        # Check if its just a single row
+        # Check if it's just a single row
         if mini_df.shape[0] == 1:
             # Single unique row - nothing to see here
             continue
@@ -1066,6 +1084,25 @@ def get_duplicate_case_ids(lims_df: pd.DataFrame) -> List:
                         f"for subject_id '{subject_id}', "
                         f"library_id '{library_id}' and "
                         f"portal_wfr_id '{portal_wfr_id}'")
+            continue
+
+        # Use existing lims filtering to drop cases where one row may have been manually selected
+        # Edgecase for SBJ01666
+        manually_filtered_subject_df = mini_df.dropna(axis="index", subset="pieriandx_case_accession_number_lims")
+        if manually_filtered_subject_df.shape[0] < mini_df.shape[0] and not manually_filtered_subject_df.shape[0] == 0:
+            accession_numbers_to_keep = manually_filtered_subject_df["pieriandx_case_accession_number_lims"].tolist()
+            case_ids_to_remove.extend(
+                mini_df.query(
+                   "pieriandx_case_accession_number_lims not in @accession_numbers_to_keep and "
+                   "pieriandx_case_creation_date < @date_one_week_ago"
+                )["pieriandx_case_id"].tolist()
+            )
+            mini_df = manually_filtered_subject_df
+
+        # Re check if mini df is just one row
+        # Check if it's just a single row
+        if mini_df.shape[0] == 1:
+            # Single unique row - nothing to see here
             continue
 
         # We perform a check for if the last row (sorted by pieriandx_case_id) has
@@ -1103,7 +1140,6 @@ def get_duplicate_case_ids(lims_df: pd.DataFrame) -> List:
             if len(non_last_row_cases.dropna(how='any')) == 0:
                 continue
 
-            date_one_week_ago = datetime.utcnow().date() - timedelta(days=7)
             if pd.Timestamp(last_row["pieriandx_case_creation_date"]).date() < date_one_week_ago:
                 # This last row is over a week old and has no workflow status or report status so remove it
                 case_ids_to_remove.append(mini_df.loc[mini_df_indexes[-1], "pieriandx_case_id"])
@@ -1469,6 +1505,7 @@ def lambda_handler(event, context):
     if not processing_df.shape[0] == 0:
         if not lambdas_awake():
             logger.error("Some of the required lambdas were asleep, waking them up now and reprocessing in an hour")
+            raise ValueError
 
         processing_df = submit_libraries_to_pieriandx(processing_df)
 
@@ -1479,3 +1516,4 @@ def lambda_handler(event, context):
     append_to_cttso_lims(merged_df, cttso_lims_df, excel_row_number_mapping_df)
 
     # End of process
+    logger.info("End of lims script")
