@@ -89,8 +89,12 @@ def get_cttso_samples_from_glims() -> pd.DataFrame:
     if os.environ.get("GSPREAD_PANDAS_CONFIG_DIR") is None:
         set_google_secrets()
 
+    # Pull in from sheet data
     glims_df: pd.DataFrame = Spread(spread=get_glims_sheet_id(), sheet="Sheet1").sheet_to_df(index=0)
-    glims_df = glims_df.query("Type=='ctDNA' & Assay=='ctTSO'")
+
+    # We also set Phenotype to 'tumor' to prevent NTC being uploaded to PierianDx
+    glims_df = glims_df.query("Type=='ctDNA' & Assay=='ctTSO' & Phenotype=='tumor'")
+
     glims_df["glims_is_validation"] = glims_df.apply(
         lambda x: True if x.ProjectName.lower() in ["validation", "control"] else False,
         axis="columns"
