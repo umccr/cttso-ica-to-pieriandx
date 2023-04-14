@@ -53,6 +53,7 @@ new_headers = [
     "portal_wfr_status",
     "portal_sequence_run_name",
     "portal_is_failed_run",
+    "pieriandx_submission_time",
     "pieriandx_case_id",
     "pieriandx_case_accession_number",
     "pieriandx_case_creation_date",
