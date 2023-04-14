@@ -89,8 +89,12 @@ def get_cttso_samples_from_glims() -> pd.DataFrame:
     if os.environ.get("GSPREAD_PANDAS_CONFIG_DIR") is None:
         set_google_secrets()
 
+    # Pull in from sheet data
     glims_df: pd.DataFrame = Spread(spread=get_glims_sheet_id(), sheet="Sheet1").sheet_to_df(index=0)
-    glims_df = glims_df.query("Type=='ctDNA' & Assay=='ctTSO'")
+
+    # We also set Phenotype to 'tumor' to prevent NTC being uploaded to PierianDx
+    glims_df = glims_df.query("Type=='ctDNA' & Assay=='ctTSO' & Phenotype=='tumor'")
+
     glims_df["glims_is_validation"] = glims_df.apply(
         lambda x: True if x.ProjectName.lower() in ["validation", "control"] else False,
         axis="columns"
@@ -219,6 +223,7 @@ def get_cttso_lims() -> (pd.DataFrame, pd.DataFrame):
         * portal_wfr_status
         * portal_sequence_run_name
         * portal_is_failed_run
+        * pieriandx_submission_time
         * pieriandx_case_id
         * pieriandx_case_accession_number
         * pieriandx_case_creation_date
@@ -249,5 +254,13 @@ def get_cttso_lims() -> (pd.DataFrame, pd.DataFrame):
 
     # Conversion to 1-based index plus single header row
     excel_row_number_df["excel_row_number"] = excel_row_number_df.index + 2
+
+    # Update legacy samples where pieriandx_submission_time is not set
+    cttso_lims_df["pieriandx_submission_time"] = cttso_lims_df.apply(
+        lambda x: x.pieriandx_case_creation_date
+        if pd.isna(x.pieriandx_submission_time) and not pd.isna(x.pieriandx_case_creation_date)
+        else x.pieriandx_submission_time,
+        axis="columns"
+    )
 
     return cttso_lims_df, excel_row_number_df
