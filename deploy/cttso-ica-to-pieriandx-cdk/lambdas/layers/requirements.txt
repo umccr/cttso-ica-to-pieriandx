@@ -5,6 +5,7 @@ gspread_pandas==3.2.2
 mypy_boto3_lambda==1.26.55
 mypy_boto3_secretsmanager==1.26.49
 mypy_boto3_ssm==1.26.43
+mypy_boto3_events==1.26.111
 numpy==1.24.2
 pandas==1.5.3
 pyriandx==0.3.0

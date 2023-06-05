@@ -8,6 +8,7 @@ from botocore.client import BaseClient
 from mypy_boto3_ssm.client import SSMClient
 from mypy_boto3_lambda.client import LambdaClient
 from mypy_boto3_secretsmanager.client import SecretsManagerClient
+from mypy_boto3_events.client import EventsClient
 from typing import Union
 import boto3
 
@@ -40,3 +41,6 @@ def get_boto3_ssm_client() -> Union[SSMClient, BaseClient]:
 def get_boto3_secretsmanager_client() -> Union[SecretsManagerClient, BaseClient]:
     return boto3.client("secretsmanager")
 
+
+def get_boto3_events_client() -> Union[EventsClient, BaseClient]:
+    return boto3.client("events")

@@ -14,7 +14,10 @@ import {
     SSM_LAMBDA_FUNCTION_ARN_VALUE,
     SSM_LIMS_LAMBDA_FUNCTION_ARN_VALUE,
     SSM_VALIDATION_LAMBDA_FUNCTION_ARN_VALUE,
-    SSM_CLINICAL_LAMBDA_FUNCTION_ARN_VALUE, GLIMS_SSM_PARAMETER_PATH, REDCAP_LAMBDA_FUNCTION_SSM_KEY
+    SSM_CLINICAL_LAMBDA_FUNCTION_ARN_VALUE,
+    GLIMS_SSM_PARAMETER_PATH,
+    REDCAP_LAMBDA_FUNCTION_SSM_KEY,
+    SSM_LIMS_LAMBDA_FUNCTION_EVENT_RULE_NAME_VALUE
 } from "../constants";
 import {Rule, Schedule} from "aws-cdk-lib/aws-events";
 import { LambdaFunction as LambdaFunctionTarget } from "aws-cdk-lib/aws-events-targets"
@@ -252,7 +255,8 @@ export class CttsoIcaToPieriandxLimsMakerLambdaStack extends Stack {
             })
         )
 
-        //
+        // Step 4: Add ssm access to get Rule
+
 
         // Create a rule to trigger this lambda
         const lambda_schedule_rule = new Rule(
@@ -262,6 +266,40 @@ export class CttsoIcaToPieriandxLimsMakerLambdaStack extends Stack {
                 schedule: Schedule.expression("rate(60 minutes)")
             }
         )
+
+        // Create the ssm parameter to represet the cttso lambda function event rule ARN Value
+        const ssm_parameter_event_rule = new StringParameter(
+            this,
+            props.stack_prefix + "ssm-cdk-lambda-event-rule-parameter",
+            {
+                stringValue: lambda_schedule_rule.ruleName,
+                parameterName: SSM_LIMS_LAMBDA_FUNCTION_EVENT_RULE_NAME_VALUE,
+            }
+        )
+        // Add permissions so that lambda function can determine the rule Name that triggers it
+        lambda_function.addToRolePolicy(
+            new PolicyStatement({
+                actions: [
+                    "ssm:GetParameter"
+                ],
+                resources: [
+                    ssm_parameter_event_rule.parameterArn
+                ]
+            })
+        )
+
+        // Add permissions so that lambda function can deactivate its own rule
+        lambda_function.addToRolePolicy(
+            new PolicyStatement({
+                actions: [
+                    "events:DisableRule"
+                ],
+                resources: [
+                    lambda_schedule_rule.ruleArn
+                ]
+            })
+        )
+
         // Add target for lambda schedule
         lambda_schedule_rule.addTarget(
             new LambdaFunctionTarget(
