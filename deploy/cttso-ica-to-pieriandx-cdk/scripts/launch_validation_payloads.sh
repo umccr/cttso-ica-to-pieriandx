@@ -146,14 +146,14 @@ while read -r payload_line || [ -n "${payload_line}" ]; do
   echo "Launch sample ${counter} out of ${array_length}: Payload is"
   echo aws lambda invoke \
     --function-name "${AWS_LAMBDA_VALIDATION_LAUNCH_FUNCTION}" \
-    --invocation-type "RequestResponse" \
+    --invocation-type "Event" \
     --payload "${payload_json_str}" \
     --cli-binary-format "raw-in-base64-out" \
     "${lambda_output_file}"
 
   aws lambda invoke \
       --function-name "${AWS_LAMBDA_VALIDATION_LAUNCH_FUNCTION}" \
-      --invocation-type "RequestResponse" \
+      --invocation-type "Event" \
       --payload "${payload_json_str}" \
       --cli-binary-format "raw-in-base64-out" \
       "${lambda_output_file}"
