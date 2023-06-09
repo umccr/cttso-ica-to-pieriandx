@@ -37,6 +37,7 @@ export const SSM_VALIDATION_LAMBDA_FUNCTION_ARN_VALUE: string = "validation-samp
 // LIMS things
 export const GLIMS_SSM_PARAMETER_PATH: string = "/umccr/google/drive"
 export const SSM_LIMS_LAMBDA_FUNCTION_ARN_VALUE: string = "cttso-lims-update-and-launch-lambda-function"
+export const SSM_LIMS_LAMBDA_FUNCTION_EVENT_RULE_NAME_VALUE: string = "cttso-lims-update-and-launch-lambda-function-rule-name"
 
 // Token refresher things
 export const SSM_TOKEN_REFRESH_LAMBDA_FUNCTION_ARN_VALUE: string = "token-refresher-for-pieriandx-lambda-function"

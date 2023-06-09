@@ -61,6 +61,9 @@ REDCAP_APIS_LAMBDA_FUNCTION_ARN_SSM_PARAMETER: str = "redcap-apis-lambda-functio
 # Clinical lambda path
 CLINICAL_LAMBDA_FUNCTION_SSM_PARAMETER_PATH = "redcap-to-pieriandx-lambda-function"
 
+# Event Rule
+EVENT_RULE_FUNCTION_NAME_SSM_PARAMETER_PATH = "cttso-lims-update-and-launch-lambda-function-rule-name"
+
 # Validation lambda path
 VALIDATION_LAMBDA_FUNCTION_ARN_SSM_PARAMETER_PATH = "validation-sample-to-pieriandx-lambda-function"
 

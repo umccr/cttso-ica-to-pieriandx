@@ -32,6 +32,8 @@ Cells are indexed by Subject and Library ID values, the following items can be u
 
 Values with new Subject and Library ID values will be appended
 """
+import sys
+
 from mypy_boto3_lambda.client import LambdaClient
 from mypy_boto3_lambda.type_defs import GetFunctionResponseTypeDef, FunctionConfigurationTypeDef, InvocationResponseTypeDef
 
@@ -46,7 +48,7 @@ from time import sleep
 from datetime import datetime, timedelta
 
 from lambda_utils.arns import get_validation_lambda_arn, get_clinical_lambda_arn
-from lambda_utils.aws_helpers import get_boto3_lambda_client, get_boto3_ssm_client
+from lambda_utils.aws_helpers import get_boto3_lambda_client, get_boto3_ssm_client, get_boto3_events_client
 from lambda_utils.gspread_helpers import \
     get_cttso_samples_from_glims, get_cttso_lims, update_cttso_lims_row, \
     append_df_to_cttso_lims
@@ -59,7 +61,7 @@ from lambda_utils.globals import \
     REDCAP_APIS_LAMBDA_FUNCTION_ARN_SSM_PARAMETER, \
     CLINICAL_LAMBDA_FUNCTION_SSM_PARAMETER_PATH, \
     VALIDATION_LAMBDA_FUNCTION_ARN_SSM_PARAMETER_PATH, \
-    MAX_SUBMISSIONS_PER_LIMS_UPDATE_CYCLE, MAX_ATTEMPTS_WAKE_LAMBDAS
+    MAX_SUBMISSIONS_PER_LIMS_UPDATE_CYCLE, MAX_ATTEMPTS_WAKE_LAMBDAS, EVENT_RULE_FUNCTION_NAME_SSM_PARAMETER_PATH
 
 logger = get_logger()
 
@@ -1454,6 +1456,23 @@ def lambdas_awake() -> bool:
     return False
 
 
+def disable_event_rule():
+    """
+    List and disable event trigger (important to prevent duplicate runs)
+    :return:
+    """
+    # Clients
+    ssm_client = get_boto3_ssm_client()
+    events_client = get_boto3_events_client()
+
+    event_function_name = ssm_client.get_parameter(Name=EVENT_RULE_FUNCTION_NAME_SSM_PARAMETER_PATH)\
+        .get("Parameter")\
+        .get("Value")
+
+    # Disable rule
+    events_client.disable_rule(Name=event_function_name)
+
+
 def lambda_handler(event, context):
     """
     Neither event or context are used by the handler as this job is scheduled hourly
@@ -1497,6 +1516,7 @@ def lambda_handler(event, context):
 
     # Update values for jobs with missing information
     if not pieriandx_incomplete_jobs_df.shape[0] == 0:
+        logger.info(f"Attempting to update {pieriandx_incomplete_jobs_df.shape[0]} rows of jobs that are incomplete")
         pieriandx_jobs_missing_series: List = []
         for index, row in pieriandx_incomplete_jobs_df.iterrows():
             case_id = row["pieriandx_case_id"]
@@ -1504,22 +1524,27 @@ def lambda_handler(event, context):
                 continue
             if case_id == "pending":
                 case_id = get_pieriandx_case_id_from_merged_df_for_pending_case(row, merged_df)
+                logger.info(f"Got case '{case_id}' for pending analysis {row['subject_id']} {row['library_id']}")
 
             if case_id is not None and not pd.isnull(case_id):
                 pieriandx_jobs_missing_series.append(get_pieriandx_status_for_missing_sample(case_id))
 
         # If any missing samples found, get latest info and update
         if not len(pieriandx_jobs_missing_series) == 0:
+            logger.info(f"Got {len(pieriandx_jobs_missing_series)} rows to replace")
             pieriandx_job_status_missing_df = pd.concat(pieriandx_jobs_missing_series, axis="columns").transpose()
 
             # Merge pieriandx_job_status_missing_df with merged_df so all rows are present
             pieriandx_job_status_missing_df = update_pieriandx_job_status_missing_df(pieriandx_job_status_missing_df, merged_df)
 
             # Update cttso lims df
+            logger.info("Updating lims")
             update_cttso_lims(pieriandx_job_status_missing_df, cttso_lims_df, excel_row_number_mapping_df)
 
-            # Reimport the data sheet after updating
-            sleep(3)
+            # Reimport the data sheet after updating (give it a minute)
+            sleep(60)
+
+            # Reimport lims
             cttso_lims_df: pd.DataFrame
             excel_row_number_mapping_df: pd.DataFrame
             cttso_lims_df, excel_row_number_mapping_df = get_cttso_lims()
@@ -1530,6 +1555,21 @@ def lambda_handler(event, context):
 
     # Get pieriandx df samples in merged df that are not in pieriandx_df
     processing_df = get_libraries_for_processing(merged_df)
+
+    # Check if any of the processing df are present in the incomplete jobs df
+    for index, row in processing_df.iterrows():
+        if pieriandx_incomplete_jobs_df.query(
+                f"subject_id=='{row['subject_id']}' "
+                f"and "
+                f"library_id=='{row['library_id']}'"
+        ).shape[0] > 0:
+            logger.error(
+                f"Issue in getting library for processing, {row['subject_id']}/{row['library_id']} "
+                f"has already been submitted for processing. "
+                "Please fix this manually, stopping all further submissions then reenable the event bridge"
+            )
+            disable_event_rule()
+            sys.exit(1)
 
     # Launch payloads for pieriandx_df samples that have no case id - if existent
     if not processing_df.shape[0] == 0:
