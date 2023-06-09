@@ -619,18 +619,23 @@ def get_pieriandx_incomplete_job_df_from_cttso_lims_df(cttso_lims_df: pd.DataFra
     """
     static_statuses = ["complete", "failed", "canceled"]
 
+    # Get cases where pieriandx case id is pending
     return cttso_lims_df.query(
         "( "
-        "  ( "
-        "    not pieriandx_case_id.isnull() or "
+        "  ("
         "    pieriandx_case_id == 'pending' "
         "  ) "
-        "  and "
+        "  or "
         "  ( "
-        "    pieriandx_workflow_id.isnull() or "
-        "    not pieriandx_workflow_status in @static_statuses or "
-        "    not pieriandx_report_status in @static_statuses"
-        "  )"
+        "    ( "
+        "      not pieriandx_case_id.isnull() "
+        "    ) and "
+        "    ( "
+        "      pieriandx_workflow_id.isnull() or "
+        "      not pieriandx_workflow_status in @static_statuses or "
+        "      not pieriandx_report_status in @static_statuses"
+        "    ) "
+        "  ) "
         ")",
         engine="python"
     )
