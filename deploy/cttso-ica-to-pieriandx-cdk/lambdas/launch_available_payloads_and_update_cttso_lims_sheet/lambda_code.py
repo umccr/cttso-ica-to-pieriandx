@@ -1587,3 +1587,9 @@ def lambda_handler(event, context):
 
     # End of process
     logger.info("End of lims script")
+
+
+## LOCAL DEBUG ONLY ##
+# if __name__ == "__main__":
+#     lambda_handler(None, None)
+##
