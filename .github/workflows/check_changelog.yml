@@ -1,0 +1,65 @@
+name: Create and Upload Release And Docker Container(s)
+
+on:
+  pull_request:
+   # Sequence of patterns matched against refs/tags
+   branches:
+    - main
+
+jobs:
+  # First job
+  check_changelog:
+    name: Check Changelog has been updated
+    runs-on: ubuntu-latest
+    steps:
+      # Standard checkout step
+      - name: Checkout code
+        id: git_checkout
+        uses: actions/checkout@v3
+      # Get all file changes
+      - name: Get All Changed Files
+        id: get_all_changed_files
+        uses: tj-actions/changed-files@v36
+      # Get all changed in deploy directory
+      - name: Get Deployment Changed Files
+        id: get_deployment_changed_files
+        uses: tj-actions/changed-files@v36
+        with:
+          files: deploy/*
+      # List all changed files
+      - name: Check Main Changelog
+        # Check any files changed AND not just ones in deploy
+        if: >-
+          ${{ 
+            steps.get_all_changed_files.any_changed == 'true' && 
+            ( steps.get_all_changed_files.all_changed_files != steps.get_all_changed_files.all_changed_files ) 
+          }}
+        id: check_main_changelog
+        run: |
+          for file in ${{ steps.get_all_changed_files.outputs.all_changed_files }}; do
+            if [[ "${file}" == "Changelog.md" ]]; then
+              echo "Changelog.md has been modified. Passed main changelog test" 1>&2
+              exit 0
+            fi
+          done
+          echo "Did not find changelog in list of changed files" 1>&2
+          exit 1
+        # Check if deploy changelog has been updated
+      - name: Check Deploy Changelog
+        # Check any files changed in deploy
+        if: >-
+          ${{ 
+            steps.get_deployment_changed_files.any_changed == 'true' 
+          }}
+        id: check_deploy_changelog
+        run: |
+          for file in ${{ steps.get_deployment_changed_files.outputs.all_changed_files }}; do
+            if [[ "${file}" == "deploy/cttso-ica-to-pieriandx-cdk/Changelog.md" ]]; then
+              echo "deploy/cttso-ica-to-pieriandx/Changelog.md has been modified. Passed deploy changelog test" 1>&2
+              exit 0
+            fi
+          done
+          echo "Did not find changelog in list of changed files" 1>&2
+          exit 1
+
+
