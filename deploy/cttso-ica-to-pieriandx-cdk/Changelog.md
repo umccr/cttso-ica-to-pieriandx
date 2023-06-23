@@ -28,6 +28,10 @@ are nested under deploy/cttso-ica-to-pieriandx-cdk.
 * Check if new password can successfully generate pieriandx session token before successfully exiting script (https://github.com/umccr/cttso-ica-to-pieriandx/pull/57)
   * Fixes https://github.com/umccr/cttso-ica-to-pieriandx/issues/56
 
+### Dependabot Updates
+
+* Migrated from AWS 2.39.1 to 2.80.0 (https://github.com/umccr/cttso-ica-to-pieriandx/pull/74)
+
 ## 2023-04-14
 
 * Prevent NTCs from being uploaded to PierianDx (https://github.com/umccr/cttso-ica-to-pieriandx/pull/52)
