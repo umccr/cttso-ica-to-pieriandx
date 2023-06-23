@@ -3,10 +3,47 @@
 Changes in this log refer only to changes that make it to the 'main' branch and
 are nested under deploy/cttso-ica-to-pieriandx-cdk.  
 
+## 2023-06-23
+
+> Author: Alexis Lucattini
+> Email: [Alexis.Lucattini@umccr.org](mailto:alexis.lucattini@umccr.org)
+
+### Fixes
+
+* Fix Type Hinting for EventClient Type (https://github.com/umccr/cttso-ica-to-pieriandx/pull/71)
+  * Fixes https://github.com/umccr/cttso-ica-to-pieriandx/issues/68
+* Don't use RequestResponse event type when manually deploying lambdas (https://github.com/umccr/cttso-ica-to-pieriandx/pull/64)
+  * Fixes https://github.com/umccr/cttso-ica-to-pieriandx/issues/63
+* Get Incomplete Job Df from Gsuite doesn't collect pending jobs at times (https://github.com/umccr/cttso-ica-to-pieriandx/pull/66
+  * Fixes https://github.com/umccr/cttso-ica-to-pieriandx/issues/61
+
+### Enhancements
+
+* Added GH Actions check to ensure this changelog file has been updated before deployment (https://github.com/umccr/cttso-ica-to-pieriandx/pull/73)
+  * Fixes https://github.com/umccr/cttso-ica-to-pieriandx/issues/70
+
+* Added EventBridge kill switch if processing_df contains items included in the update_df (shouldn't happen) (https://github.com/umccr/cttso-ica-to-pieriandx/pull/67)
+  * Fixes https://github.com/umccr/cttso-ica-to-pieriandx/issues/62
+
+* Check if new password can successfully generate pieriandx session token before successfully exiting script (https://github.com/umccr/cttso-ica-to-pieriandx/pull/57)
+  * Fixes https://github.com/umccr/cttso-ica-to-pieriandx/issues/56
+
+## 2023-04-14
+
+* Prevent NTCs from being uploaded to PierianDx (https://github.com/umccr/cttso-ica-to-pieriandx/pull/52)
+  * Fixes https://github.com/umccr/cttso-ica-to-pieriandx/issues/49
+
+* Add new PierianDx Submission Time Column to LIMS Sheet (https://github.com/umccr/cttso-ica-to-pieriandx/issues/47)
+  * Fixes https://github.com/umccr/cttso-ica-to-pieriandx/issues/47
+
+* Handle submission edge case of SBJ01666 (https://github.com/umccr/cttso-ica-to-pieriandx/pull/50)
+  * Fixes https://github.com/umccr/cttso-ica-to-pieriandx/issues/46
+  * Fixes https://github.com/umccr/cttso-ica-to-pieriandx/issues/48
+
 ## 2023-02-15
 
 > Author: Alexis Lucattini
-> Email: [Alexis.Lucattini@ummcr.org](mailto:alexis.lucattini@umccr.org)
+> Email: [Alexis.Lucattini@umccr.org](mailto:alexis.lucattini@umccr.org)
 
 ### Fixes
 
