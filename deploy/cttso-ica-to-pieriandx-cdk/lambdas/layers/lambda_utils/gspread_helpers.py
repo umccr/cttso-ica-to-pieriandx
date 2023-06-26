@@ -258,7 +258,12 @@ def get_cttso_lims() -> (pd.DataFrame, pd.DataFrame):
     # Update legacy samples where pieriandx_submission_time is not set
     cttso_lims_df["pieriandx_submission_time"] = cttso_lims_df.apply(
         lambda x: x.pieriandx_case_creation_date
-        if pd.isna(x.pieriandx_submission_time) and not pd.isna(x.pieriandx_case_creation_date)
+        if (
+            pd.isnull(x.pieriandx_submission_time) or pd.isna(x.pieriandx_submission_time)
+        )
+        and not (
+            pd.isnull(x.pieriandx_case_creation_date) or pd.isna(x.pieriandx_case_creation_date)
+        )
         else x.pieriandx_submission_time,
         axis="columns"
     )

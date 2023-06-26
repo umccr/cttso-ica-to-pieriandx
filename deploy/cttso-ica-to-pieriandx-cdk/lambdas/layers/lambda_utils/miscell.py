@@ -4,6 +4,10 @@ from datetime import date, datetime, timezone
 from typing import List, Union
 import pytz
 from dateutil.parser import parse as date_parser
+from utils.logging import get_logger
+
+logger = get_logger()
+
 
 def change_case(column_name: str) -> str:
     """

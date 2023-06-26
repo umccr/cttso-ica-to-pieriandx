@@ -119,11 +119,17 @@ Run `update-params.sh` in your console and changed ssm parameters will be update
 
 The PierianDx password must be updated every three months and is a manual process. 
 
-This requires the user to log in to [app.pieriandx.com](https://app.pieriandx.com) and update their password. 
+This requires the user to log in to [app.pieriandx.com](https://app.pieriandx.com) and update their password.
 
-Once updated in PierianDx, the user should run the update-pieriandx-password.sh in both the dev and prod accounts.  
+The new password should be 20 characters and contain lowercase, uppercase and numbers (no symbols)! 
 
-This will prompt the user for the new password and will update the AWS secretsmanager respectively.  
+Once updated in PierianDx, the user should run the update-pieriandx-password.sh in **both the dev and prod accounts**.  
+
+This will prompt the user for the new password and will update the AWS secretsmanager respectively.
+
+The script will also test that the new password can successfully create a new PierianDx Auth token.  
+
+One should also update the password in [KeyBase](https://keybase.io/) under 'vccc.umccr.admin/pieriandx_service_user.txt'
 
 ### ./scripts/launch_direct_cttso_lambda_from_glims
 
