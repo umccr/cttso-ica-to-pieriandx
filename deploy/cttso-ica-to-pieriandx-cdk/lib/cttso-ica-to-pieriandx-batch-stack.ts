@@ -1,14 +1,15 @@
-import { CfnOutput, Duration, Fn, Stack, StackProps } from 'aws-cdk-lib';
+import { CfnOutput, Duration, Fn, Stack, StackProps, Tags, Size } from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 import { Repository } from "aws-cdk-lib/aws-ecr";
 import { StringParameter } from "aws-cdk-lib/aws-ssm";
 import { ContainerImage } from "aws-cdk-lib/aws-ecs";
 import {
     AllocationStrategy,
-    ComputeEnvironment,
-    ComputeResourceType,
-    JobDefinition,
-    JobQueue
+    ManagedEc2EcsComputeEnvironment,
+    EcsEc2ContainerDefinition,
+    EcsJobDefinition,
+    JobQueue,
+    HostVolume
 } from "@aws-cdk/aws-batch-alpha";
 import {
     CfnInstanceProfile,
@@ -22,6 +23,7 @@ import {
     BlockDeviceVolume,
     EbsDeviceVolumeType,
     LaunchTemplate,
+    LaunchTemplateAttributes,
     MachineImage,
     SecurityGroup,
     SubnetType,
@@ -101,18 +103,6 @@ export class CttsoIcaToPieriandxBatchStack extends Stack {
                 assumedBy: new ServicePrincipal("batch.amazonaws.com"),
                 managedPolicies: [
                     ManagedPolicy.fromAwsManagedPolicyName("service-role/AWSBatchServiceRole")
-                ]
-            }
-        )
-
-        // Add spot-fleet role
-        const spotfleet_role = new Role(
-            this,
-            `${props.stack_prefix}-ec2-spotfleet-role`,
-            {
-                assumedBy: new ServicePrincipal("spotfleet.amazonaws.com"),
-                managedPolicies: [
-                    ManagedPolicy.fromAwsManagedPolicyName("service-role/AmazonEC2SpotFleetTaggingRole")
                 ]
             }
         )
@@ -233,18 +223,6 @@ export class CttsoIcaToPieriandxBatchStack extends Stack {
             )
         )
 
-        // Turn the instance role into an Instance Profile
-        const batch_instance_profile = new CfnInstanceProfile(
-            this,
-            `${props.stack_prefix}-batch-instance-profile`,
-            {
-                instanceProfileName: `${props.stack_prefix}-batch-instance-profile`,
-                roles: [
-                    batch_instance_role.roleName
-                ]
-            }
-        )
-
         // VPC
         const vpc = Vpc.fromLookup(
             this,
@@ -327,6 +305,11 @@ export class CttsoIcaToPieriandxBatchStack extends Stack {
             {
                 launchTemplateName: `${props.stack_prefix}-batch-compute-launch-template`,
                 userData: mime_wrapper,
+                machineImage: MachineImage.genericLinux(
+                    {
+                        [this.region]: compute_env_ami
+                    },
+                ),
                 blockDevices: [
                     {
                         deviceName: "/dev/xvdf",
@@ -343,46 +326,59 @@ export class CttsoIcaToPieriandxBatchStack extends Stack {
             }
         )
 
+        // We generate launch attributes to be parsed into the compute environment
+        // under launch template
+        const launch_template_attributes: LaunchTemplateAttributes = {
+          launchTemplateId: launch_template.launchTemplateId,
+          launchTemplateName: launch_template.launchTemplateName,
+          versionNumber: launch_template.versionNumber,
+        };
+
+
         // Set compute environment
-        const compute_environment = new ComputeEnvironment(
+        const compute_environment = new ManagedEc2EcsComputeEnvironment(
             this,
             `${props.stack_prefix}-batch-compute-env`,
             {
                 serviceRole: batch_service_role,
-                computeResources: {
-                    type: ComputeResourceType.ON_DEMAND,
-                    allocationStrategy: AllocationStrategy.BEST_FIT_PROGRESSIVE,
-                    desiredvCpus: 0,
-                    maxvCpus: 3,
-                    minvCpus: 0,
-                    image: MachineImage.genericLinux(
-                        {
-                            [this.region]: compute_env_ami
-                        },
-                    ),
-                    launchTemplate: {
-                        launchTemplateName: `${props.stack_prefix}-batch-compute-launch-template`,
-                        version: launch_template.versionNumber
-                    },
-                    spotFleetRole: spotfleet_role,
-                    instanceRole: batch_instance_profile.instanceProfileName,
-                    vpc: vpc,
-                    vpcSubnets: {
-                        subnetType: SubnetType.PUBLIC,
-                        availabilityZones: this.availabilityZones
-                    },
-                    securityGroups: [
-                        batch_security_group
-                    ],
-                    computeResourcesTags: {
-                        "Creator": "Batck",
-                        "Stack": props.stack_prefix,
-                        "Name": "BatchWorker"
-                    }
-                }
+                allocationStrategy: AllocationStrategy.BEST_FIT_PROGRESSIVE,
+                maxvCpus: 3,
+                minvCpus: 0,
+                launchTemplate: LaunchTemplate.fromLaunchTemplateAttributes(
+                  this,
+                  `${props.stack_prefix}-ec2-from-launch-template-attributes`,
+                   launch_template_attributes
+                ),
+                instanceRole: Role.fromRoleName(
+                    this,
+                    `${props.stack_prefix}-batch-instance-role-from-role-name`,
+                    batch_instance_role.roleName
+                ),
+                vpc: vpc,
+                vpcSubnets: {
+                    subnetType: SubnetType.PUBLIC,
+                    availabilityZones: this.availabilityZones
+                },
+                securityGroups: [
+                    batch_security_group
+                ]
             }
         )
 
+        // Add tags to compute environment
+        let compute_environment_tags = {
+            "Creator": "Batch",
+            "Stack": props.stack_prefix,
+            "Name": "BatchWorker"
+        }
+
+        for (let [key, value] of Object.entries(compute_environment_tags)) {
+            Tags.of(compute_environment).add(
+                key, value
+            )
+        }
+
+        // Initialise job queue
         const job_queue = new JobQueue(
             this,
             `${props.stack_prefix}-jobqueue`,
@@ -398,54 +394,54 @@ export class CttsoIcaToPieriandxBatchStack extends Stack {
             }
         )
 
-        const job_definition = new JobDefinition(
-            this,
-            `${props.stack_prefix}-job-definition`,
+        // Create volumes to be mounted into container definition
+        const work_volume = new HostVolume({
+            containerPath: "/work",
+            readonly: false,
+            name: "work",
+            hostPath: "/mnt"
+        });
+
+        const script_volume = new HostVolume(
             {
-                jobDefinitionName: `${props.stack_prefix}-job-definition`,
-                parameters: {
-                    ["dryrun"]: "-",
-                    ["verbose"]: "-"
-                },
-                container: {
-                    image: image_repo,
-                    vcpus: 2,
-                    user: "cttso_ica_to_pieriandx_user:cttso_ica_to_pieriandx_group",
-                    memoryLimitMiB: 1024,
-                    command: [
-                        "/opt/container/cttso-ica-to-pieriandx-wrapper.sh",
-                        "--ica-workflow-run-id", "Ref::ica_workflow_run_id",
-                        "--accession-json-base64-str", "Ref::accession_json_base64_str",
-                        "Ref::dryrun",
-                        "Ref::verbose"
-                    ],
-                    mountPoints: [
-                        {
-                            containerPath: "/work",
-                            readOnly: false,
-                            sourceVolume: "work"
-                        },
-                        {
-                            containerPath: "/opt/container",
-                            readOnly: true,
-                            sourceVolume: "container"
-                        }
-                    ],
-                    volumes: [
-                        {
-                            name: "container",
-                            host: {
-                                sourcePath: "/opt/container"
-                            }
-                        },
-                        {
-                            name: "work",
-                            host: {
-                                sourcePath: "/mnt"
-                            }
-                        }
-                    ]
-                },
+                containerPath: "/opt/container",
+                readonly: true,
+                name: "container",
+                hostPath: "/opt/container"
+            }
+        )
+
+        // Create the ECS Job Definition
+        // This wraps the container definition too
+        const job_definition = new EcsJobDefinition(
+            this,
+            `${props.stack_prefix}-ecs-job-definition`,
+            {
+                parameters: [
+                    ["dryrun"], "-",
+                    ["verbose"], "-"
+                ],
+                container: new EcsEc2ContainerDefinition(
+                    this,
+                    `${props.stack_prefix}-ecs-container-job-definition`,
+                    {
+                        image: image_repo,
+                        cpu: 2,
+                        user: "cttso_ica_to_pieriandx_user:cttso_ica_to_pieriandx_group",
+                        memory: Size.mebibytes(1024),
+                        command: [
+                            "/opt/container/cttso-ica-to-pieriandx-wrapper.sh",
+                            "--ica-workflow-run-id", "Ref::ica_workflow_run_id",
+                            "--accession-json-base64-str", "Ref::accession_json_base64_str",
+                            "Ref::dryrun",
+                            "Ref::verbose"
+                        ],
+                        volumes: [
+                            script_volume,
+                            work_volume
+                        ]
+                    }
+                ),
                 retryAttempts: 1,
                 timeout: Duration.hours(1)
             }
