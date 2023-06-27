@@ -2,7 +2,7 @@ import { CfnOutput, Duration, Fn, Stack, StackProps, Tags, Size } from 'aws-cdk-
 import { Construct } from 'constructs';
 import { Repository } from "aws-cdk-lib/aws-ecr";
 import { StringParameter } from "aws-cdk-lib/aws-ssm";
-import { ContainerImage } from "aws-cdk-lib/aws-ecs";
+import { ContainerImage, LogDriver } from "aws-cdk-lib/aws-ecs";
 import {
     AllocationStrategy,
     ManagedEc2EcsComputeEnvironment,
@@ -439,8 +439,11 @@ export class CttsoIcaToPieriandxBatchStack extends Stack {
                         volumes: [
                             script_volume,
                             work_volume
-                        ]
-                    }
+                        ],
+                        logging: LogDriver.awsLogs({
+                            streamPrefix: "cttso-ica-to-pieriandx"
+                        })
+                    },
                 ),
                 retryAttempts: 1,
                 timeout: Duration.hours(1)
