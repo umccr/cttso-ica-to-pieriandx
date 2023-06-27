@@ -1,4 +1,12 @@
-import { CfnOutput, Duration, Fn, Stack, StackProps, Tags, Size } from 'aws-cdk-lib';
+import {
+    CfnOutput,
+    Duration,
+    Fn,
+    Stack,
+    StackProps,
+    Tags,
+    Size
+} from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 import { Repository } from "aws-cdk-lib/aws-ecr";
 import { StringParameter } from "aws-cdk-lib/aws-ssm";
@@ -12,7 +20,6 @@ import {
     HostVolume
 } from "@aws-cdk/aws-batch-alpha";
 import {
-    CfnInstanceProfile,
     CompositePrincipal,
     ManagedPolicy,
     PolicyStatement,
@@ -32,12 +39,16 @@ import {
 } from "aws-cdk-lib/aws-ec2";
 import { Asset } from "aws-cdk-lib/aws-s3-assets";
 import { readFileSync } from "fs";
-import { Runtime, Function as LambdaFunction, Code } from "aws-cdk-lib/aws-lambda";
+import {
+    Runtime,
+    Function as LambdaFunction,
+    Code
+} from "aws-cdk-lib/aws-lambda";
 import { Secret } from "aws-cdk-lib/aws-secretsmanager";
+import { LogGroup } from "aws-cdk-lib/aws-logs"
 
 import {
     ECR_REPOSITORY_NAME,
-    REDCAP_LAMBDA_FUNCTION_SSM_KEY,
     AWS_BUILD_ACCOUNT_ID,
     AWS_REGION,
     SSM_LAMBDA_FUNCTION_ARN_VALUE,
@@ -411,6 +422,15 @@ export class CttsoIcaToPieriandxBatchStack extends Stack {
             }
         )
 
+        // Create the log group
+        const log_group = new LogGroup(
+            this,
+            `${props.stack_prefix}-log-group`,
+            {
+                logGroupName: "/aws/batch/cttso-ica-to-pieriandx"
+            }
+        )
+
         // Create the ECS Job Definition
         // This wraps the container definition too
         const job_definition = new EcsJobDefinition(
@@ -441,7 +461,8 @@ export class CttsoIcaToPieriandxBatchStack extends Stack {
                             work_volume
                         ],
                         logging: LogDriver.awsLogs({
-                            streamPrefix: "cttso-ica-to-pieriandx"
+                            streamPrefix: "cttso-ica-to-pieriandx",
+                            logGroup: log_group
                         })
                     },
                 ),
@@ -520,7 +541,6 @@ export class CttsoIcaToPieriandxBatchStack extends Stack {
                 parameterName: SSM_LAMBDA_FUNCTION_ARN_VALUE,
             }
         )
-
 
         // Return the batch arn as an output
         this.BatchJobDefinitionArn = new CfnOutput(this, "BatchJobDefinitionArn", {
