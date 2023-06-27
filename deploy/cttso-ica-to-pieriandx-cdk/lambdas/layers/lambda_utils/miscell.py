@@ -4,7 +4,7 @@ from datetime import date, datetime, timezone
 from typing import List, Union
 import pytz
 from dateutil.parser import parse as date_parser
-from utils.logging import get_logger
+from .logger import get_logger
 
 logger = get_logger()
 
