@@ -467,7 +467,9 @@ export class CttsoIcaToPieriandxBatchStack extends Stack {
                     "batch:SubmitJob"
                 ],
                 resources: [
-                    job_definition.jobDefinitionArn,
+                    // Weird cloudformation template developed
+                    // https://github.com/aws/aws-cdk/issues/26128
+                    job_definition.jobDefinitionArn.replace(/:1$/, ""),
                     job_queue.jobQueueArn
                 ]
             })
