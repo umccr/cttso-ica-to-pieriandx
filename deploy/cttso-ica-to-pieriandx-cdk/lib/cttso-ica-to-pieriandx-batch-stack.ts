@@ -417,10 +417,10 @@ export class CttsoIcaToPieriandxBatchStack extends Stack {
             this,
             `${props.stack_prefix}-ecs-job-definition`,
             {
-                parameters: [
-                    ["dryrun"], "-",
-                    ["verbose"], "-"
-                ],
+                parameters: {
+                    ["dryrun"]: "-",
+                    ["verbose"]: "-"
+                },
                 container: new EcsEc2ContainerDefinition(
                     this,
                     `${props.stack_prefix}-ecs-container-job-definition`,
