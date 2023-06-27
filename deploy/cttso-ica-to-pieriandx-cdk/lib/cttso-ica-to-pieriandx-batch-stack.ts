@@ -460,6 +460,13 @@ export class CttsoIcaToPieriandxBatchStack extends Stack {
             }
         )
 
+        // FIXME a workaround for now
+        let submit_job_permission_array = [
+            "arn", "aws", "batch",
+            env.region, env.account,
+            "job-definition/" + "cttsoicatopieriandx" + "*"
+        ]
+
         // Set up policy for submitting job to batch
         lambda_role.addToPolicy((
             new PolicyStatement({
@@ -469,7 +476,9 @@ export class CttsoIcaToPieriandxBatchStack extends Stack {
                 resources: [
                     // Weird cloudformation template developed
                     // https://github.com/aws/aws-cdk/issues/26128
-                    job_definition.jobDefinitionArn.replace(/:1$/, ""),
+                    // job_definition.jobDefinitionArn,
+                    // Instead just all batch (which is like one anyway)
+                    submit_job_permission_array.join(":"),
                     job_queue.jobQueueArn
                 ]
             })
@@ -508,6 +517,7 @@ export class CttsoIcaToPieriandxBatchStack extends Stack {
                 parameterName: SSM_LAMBDA_FUNCTION_ARN_VALUE,
             }
         )
+
 
         // Return the batch arn as an output
         this.BatchJobDefinitionArn = new CfnOutput(this, "BatchJobDefinitionArn", {
