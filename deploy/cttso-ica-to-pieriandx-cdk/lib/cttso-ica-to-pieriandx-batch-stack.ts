@@ -522,7 +522,7 @@ export class CttsoIcaToPieriandxBatchStack extends Stack {
                     "./lambdas/cttso_ica_to_pieriandx"
                 ),
                 environment: {
-                    "JOBDEF": job_definition.jobDefinitionName,
+                    "JOBDEF": job_definition.jobDefinitionArn,
                     "JOBQUEUE": job_queue.jobQueueName,
                     "JOBNAME_PREFIX": `${props.stack_prefix}_`,
                     "MEM": "1000",
