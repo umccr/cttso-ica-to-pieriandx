@@ -3,6 +3,34 @@
 Changes in this log refer only to changes that make it to the 'main' branch and
 are nested under deploy/cttso-ica-to-pieriandx-cdk.  
 
+## 2023-06-28
+
+> Author: Alexis Lucattini
+> Email: [Alexis.Lucattini@umccr.org](mailto:alexis.lucattini@umccr.org)
+
+### Enhancements
+
+* Batch Stack Upgrade (https://github.com/umccr/cttso-ica-to-pieriandx/pull/79)
+  * Resolves (https://github.com/umccr/cttso-ica-to-pieriandx/issues/76)
+
+* Upgrade CDK to version 2.85.0 (https://github.com/umccr/cttso-ica-to-pieriandx/pull/79)
+  * Resolves (https://github.com/umccr/cttso-ica-to-pieriandx/issues/78)
+
+### Fixes
+
+* Lambda utils miscell python file was importing the wrong get_logger function (https://github.com/umccr/cttso-ica-to-pieriandx/pull/82)
+  * Resolves (https://github.com/umccr/cttso-ica-to-pieriandx/issues/81)
+
+* Use Job ARN over Job Name for batch submission from lambda (https://github.com/umccr/cttso-ica-to-pieriandx/pull/91)
+  * Resolves https://github.com/umccr/cttso-ica-to-pieriandx/issues/90
+
+#### Various fixes after migration to new aws-batch-alpha
+
+* https://github.com/umccr/cttso-ica-to-pieriandx/pull/85 
+  * https://github.com/umccr/cttso-ica-to-pieriandx/issues/86
+* https://github.com/umccr/cttso-ica-to-pieriandx/pull/88
+  * https://github.com/umccr/cttso-ica-to-pieriandx/issues/87
+
 ## 2023-06-23
 
 > Author: Alexis Lucattini
