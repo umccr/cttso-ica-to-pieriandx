@@ -24,7 +24,10 @@ are nested under deploy/cttso-ica-to-pieriandx-cdk.
 * Use Job ARN over Job Name for batch submission from lambda (https://github.com/umccr/cttso-ica-to-pieriandx/pull/91)
   * Resolves https://github.com/umccr/cttso-ica-to-pieriandx/issues/90
 
-* Create policy document as a separate entity (https://github.com/umccr/cttso-ica-to-pieriandx/pull/93)
+* Create disable rule policy document as a separate entity (https://github.com/umccr/cttso-ica-to-pieriandx/pull/93)
+  * Resolves https://github.com/umccr/cttso-ica-to-pieriandx/issues/92
+
+* Create SSM Get parameter policy as separate entity (https://github.com/umccr/cttso-ica-to-pieriandx/pull/95)
   * Resolves https://github.com/umccr/cttso-ica-to-pieriandx/issues/92
 
 #### Various fixes after migration to new aws-batch-alpha
