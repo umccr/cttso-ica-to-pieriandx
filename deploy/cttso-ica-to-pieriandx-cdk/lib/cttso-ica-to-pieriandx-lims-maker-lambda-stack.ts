@@ -276,17 +276,31 @@ export class CttsoIcaToPieriandxLimsMakerLambdaStack extends Stack {
                 parameterName: SSM_LIMS_LAMBDA_FUNCTION_EVENT_RULE_NAME_VALUE,
             }
         )
+
         // Add permissions so that lambda function can determine the rule Name that triggers it
-        lambda_function.addToRolePolicy(
-            new PolicyStatement({
-                actions: [
-                    "ssm:GetParameter"
-                ],
-                resources: [
-                    ssm_parameter_event_rule.parameterArn
+        // We need to set this policy statement as its own policy object
+        const get_event_rule_policy = new Policy(
+            this,
+            `${props.stack_prefix}-rule-ssm-get-parameter`,
+            {
+                statements: [
+                    new PolicyStatement({
+                        actions: [
+                            "ssm:GetParameter"
+                        ],
+                        resources: [
+                            ssm_parameter_event_rule.parameterArn
+                        ]
+                    })
                 ]
-            })
+            }
         )
+
+        get_event_rule_policy.attachToRole(
+            <Role> lambda_function.role
+        )
+
+        
 
         // Add permissions so that lambda function can deactivate its own rule
         // This needs to go through a policy that is added to a role (instead of a role
@@ -308,6 +322,7 @@ export class CttsoIcaToPieriandxLimsMakerLambdaStack extends Stack {
             }
         )
 
+        // Now attach this policy to the role used by the lambda function
         disable_rule_policy.attachToRole(<Role> lambda_function.role)
 
         // Add target for lambda schedule
