@@ -31,8 +31,8 @@ jobs:
         # Check any files changed AND not just ones in deploy
         if: >-
           ${{ 
-            steps.get_all_changed_files.any_changed == 'true' && 
-            ( steps.get_all_changed_files.all_changed_files != steps.get_all_changed_files.all_changed_files ) 
+            steps.get_all_changed_files.outputs.any_changed == 'true' && 
+            ( steps.get_all_changed_files.outputs.all_changed_files != steps.get_all_changed_files.outputs.all_changed_files ) 
           }}
         id: check_main_changelog
         run: |
@@ -49,7 +49,7 @@ jobs:
         # Check any files changed in deploy
         if: >-
           ${{ 
-            steps.get_deployment_changed_files.any_changed == 'true' 
+            steps.get_deployment_changed_files.outputs.any_changed == 'true' 
           }}
         id: check_deploy_changelog
         run: |
