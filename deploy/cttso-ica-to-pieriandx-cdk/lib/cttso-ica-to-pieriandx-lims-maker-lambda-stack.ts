@@ -4,7 +4,7 @@ import {
 import { Construct } from 'constructs';
 import { DockerImageFunction, DockerImageCode } from "aws-cdk-lib/aws-lambda";
 import { StringParameter } from "aws-cdk-lib/aws-ssm";
-import { Role, ManagedPolicy, ServicePrincipal, PolicyStatement } from "aws-cdk-lib/aws-iam";
+import { Role, ManagedPolicy, ServicePrincipal, PolicyStatement, Policy } from "aws-cdk-lib/aws-iam";
 import { Secret } from "aws-cdk-lib/aws-secretsmanager";
 import {
     DATA_PORTAL_API_ID_SSM_PARAMETER,
@@ -289,16 +289,26 @@ export class CttsoIcaToPieriandxLimsMakerLambdaStack extends Stack {
         )
 
         // Add permissions so that lambda function can deactivate its own rule
-        lambda_function.addToRolePolicy(
-            new PolicyStatement({
-                actions: [
-                    "events:DisableRule"
-                ],
-                resources: [
-                    lambda_schedule_rule.ruleArn
+        // This needs to go through a policy that is added to a role (instead of a role
+        // thats added to a policy - https://github.com/aws/aws-cdk/issues/11020
+        const disable_rule_policy = new Policy(
+            this,
+            `${props.stack_prefix}-disable-rule`,
+            {
+                statements: [
+                    new PolicyStatement({
+                        actions: [
+                            "events:DisableRule"
+                        ],
+                        resources: [
+                            lambda_schedule_rule.ruleArn
+                        ]
+                    })
                 ]
-            })
+            }
         )
+
+        disable_rule_policy.attachToRole(<Role> lambda_function.role)
 
         // Add target for lambda schedule
         lambda_schedule_rule.addTarget(
