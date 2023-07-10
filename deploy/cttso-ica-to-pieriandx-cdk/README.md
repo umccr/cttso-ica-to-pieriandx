@@ -59,6 +59,7 @@ new_headers = [
     "pieriandx_case_creation_date",
     "pieriandx_case_identified",
     "pieriandx_panel_type",
+    "pieriandx_sample_type",
     "pieriandx_workflow_id",
     "pieriandx_workflow_status",
     "pieriandx_report_status",

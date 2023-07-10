@@ -18,6 +18,13 @@ class PanelType(Enum):
     SUBPANEL = "tso500_ctDNA_vcf_subpanel_workflow_university_of_melbourne"
 
 
+class SampleType(Enum):
+    PATIENT_CARE = "patientcare"
+    CLINICAL_TRIAL = "clinical_trial"
+    VALIDATION = "validation"
+    PROFICIENCY_TESTING = "proficiency_testing"
+
+
 # GLOBALS
 PORTAL_API_BASE_URL_SSM_PATH = "/data_portal/backend/api_domain_name"
 PORTAL_METADATA_ENDPOINT = "https://{PORTAL_API_BASE_URL}/iam/metadata/"

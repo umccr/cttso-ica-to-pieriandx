@@ -169,6 +169,7 @@ def get_libraries_for_processing(merged_df) -> pd.DataFrame:
       * pieriandx_case_creation_date
       * pieriandx_case_identified
       * pieriandx_panel_type
+      * pieriandx_sample_type
     :return: A pandas dataframe with the following columns
       * subject_id
       * library_id
@@ -424,6 +425,7 @@ def append_to_cttso_lims(merged_df: pd.DataFrame, cttso_lims_df: pd.DataFrame, e
       * pieriandx_case_creation_date
       * pieriandx_case_identified
       * pieriandx_panel_type
+      * pieriandx_sample_type
       * pieriandx_workflow_id
       * pieriandx_workflow_status
       * pieriandx_report_status
@@ -589,6 +591,7 @@ def get_pieriandx_incomplete_job_df_from_cttso_lims_df(cttso_lims_df: pd.DataFra
         * pieriandx_case_creation_date
         * pieriandx_case_identified
         * pieriandx_panel_type
+        * pieriandx_sample_type
         * pieriandx_workflow_id
         * pieriandx_workflow_status
         * pieriandx_report_status
@@ -614,6 +617,7 @@ def get_pieriandx_incomplete_job_df_from_cttso_lims_df(cttso_lims_df: pd.DataFra
         * pieriandx_case_creation_date
         * pieriandx_case_identified
         * pieriandx_panel_type
+        * pieriandx_sample_type
         * pieriandx_workflow_id
         * pieriandx_workflow_status
         * pieriandx_report_status
@@ -705,6 +709,7 @@ def update_pieriandx_job_status_missing_df(pieriandx_job_status_missing_df, merg
       * pieriandx_case_accession_number
       * pieriandx_case_identified
       * pieriandx_panel_type
+      * pieriandx_sample_type
       * pieriandx_workflow_id
       * pieriandx_workflow_status
       * pieriandx_report_status
@@ -941,6 +946,7 @@ def update_cttso_lims(update_df: pd.DataFrame, cttso_lims_df: pd.DataFrame, exce
       * pieriandx_case_creation_date
       * pieriandx_case_identified
       * pieriandx_panel_type
+      * pieriandx_sample_type
       * pieriandx_workflow_id
       * pieriandx_workflow_status
       * pieriandx_report_status
@@ -963,6 +969,7 @@ def update_cttso_lims(update_df: pd.DataFrame, cttso_lims_df: pd.DataFrame, exce
       * pieriandx_case_creation_date
       * pieriandx_case_identified
       * pieriandx_panel_type
+      * pieriandx_sample_type
       * pieriandx_workflow_id
       * pieriandx_workflow_status
       * pieriandx_report_status
@@ -1012,6 +1019,7 @@ def update_cttso_lims(update_df: pd.DataFrame, cttso_lims_df: pd.DataFrame, exce
             "pieriandx_case_creation_date",
             "pieriandx_case_identified",
             "pieriandx_panel_type",
+            "pieriandx_sample_type",
             "pieriandx_workflow_id",
             "pieriandx_workflow_status",
             "pieriandx_report_status",
@@ -1061,6 +1069,7 @@ def get_duplicate_case_ids(lims_df: pd.DataFrame) -> List:
       * pieriandx_case_creation_date
       * pieriandx_case_identified
       * pieriandx_panel_type
+      * pieriandx_sample_type
       * pieriandx_workflow_id
       * pieriandx_workflow_status
       * pieriandx_report_status
@@ -1225,6 +1234,7 @@ def cleanup_duplicate_rows(merged_df: pd.DataFrame, cttso_lims_df: pd.DataFrame,
       * pieriandx_case_creation_date
       * pieriandx_case_identified
       * pieriandx_panel_type
+      * pieriandx_sample_type
       * pieriandx_workflow_id
       * pieriandx_workflow_status
       * pieriandx_report_status
@@ -1273,6 +1283,7 @@ def cleanup_duplicate_rows(merged_df: pd.DataFrame, cttso_lims_df: pd.DataFrame,
         * pieriandx_case_creation_date
         * pieriandx_case_identified
         * pieriandx_panel_type
+        * pieriandx_sample_type
         * pieriandx_workflow_id
         * pieriandx_workflow_status
         * pieriandx_report_status

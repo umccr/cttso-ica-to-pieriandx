@@ -229,6 +229,7 @@ def get_cttso_lims() -> (pd.DataFrame, pd.DataFrame):
         * pieriandx_case_creation_date
         * pieriandx_case_identified
         * pieriandx_panel_type
+        * pieriandx_sample_type
         * pieriandx_workflow_id
         * pieriandx_workflow_status
         * pieriandx_report_status
