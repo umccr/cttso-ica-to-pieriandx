@@ -3,6 +3,30 @@
 Changes in this log refer only to changes that make it to the 'main' branch and
 are nested under deploy/cttso-ica-to-pieriandx-cdk.  
 
+## 2023-07-10
+
+> Author: Alexis Lucattini
+> Email: [Alexis.Lucattini@umccr.org](mailto:alexis.lucattini@umccr.org)
+
+### Bug fixes
+
+* Gh Actions 'Check Changelog' was not using the correct attributes (https://github.com/umccr/cttso-ica-to-pieriandx/pull/96)
+  * Resolves https://github.com/umccr/cttso-ica-to-pieriandx/issues/94
+* Check comparing portal workflow run end date and pieriandx submission date should be done in EST time (https://github.com/umccr/cttso-ica-to-pieriandx/pull/104)
+  * Resolves https://github.com/umccr/cttso-ica-to-pieriandx/issues/101
+  * Resolves https://github.com/umccr/cttso-ica-to-pieriandx/issues/100
+  * This issue was likely the cause of many 'duplicate' submissions
+* Update the pieriandx_submission_time column using processing_df (https://github.com/umccr/cttso-ica-to-pieriandx/pull/103)
+  * Resolves https://github.com/umccr/cttso-ica-to-pieriandx/issues/102
+* Use subject id, library id and portal run id to submission time from lims df (https://github.com/umccr/cttso-ica-to-pieriandx/pull/106)
+  * Resolves https://github.com/umccr/cttso-ica-to-pieriandx/issues/107
+
+### Enhancements
+
+* Use pieriandx sample type column in LIMS df (https://github.com/umccr/cttso-ica-to-pieriandx/pull/105)
+  * Resolves https://github.com/umccr/cttso-ica-to-pieriandx/issues/99
+
+
 ## 2023-06-28
 
 > Author: Alexis Lucattini
