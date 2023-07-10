@@ -49,6 +49,7 @@ class SnowMedObject:
             self.REFERENCE_DF.query(f"Code=={self.code} & Label=='{self.label}'")['Code'].item()
         except ValueError:
             logger.error(f"Code {self.code} doesn't match label {self.label}")
+            raise ValueError
 
     def get_label_from_code(self):
         """
@@ -59,6 +60,7 @@ class SnowMedObject:
             return self.REFERENCE_DF.query(f"Code=={self.code}")['Label'].item()
         except ValueError:
             logger.error(f"Could not find unique code {self.code} in the csv")
+            raise ValueError
 
     def get_code_from_label(self):
         """
@@ -69,6 +71,7 @@ class SnowMedObject:
             return self.REFERENCE_DF.query(f"Label=={self.label}")['Code'].item()
         except ValueError:
             logger.error(f"Could not find unique label {self.label} in the csv")
+            raise ValueError
 
     @classmethod
     def read_csv(cls, reference_csv: Path = None) -> pd.DataFrame:
