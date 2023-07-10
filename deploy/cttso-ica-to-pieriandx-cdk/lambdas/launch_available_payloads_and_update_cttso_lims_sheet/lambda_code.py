@@ -838,14 +838,28 @@ def add_pieriandx_df_to_merged_df(merged_df: pd.DataFrame, pieriandx_df: pd.Data
             value=False
         )
 
+    # Add column for portal_wfr_end_est to set portal workflow into pieriandx timezone
+    merged_df_with_pieriandx_df["portal_wfr_end_est_tz"] = merged_df_with_pieriandx_df["portal_wfr_end"].apply(
+        lambda x: pd.to_datetime(x).astimezone(tz="US/Eastern") if not pd.isnull(x) else x
+    )
+
     # For new workflow runs we flip the in_pieriandx boolean if the case creation date
     # is older than the existing pieriandx date
     # Set all pieriandx columns to NA
     invalid_pieriandx_indices = \
         merged_df_with_pieriandx_df.query(
             "pieriandx_case_creation_date.dt.date < "
-            "portal_wfr_end.dt.date"
+            "portal_wfr_end_est_tz.dt.date"
         ).index
+
+    # Drop portal_wfr_end_est_tz column
+    merged_df_with_pieriandx_df.drop(
+        columns=[
+            "portal_wfr_end_est_tz"
+        ],
+        inplace=True
+    )
+
     merged_df_with_pieriandx_df.loc[
         invalid_pieriandx_indices
         ,
