@@ -693,6 +693,7 @@ def update_merged_df_with_processing_df(merged_df, processing_df) -> pd.DataFram
         # Update the merged df row by the index of processing df
         if row.submission_succeeded:
             merged_df.loc[row.name, "pieriandx_case_id"] = "pending"
+            merged_df.loc[row.name, "pieriandx_submission_time"] = row["pieriandx_submission_time"]
         else:
             merged_df.loc[row.name, "pieriandx_case_id"] = "failed"
 
