@@ -4,6 +4,17 @@ Changes in this log refer only to changes that make it to the 'main' branch. and
 
 For changes in deployment, please see the [deployment changelog](deploy/cttso-ica-to-pieriandx-cdk/Changelog.md) 
 
+## 2023-07-10
+
+> Author: Alexis Lucattini
+> Email: [Alexis.Lucattini@ummcr.org](mailto:alexis.lucattini@umccr.org)
+
+### Bugfix
+
+* Re-raise ValueError after catching ValueError in .item() (https://github.com/umccr/cttso-ica-to-pieriandx/pull/108)
+  * Resolves https://github.com/umccr/cttso-ica-to-pieriandx/issues/97
+  * Resolves https://github.com/umccr/cttso-ica-to-pieriandx/issues/98
+
 ## 2023-05-07
 
 > Author: Alexis Lucattini

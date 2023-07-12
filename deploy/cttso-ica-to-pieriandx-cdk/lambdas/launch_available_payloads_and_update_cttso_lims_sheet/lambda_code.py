@@ -169,6 +169,7 @@ def get_libraries_for_processing(merged_df) -> pd.DataFrame:
       * pieriandx_case_creation_date
       * pieriandx_case_identified
       * pieriandx_panel_type
+      * pieriandx_sample_type
     :return: A pandas dataframe with the following columns
       * subject_id
       * library_id
@@ -424,6 +425,7 @@ def append_to_cttso_lims(merged_df: pd.DataFrame, cttso_lims_df: pd.DataFrame, e
       * pieriandx_case_creation_date
       * pieriandx_case_identified
       * pieriandx_panel_type
+      * pieriandx_sample_type
       * pieriandx_workflow_id
       * pieriandx_workflow_status
       * pieriandx_report_status
@@ -589,6 +591,7 @@ def get_pieriandx_incomplete_job_df_from_cttso_lims_df(cttso_lims_df: pd.DataFra
         * pieriandx_case_creation_date
         * pieriandx_case_identified
         * pieriandx_panel_type
+        * pieriandx_sample_type
         * pieriandx_workflow_id
         * pieriandx_workflow_status
         * pieriandx_report_status
@@ -614,6 +617,7 @@ def get_pieriandx_incomplete_job_df_from_cttso_lims_df(cttso_lims_df: pd.DataFra
         * pieriandx_case_creation_date
         * pieriandx_case_identified
         * pieriandx_panel_type
+        * pieriandx_sample_type
         * pieriandx_workflow_id
         * pieriandx_workflow_status
         * pieriandx_report_status
@@ -689,6 +693,7 @@ def update_merged_df_with_processing_df(merged_df, processing_df) -> pd.DataFram
         # Update the merged df row by the index of processing df
         if row.submission_succeeded:
             merged_df.loc[row.name, "pieriandx_case_id"] = "pending"
+            merged_df.loc[row.name, "pieriandx_submission_time"] = row["pieriandx_submission_time"]
         else:
             merged_df.loc[row.name, "pieriandx_case_id"] = "failed"
 
@@ -705,6 +710,7 @@ def update_pieriandx_job_status_missing_df(pieriandx_job_status_missing_df, merg
       * pieriandx_case_accession_number
       * pieriandx_case_identified
       * pieriandx_panel_type
+      * pieriandx_sample_type
       * pieriandx_workflow_id
       * pieriandx_workflow_status
       * pieriandx_report_status
@@ -832,14 +838,28 @@ def add_pieriandx_df_to_merged_df(merged_df: pd.DataFrame, pieriandx_df: pd.Data
             value=False
         )
 
+    # Add column for portal_wfr_end_est to set portal workflow into pieriandx timezone
+    merged_df_with_pieriandx_df["portal_wfr_end_est_tz"] = merged_df_with_pieriandx_df["portal_wfr_end"].apply(
+        lambda x: pd.to_datetime(x).astimezone(tz="US/Eastern") if not pd.isnull(x) else x
+    )
+
     # For new workflow runs we flip the in_pieriandx boolean if the case creation date
     # is older than the existing pieriandx date
     # Set all pieriandx columns to NA
     invalid_pieriandx_indices = \
         merged_df_with_pieriandx_df.query(
             "pieriandx_case_creation_date.dt.date < "
-            "portal_wfr_end.dt.date"
+            "portal_wfr_end_est_tz.dt.date"
         ).index
+
+    # Drop portal_wfr_end_est_tz column
+    merged_df_with_pieriandx_df.drop(
+        columns=[
+            "portal_wfr_end_est_tz"
+        ],
+        inplace=True
+    )
+
     merged_df_with_pieriandx_df.loc[
         invalid_pieriandx_indices
         ,
@@ -941,6 +961,7 @@ def update_cttso_lims(update_df: pd.DataFrame, cttso_lims_df: pd.DataFrame, exce
       * pieriandx_case_creation_date
       * pieriandx_case_identified
       * pieriandx_panel_type
+      * pieriandx_sample_type
       * pieriandx_workflow_id
       * pieriandx_workflow_status
       * pieriandx_report_status
@@ -963,6 +984,7 @@ def update_cttso_lims(update_df: pd.DataFrame, cttso_lims_df: pd.DataFrame, exce
       * pieriandx_case_creation_date
       * pieriandx_case_identified
       * pieriandx_panel_type
+      * pieriandx_sample_type
       * pieriandx_workflow_id
       * pieriandx_workflow_status
       * pieriandx_report_status
@@ -1012,6 +1034,7 @@ def update_cttso_lims(update_df: pd.DataFrame, cttso_lims_df: pd.DataFrame, exce
             "pieriandx_case_creation_date",
             "pieriandx_case_identified",
             "pieriandx_panel_type",
+            "pieriandx_sample_type",
             "pieriandx_workflow_id",
             "pieriandx_workflow_status",
             "pieriandx_report_status",
@@ -1061,6 +1084,7 @@ def get_duplicate_case_ids(lims_df: pd.DataFrame) -> List:
       * pieriandx_case_creation_date
       * pieriandx_case_identified
       * pieriandx_panel_type
+      * pieriandx_sample_type
       * pieriandx_workflow_id
       * pieriandx_workflow_status
       * pieriandx_report_status
@@ -1225,6 +1249,7 @@ def cleanup_duplicate_rows(merged_df: pd.DataFrame, cttso_lims_df: pd.DataFrame,
       * pieriandx_case_creation_date
       * pieriandx_case_identified
       * pieriandx_panel_type
+      * pieriandx_sample_type
       * pieriandx_workflow_id
       * pieriandx_workflow_status
       * pieriandx_report_status
@@ -1273,6 +1298,7 @@ def cleanup_duplicate_rows(merged_df: pd.DataFrame, cttso_lims_df: pd.DataFrame,
         * pieriandx_case_creation_date
         * pieriandx_case_identified
         * pieriandx_panel_type
+        * pieriandx_sample_type
         * pieriandx_workflow_id
         * pieriandx_workflow_status
         * pieriandx_report_status
@@ -1328,7 +1354,7 @@ def cleanup_duplicate_rows(merged_df: pd.DataFrame, cttso_lims_df: pd.DataFrame,
         # Update cttso lims sheet with replacement
         append_df_to_cttso_lims(cttso_lims_df_dedup, replace=True)
         # Wait for doc population
-        sleep(3)
+        sleep(10)
 
         # Collect new values
         cttso_lims_df: pd.DataFrame
@@ -1501,15 +1527,21 @@ def lambda_handler(event, context):
     excel_row_number_mapping_df: pd.DataFrame
     cttso_lims_df, excel_row_number_mapping_df = get_cttso_lims()
 
-    # Merge cttso_lims_df with merged df to collect pieriandx_submission_time value (that is only present in lims df)
-    merged_df = pd.merge(
-        merged_df, cttso_lims_df.query("not pieriandx_case_id.isnull()", engine="python")[["pieriandx_case_id", "pieriandx_submission_time"]],
-        how="left",
-        on="pieriandx_case_id"
-    )
-
     merged_df, cttso_lims_df, excel_row_number_mapping_df = \
         cleanup_duplicate_rows(merged_df, cttso_lims_df, excel_row_number_mapping_df)
+
+    # Merge cttso_lims_df with merged df to collect pieriandx_submission_time value (that is only present in lims df)
+    # We use the standard subject id / library id / portal wfr id for merging
+    lims_submission_time_df = cttso_lims_df.query(
+        "not pieriandx_case_id.isnull()", engine="python"
+    )[["subject_id", "library_id", "portal_wfr_id", "pieriandx_case_id", "pieriandx_submission_time"]].drop_duplicates(
+        subset=["subject_id", "library_id", "portal_wfr_id"], keep="last"
+    )
+    merged_df = pd.merge(
+        merged_df, lims_submission_time_df,
+        how="left",
+        on=["subject_id", "library_id", "portal_wfr_id"]
+    )
 
     # Collect jobs that are yet to be completed
     pieriandx_incomplete_jobs_df: pd.DataFrame = get_pieriandx_incomplete_job_df_from_cttso_lims_df(cttso_lims_df=cttso_lims_df)
@@ -1590,6 +1622,7 @@ def lambda_handler(event, context):
 
 
 ## LOCAL DEBUG ONLY ##
-# if __name__ == "__main__":
-#     lambda_handler(None, None)
-##
+if __name__ == "__main__":
+    lambda_handler(None, None)
+
+#
