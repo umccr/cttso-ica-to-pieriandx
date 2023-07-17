@@ -32,7 +32,7 @@ jobs:
         if: >-
           ${{ 
             steps.get_all_changed_files.outputs.any_changed == 'true' && 
-            ( steps.get_all_changed_files.outputs.all_changed_files != steps.get_all_changed_files.outputs.all_changed_files ) 
+            ( steps.get_all_changed_files.outputs.all_changed_files != steps.get_deployment_changed_files.outputs.all_changed_files ) 
           }}
         id: check_main_changelog
         run: |
