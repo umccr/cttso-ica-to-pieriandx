@@ -3,6 +3,22 @@
 Changes in this log refer only to changes that make it to the 'main' branch and
 are nested under deploy/cttso-ica-to-pieriandx-cdk.  
 
+## 2023-07-17
+
+> Author: Alexis Lucattini
+> Email: [Alexis.Lucattini@umccr.org](mailto:alexis.lucattini@umccr.org)
+
+### Hot fixes
+
+* Fixed issue where collection of pieriandx submission time resulted in error when pieriandx case id was null (https://github.com/umccr/cttso-ica-to-pieriandx/pull/112)
+  * Resolves https://github.com/umccr/cttso-ica-to-pieriandx/issues/111
+
+### Bug fixes
+
+* Fixed issue where changelog for main changelog was being skipped (https://github.com/umccr/cttso-ica-to-pieriandx/pull/112)
+  * Resolves https://github.com/umccr/cttso-ica-to-pieriandx/issues/110
+
+
 ## 2023-07-10
 
 > Author: Alexis Lucattini

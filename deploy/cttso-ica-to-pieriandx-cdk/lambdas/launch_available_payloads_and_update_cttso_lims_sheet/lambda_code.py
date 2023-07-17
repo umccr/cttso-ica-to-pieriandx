@@ -777,9 +777,11 @@ def update_pieriandx_job_status_missing_df(pieriandx_job_status_missing_df, merg
     ]]
 
     # We merge right since we only want jobs we've picked up in the incomplete jobs df
-    return pd.merge(merged_df, pieriandx_job_status_missing_df,
-                    on=["subject_id", "library_id", "pieriandx_case_id"],
-                    how="right")
+    return pd.merge(
+        merged_df, pieriandx_job_status_missing_df,
+        on=["subject_id", "library_id", "pieriandx_case_id"],
+        how="right"
+    )
 
 
 def add_pieriandx_df_to_merged_df(merged_df: pd.DataFrame, pieriandx_df: pd.DataFrame) -> pd.DataFrame:
@@ -1361,6 +1363,8 @@ def cleanup_duplicate_rows(merged_df: pd.DataFrame, cttso_lims_df: pd.DataFrame,
         excel_row_number_mapping_df: pd.DataFrame
         cttso_lims_df, excel_row_number_mapping_df = get_cttso_lims()
 
+    merged_df_dedup = bind_pieriandx_case_submission_time_to_merged_df(merged_df_dedup, cttso_lims_df)
+
     return merged_df_dedup, cttso_lims_df, excel_row_number_mapping_df
 
 
@@ -1402,6 +1406,132 @@ def get_pieriandx_case_id_from_merged_df_for_pending_case(cttso_lims_series, mer
 
     # Collect and return case id
     return pieriandx_case_id
+
+
+def bind_pieriandx_case_submission_time_to_merged_df(merged_df: pd.DataFrame, cttso_lims_df: pd.DataFrame):
+    # Split lims submission into two
+    # Rows with a valid pieriandx case accession id
+    # Rows that do not have a valid pieriandx case accession id
+    # We bind first set on pieriandx_case_id - simples
+    # For remaining merged df (we try bind on 'pending')
+    # If we still have remaining, we set pieriandx submission time as day of creation
+    cttso_lims_df_valid_merge = cttso_lims_df.query(
+        "not pieriandx_case_id.isnull() and "
+        "not pieriandx_submission_time.isnull() "
+    )[["subject_id", "library_id", "portal_wfr_id", "pieriandx_case_id", "pieriandx_submission_time"]].drop_duplicates()
+
+    cttso_lims_df_with_valid_case_id = cttso_lims_df_valid_merge.query(
+        "pieriandx_case_id.str.isdigit()",
+        engine="python"
+    )
+    # Not null but might be 'pending'
+    cttso_lims_df_without_valid_case_id = cttso_lims_df_valid_merge.query(
+        "not pieriandx_case_id.str.isdigit()",
+        engine="python"
+    )
+
+    # Merge on pieriandx case id
+    merged_lims_df_valid = pd.merge(
+        merged_df, cttso_lims_df_with_valid_case_id,
+        how="left",
+        on=["subject_id", "library_id", "portal_wfr_id", "pieriandx_case_id"]
+    )
+
+    # Join pieriandx submission time for merged_lims_df where pieriandx_submission_time is null?
+    merged_lims_df_invalid = pd.merge(
+        merged_df, cttso_lims_df_without_valid_case_id,
+        how="left",
+        on=["subject_id", "library_id", "portal_wfr_id"],
+        suffixes=("_merged", "_lims")
+    )
+
+    # Work over merged_lims_df_invalid, for cases
+    # Where we now have duplicate columns
+    # pieriandx_case_id_merged / pieriandx_case_id_lims
+    # For pieriandx case id, we have a couple of use-cases
+    # Case 1: pieriandx_case_id_merged is 'int' and pieriandx_case_id_lims is 'pending'
+    #   pieriandx_case_id is set to pieriandx_case_id_merged
+    # Case 2: pieriandx_case_id_merged is NA and pieriandx_case_id_lims is 'pending'
+    #   sample just submitted (maybe manually?) just check date is not too old?
+    # Case 3: pieriandx_case_id_merged is 'int' and pieriandx_case_id_lims is NA ( for manually run samples )
+    # Case 4: Both are null (for sample not submitted)
+    new_merged_df_invalid_rows = []
+    for index, row in merged_lims_df_invalid.iterrows():
+        new_series = pd.Series(row)
+        # Collect cells
+        pieriandx_case_id_merged = row['pieriandx_case_id_merged']
+        pieriandx_case_id_lims = row['pieriandx_case_id_lims']
+        pieriandx_case_submission_time = row['pieriandx_submission_time']
+
+        # Case 4 deal with NA comparison first
+        # Case 4 - both are null (when sample has not been submitted or is omitted from submission (NTCs))
+        if pd.isnull(pieriandx_case_id_merged) and pd.isnull(pieriandx_case_id_lims):
+            new_series["pieriandx_case_id"] = pieriandx_case_id_merged
+            new_merged_df_invalid_rows.append(new_series)
+            continue
+
+        # Case 1
+        elif str(pieriandx_case_id_merged).isdigit() and pieriandx_case_id_lims == "pending":
+            new_series["pieriandx_case_id"] = pieriandx_case_id_merged
+            new_merged_df_invalid_rows.append(new_series)
+            continue
+
+        # Case 2
+        elif pd.isnull(pieriandx_case_id_merged) and pieriandx_case_id_lims == 'pending':
+            # Check sample submission time is not too old
+            logger.info(f"Got 'pending' case id for sample subject / library / portal "
+                        f"{row['subject_id']}, {row['library_id']} {row['portal_wfr_id']} "
+                        f"but never got a matching pieriandx accession number")
+            one_week_ago = (datetime.utcnow() - timedelta(days=7)).date()
+
+            # All actions are the same - just logging is different
+            if pd.isnull(pieriandx_case_submission_time):
+                logger.info("Pieriandx Case Submission time is null, we just merge as null")
+            elif pieriandx_case_submission_time < one_week_ago:
+                logger.info("Case pending for over one week, this case will be resubmitted")
+            else:
+                logger.info("Case pending for less than one week, please resubmit manually")
+
+            # Use the merged df case id
+            new_series["pieriandx_case_id"] = pieriandx_case_id_merged
+            new_merged_df_invalid_rows.append(new_series)
+            continue
+
+        # Case 3
+        elif str(pieriandx_case_id_merged).isdigit() and pd.isnull(pieriandx_case_id_lims):
+            new_series["pieriandx_case_id"] = pieriandx_case_id_merged
+            new_merged_df_invalid_rows.append(new_series)
+            continue
+        else:
+            new_series["pieriandx_case_id"] = pieriandx_case_id_merged
+            new_merged_df_invalid_rows.append(new_series)
+            continue
+
+    # Create dataframe out of new rows
+    merged_lims_df_invalid = pd.DataFrame(new_merged_df_invalid_rows).drop(
+        columns=[
+            "pieriandx_case_id_merged",
+            "pieriandx_case_id_lims"
+        ]
+    )
+
+    # Rebind onto merged df
+    merged_lims_df = merged_df.merge(
+        pd.concat(
+            [
+                merged_lims_df_valid,
+                merged_lims_df_invalid
+            ],
+            ignore_index=True
+        )[["subject_id", "library_id", "portal_wfr_id", "pieriandx_case_id", "pieriandx_submission_time"]].drop_duplicates(
+            subset=["subject_id", "library_id", "portal_wfr_id", "pieriandx_case_id"],
+            keep="first"
+        ),
+        how="left",
+        on=["subject_id", "library_id", "portal_wfr_id", "pieriandx_case_id"]
+    )
+
+    return merged_lims_df
 
 
 def lambdas_awake() -> bool:
@@ -1529,19 +1659,6 @@ def lambda_handler(event, context):
 
     merged_df, cttso_lims_df, excel_row_number_mapping_df = \
         cleanup_duplicate_rows(merged_df, cttso_lims_df, excel_row_number_mapping_df)
-
-    # Merge cttso_lims_df with merged df to collect pieriandx_submission_time value (that is only present in lims df)
-    # We use the standard subject id / library id / portal wfr id for merging
-    lims_submission_time_df = cttso_lims_df.query(
-        "not pieriandx_case_id.isnull()", engine="python"
-    )[["subject_id", "library_id", "portal_wfr_id", "pieriandx_case_id", "pieriandx_submission_time"]].drop_duplicates(
-        subset=["subject_id", "library_id", "portal_wfr_id"], keep="last"
-    )
-    merged_df = pd.merge(
-        merged_df, lims_submission_time_df,
-        how="left",
-        on=["subject_id", "library_id", "portal_wfr_id"]
-    )
 
     # Collect jobs that are yet to be completed
     pieriandx_incomplete_jobs_df: pd.DataFrame = get_pieriandx_incomplete_job_df_from_cttso_lims_df(cttso_lims_df=cttso_lims_df)
