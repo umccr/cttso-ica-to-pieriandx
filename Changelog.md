@@ -4,21 +4,6 @@ Changes in this log refer only to changes that make it to the 'main' branch. and
 
 For changes in deployment, please see the [deployment changelog](deploy/cttso-ica-to-pieriandx-cdk/Changelog.md) 
 
-## 2023-07-31
-
-> Author: Alexis Lucattini
-> Email: [Alexis.Lucattini@ummcr.org](mailto:alexis.lucattini@umccr.org)
-
-### HotFix
-
-* Fix submission time issue when merge adds suffixes to columns ([#118](https://github.com/umccr/cttso-ica-to-pieriandx/pull/118))
-  * Resolves https://github.com/umccr/cttso-ica-to-pieriandx/issues/116
-
-### Bugfix
-
-* Fix cancelled cases when workflow is still NA (so needs an update) ([#117](https://github.com/umccr/cttso-ica-to-pieriandx/pull/117))
-  * Resolves https://github.com/umccr/cttso-ica-to-pieriandx/issues/115 
-
 ## 2023-07-10
 
 > Author: Alexis Lucattini
