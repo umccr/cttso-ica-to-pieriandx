@@ -625,7 +625,10 @@ def get_pieriandx_incomplete_job_df_from_cttso_lims_df(cttso_lims_df: pd.DataFra
     """
     static_statuses = ["complete", "failed", "canceled"]
 
-    # Get cases where pieriandx case id is pending
+    # Get cases where pieriandx case id is pending'
+    # canceled is a static status but take exception when
+    # pieriandx_report_status is 'canceled' we don't care
+    # about updating the rest
     return cttso_lims_df.query(
         "( "
         "  ("
@@ -637,9 +640,12 @@ def get_pieriandx_incomplete_job_df_from_cttso_lims_df(cttso_lims_df: pd.DataFra
         "      not pieriandx_case_id.isnull() "
         "    ) and "
         "    ( "
+        "      not pieriandx_report_status == 'canceled' "
+        "    ) and "
+        "    ( "
         "      pieriandx_workflow_id.isnull() or "
         "      not pieriandx_workflow_status in @static_statuses or "
-        "      not pieriandx_report_status in @static_statuses"
+        "      not pieriandx_report_status in @static_statuses "
         "    ) "
         "  ) "
         ")",
@@ -772,6 +778,7 @@ def update_pieriandx_job_status_missing_df(pieriandx_job_status_missing_df, merg
         "portal_is_failed_run",
         "glims_is_validation",
         "glims_is_research",
+        "pieriandx_submission_time",
         "pieriandx_case_id",
         "pieriandx_case_creation_date"
     ]]
@@ -1318,6 +1325,8 @@ def cleanup_duplicate_rows(merged_df: pd.DataFrame, cttso_lims_df: pd.DataFrame,
         how="outer", suffixes=("", "_lims")
     )
 
+    merged_lims_df = bind_pieriandx_case_submission_time_to_merged_df(merged_lims_df, cttso_lims_df)
+
     # Get list of case ids to drop
     case_ids_to_remove: List = get_duplicate_case_ids(merged_lims_df)
 
@@ -1424,11 +1433,20 @@ def bind_pieriandx_case_submission_time_to_merged_df(merged_df: pd.DataFrame, ct
         "pieriandx_case_id.str.isdigit()",
         engine="python"
     )
+
     # Not null but might be 'pending'
     cttso_lims_df_without_valid_case_id = cttso_lims_df_valid_merge.query(
         "not pieriandx_case_id.str.isdigit()",
         engine="python"
     )
+
+    # If we have a submission time, we pull it in again from cttso lims
+    if "pieriandx_submission_time" in merged_df.columns.tolist():
+        merged_df = merged_df.drop(
+            columns=[
+                "pieriandx_submission_time"
+            ]
+        )
 
     # Merge on pieriandx case id
     merged_lims_df_valid = pd.merge(
@@ -1456,6 +1474,8 @@ def bind_pieriandx_case_submission_time_to_merged_df(merged_df: pd.DataFrame, ct
     # Case 3: pieriandx_case_id_merged is 'int' and pieriandx_case_id_lims is NA ( for manually run samples )
     # Case 4: Both are null (for sample not submitted)
     new_merged_df_invalid_rows = []
+    index: int
+    row: pd.Series
     for index, row in merged_lims_df_invalid.iterrows():
         new_series = pd.Series(row)
         # Collect cells
@@ -1515,18 +1535,49 @@ def bind_pieriandx_case_submission_time_to_merged_df(merged_df: pd.DataFrame, ct
         ]
     )
 
+    # Check if duplicate rows for pieriandx submission time
+    merged_lims_df_valid_and_invalid_df = pd.concat(
+        [
+            merged_lims_df_valid,
+            merged_lims_df_invalid
+        ],
+        ignore_index=True
+    )[["subject_id", "library_id", "portal_wfr_id", "pieriandx_case_id", "pieriandx_submission_time"]]
+
+    # Drop duplicates but fill pieriandx submission time
+    new_rows = []
+    for (subject_id, library_id, portal_wfr_id, pieriandx_case_id), time_df in merged_lims_df_valid_and_invalid_df.groupby(
+        ["subject_id", "library_id", "portal_wfr_id", "pieriandx_case_id"]
+    ):
+        if time_df.shape[0] == 1:
+            new_rows.append(time_df)
+            continue
+
+        # Select time_df where pieriandx_submission_time is not null
+        valid_submission_time_df = time_df.query("not pieriandx_submission_time.isnull()", engine="python")
+        if valid_submission_time_df.shape[0] == 1:
+            new_rows.append(valid_submission_time_df)
+            continue
+
+        # Added new rows
+        new_rows.append(
+            time_df.drop_duplicates(
+                subset=[
+                    "subject_id", "library_id",
+                    "portal_wfr_id", "pieriandx_case_id"
+                ],
+                keep="first"
+            )
+        )
+
+    merged_lims_df_valid_and_invalid_df = pd.concat(
+        new_rows,
+        ignore_index=True
+    )
+
     # Rebind onto merged df
     merged_lims_df = merged_df.merge(
-        pd.concat(
-            [
-                merged_lims_df_valid,
-                merged_lims_df_invalid
-            ],
-            ignore_index=True
-        )[["subject_id", "library_id", "portal_wfr_id", "pieriandx_case_id", "pieriandx_submission_time"]].drop_duplicates(
-            subset=["subject_id", "library_id", "portal_wfr_id", "pieriandx_case_id"],
-            keep="first"
-        ),
+        merged_lims_df_valid_and_invalid_df,
         how="left",
         on=["subject_id", "library_id", "portal_wfr_id", "pieriandx_case_id"]
     )
@@ -1739,7 +1790,5 @@ def lambda_handler(event, context):
 
 
 ## LOCAL DEBUG ONLY ##
-if __name__ == "__main__":
-    lambda_handler(None, None)
-
-#
+# if __name__ == "__main__":
+#   lambda_handler(None, None)
