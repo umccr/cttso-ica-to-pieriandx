@@ -244,6 +244,7 @@ def get_libraries_for_processing(merged_df) -> pd.DataFrame:
         and (
                pd.isnull(x.redcap_is_complete) or
                not x.redcap_is_complete.lower() == "complete"
+               or x.redcap_sample_type.lower() == "validation"
            )
         else False,
         axis="columns"
@@ -346,11 +347,18 @@ def submit_libraries_to_pieriandx(processing_df: pd.DataFrame) -> pd.DataFrame:
     # Validation if is validation sample or IS research sample with no redcap information
     processing_df["submission_arn"] = processing_df.apply(
         lambda x: get_validation_lambda_arn()
-        if x.is_validation_sample or (x.is_research_sample and (
-                pd.isnull(x.redcap_is_complete) or
-                not x.redcap_is_complete.lower() == "complete"
-            )
-        )
+        if x.glims_is_validation is True
+           or (
+               # Sample not in RedCap
+               (
+                   pd.isnull(x.redcap_is_complete) or
+                   not x.redcap_is_complete.lower() == "complete"
+               ) and
+               # GLIMS Workflow is set to 'Research'
+               (
+                 x.glims_is_research
+               )
+           )
         else get_clinical_lambda_arn(),
         axis="columns"
     )
