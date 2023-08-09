@@ -88,25 +88,34 @@ print(new_spread.url)
 ## ctTSO LIMS Decision Tree
 
 * Sample Types are determined by Google LIMS and RedCap
-  * If the ProjectName column in Google LIMS is set to _Validation_ or _Control_ in Google LIMS.
+  * If the ProjectName column in Google LIMS is set to _Validation_ or _Control_.
     * Validation Sample goes through Validation Lambda
-  * If the RedCap entry for the sample is set to _Validation_
+  * If the Workflow column in Google LIMS is set to _Research_ AND Sample does not exist in RedCap
     * Validation Sample goes through Validation Lambda
-  * If the RedCap entry for the sample is set to _PatientCare_
-    * Clinical Sample goes through Clinical Lambda
+  * If the Sample Type is Validation in RedCap
+    * Validation Sample goes through RedCap Lambda (but with SampleType set to Validation)
+  
+  * If Sample Type is PatientCare in RedCap
+    * Patient Care Sample goes through RedCap Lambda (with SampleType set to PatientCare)
+  
+  * If none of the above is true
+    * We assume this is a patient sample that is not in RedCap yet and hold off on running sample.
 
-* Panel Types are loosely coupled to the Sample Type
+* Panel Types are coupled to the Sample Type
   * If the Sample is a Validation Sample
     * Panel Type will always be _MAIN_
-  * If the Sample is a Clinical Sample and the ProjectName in Google LIMS is set to Research
-    * Panel Type will be _MAIN_
-  * If the Sample is a Clinical Sample and the ProjectName in Google LIMS is _NOT_ set to Research
-    * Panel Type will be _SUBPANEL_
+  * If the Sample is a Clinical Sample
+    * Panel Type will always be _SUBPANEL_
 
-The following diagram may be of assistance
+The following diagram(s) may be of assistance
 
-![decision tree diagram](images/cttso-ica-to-pieriandx-cdk-setup.png)
+### Overview
 
+![images/overview.drawio.png](images/overview.drawio.png)
+
+### Choose Launch Pathway
+
+![images/choose-launch-pathway.drawio.png](images/choose-launch-pathway.drawio.png)
 
 ## Helpful scripts
 

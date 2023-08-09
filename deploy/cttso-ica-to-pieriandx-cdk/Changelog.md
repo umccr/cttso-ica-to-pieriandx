@@ -3,6 +3,23 @@
 Changes in this log refer only to changes that make it to the 'main' branch and
 are nested under deploy/cttso-ica-to-pieriandx-cdk.  
 
+## 2023-08-09
+
+> Author: Alexis Lucattini
+> Email: [Alexis.Lucattini@umccr.org](mailto:alexis.lucattini@umccr.org)
+
+* Improved diagram for automation pathway
+
+### Bug fixes
+
+* Make sure RedCap Sample Type is used if RedCap Entry is not null
+* Ensure Lambda Pathways are as expected on the diagram
+  * GLIMS ProjectName is set to _Validation_ or _Control_
+  * **OR**
+    * Sample NOT in RedCap
+    * **AND**
+    * GLIMS Workflow is set to 'Research'
+
 ## 2023-07-31
 
 > Author: Alexis Lucattini
