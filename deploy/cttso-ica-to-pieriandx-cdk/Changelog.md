@@ -10,9 +10,10 @@ are nested under deploy/cttso-ica-to-pieriandx-cdk.
 
 * Updated submission columns
 
-### Hot fix
+### Hot fixes
 
 * Updated submission column [#124](https://github.com/umccr/cttso-ica-to-pieriandx/pull/124) (fixes [#123](https://github.com/umccr/cttso-ica-to-pieriandx/issues/123))
+* Update is_validation logic [#127](https://github.com/umccr/cttso-ica-to-pieriandx/pull/127) (fixes [#126](https://github.com/umccr/cttso-ica-to-pieriandx/issues/126)) 
 
 ## 2023-08-09
 
