@@ -184,6 +184,8 @@ def get_libraries_for_processing(merged_df) -> pd.DataFrame:
         "subject_id",
         "library_id",
         "portal_wfr_id",
+        "glims_is_validation",
+        "glims_is_research",
         "is_validation_sample",
         "is_research_sample",
         "redcap_is_complete"
@@ -332,6 +334,8 @@ def submit_libraries_to_pieriandx(processing_df: pd.DataFrame) -> pd.DataFrame:
       * library_id
       * portal_wfr_id
       * is_validation_sample
+      * glims_is_validation
+      * glims_is_research
       * is_research_sample
       * redcap_is_complete
     :return:
