@@ -243,10 +243,10 @@ def get_libraries_for_processing(merged_df) -> pd.DataFrame:
     to_process_df["is_validation_sample"] = to_process_df.apply(
         lambda x: True
         if x.glims_is_validation is True
-        and (
-               pd.isnull(x.redcap_is_complete) or
-               not x.redcap_is_complete.lower() == "complete"
-               or x.redcap_sample_type.lower() == "validation"
+        or (
+               not pd.isnull(x.redcap_is_complete)
+               and x.redcap_is_complete.lower() == "complete"
+               and x.redcap_sample_type.lower() == "validation"
            )
         else False,
         axis="columns"
