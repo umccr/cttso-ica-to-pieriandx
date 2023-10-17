@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import json
 
 from mypy_boto3_ssm.client import SSMClient
 from aws_requests_auth.boto_utils import BotoAWSRequestsAuth
@@ -14,9 +15,10 @@ from .globals import \
     PORTAL_WORKFLOWS_ENDPOINT, \
     PORTAL_WORKFLOW_ORDERING, \
     PORTAL_MAX_ROWS_PER_PAGE, \
-    PORTAL_CTTSO_TYPE_NAME, \
+    PORTAL_CTTSO_WORKFLOW_TYPE_NAME, \
     PORTAL_FIELDS, \
-    WFR_NAME_REGEX, PORTAL_SEQUENCE_RUNS_ENDPOINT
+    WFR_NAME_REGEX, PORTAL_SEQUENCE_RUNS_ENDPOINT, PORTAL_LIMSROW_ENDPOINT, PORTAL_CTTSO_SAMPLE_TYPE, \
+    PORTAL_CTTSO_SAMPLE_ASSAY, PORTAL_CTTSO_SAMPLE_PHENOTYPE, LIMS_PROJECT_NAME_MAPPING_SSM_PATH
 
 from .aws_helpers import get_aws_region, get_boto3_ssm_client
 from .logger import get_logger
@@ -136,7 +138,7 @@ def get_portal_workflow_run_data_df() -> pd.DataFrame:
             auth=portal_auth,
             params={
                 "rowsPerPage": PORTAL_MAX_ROWS_PER_PAGE,
-                "type_name": PORTAL_CTTSO_TYPE_NAME,
+                "type_name": PORTAL_CTTSO_WORKFLOW_TYPE_NAME,
                 "ordering": PORTAL_WORKFLOW_ORDERING,
                 "page": page_number
             }
@@ -276,6 +278,7 @@ def get_clinical_metadata_information_from_portal_for_subject(subject_id: str, l
     :return: A pandas DataFrame with the following columns:
       * subject_id
       * library_id
+      * project_name
       * external_sample_id
       * external_subject_id
     """
@@ -336,30 +339,39 @@ def get_ica_workflow_run_id_from_portal(subject_id: str, library_id: str) -> str
     )
     portal_auth = get_portal_creds(portal_url_endpoint)
 
-    # FIXME - iterate over pages
+    all_results = []
+    page_number = 1
 
-    req: Response = requests.get(
-        url=portal_url_endpoint,
-        auth=portal_auth,
-        params={
-            "type_name": PORTAL_CTTSO_TYPE_NAME,
-            "end_status": "Succeeded",
-            "ordering": PORTAL_WORKFLOW_ORDERING,
-            "rowsPerPage": PORTAL_MAX_ROWS_PER_PAGE
-        }
-    )
+    while True:
+        req: Response = requests.get(
+            url=portal_url_endpoint,
+            auth=portal_auth,
+            params={
+                "type_name": PORTAL_CTTSO_WORKFLOW_TYPE_NAME,
+                "end_status": "Succeeded",
+                "ordering": PORTAL_WORKFLOW_ORDERING,
+                "rowsPerPage": PORTAL_MAX_ROWS_PER_PAGE
+            }
+        )
 
-    # Collect the json
-    json_dict: Dict = req.json()
+        req_dict: Dict = req.json()
 
-    # Ensure requests
-    results: List
-    if (results := json_dict.get("results", None)) is None:
-        logger.error("Could not get requests from portal workflow endpoint")
-        raise ValueError
+        results: List
+        if (results := req_dict.get("results", None)) is None:
+            logger.error("Could not get requests from portal workflow endpoint")
+            raise ValueError
+
+        # Extend all results
+        all_results.extend(results)
+
+        # Get next page
+        if req_dict.get("links", {}).get("next", None) is not None:
+            page_number += 1
+        else:
+            break
 
     # Collect data frames
-    cttso_workflows_df: pd.DataFrame = pd.DataFrame(results)
+    cttso_workflows_df: pd.DataFrame = pd.DataFrame(all_results)
 
     cttso_workflows_df["subject_id"] = cttso_workflows_df.apply(
         lambda x: WFR_NAME_REGEX.fullmatch(x.wfr_name).groups(1),
@@ -382,4 +394,213 @@ def get_ica_workflow_run_id_from_portal(subject_id: str, library_id: str) -> str
 
     # Collect the workflow run id from the most recent run
     return cttso_workflows_df["wfr_id"].tolist()[0]
+
+
+def get_ssm_project_mapping_json() -> List:
+    """
+    Returns the json object that maps project owner to sample type -
+    Looks like this
+    [
+      {
+        "project_owner": "VCCC",
+        "project_name": "PO",
+        "panel": "subpanel",
+        "sample_type": "patient_care_sample",
+        "is_identified": "identified",
+        "default_snomed_term":null
+      },
+      ...
+      {
+        "project_owner": "UMCCR",
+        "project_name": "Control",
+        "panel": "main",
+        "sample_type": "validation",
+        "is_identified": "deidentified",
+        "default_snomed_term": "Disseminated malignancy of unknown primary"
+      },
+      {
+        "project_owner": "*",
+        "project_name": "*",
+        "panel": "main",
+        "sample_type": "patient_care_sample",
+        "is_identified": "deidentified",
+        "default_snomed_term": "Disseminated malignancy of unknown primary"
+      }
+    ]
+    :return:
+    """
+    ssm_client = get_boto3_ssm_client()
+
+    return json.loads(
+        ssm_client.get_parameter(
+            Name=LIMS_PROJECT_NAME_MAPPING_SSM_PATH
+        ).get("Parameter").get("Value")
+    )
+
+
+def apply_mapping_json_to_row(row: pd.Series, mapping_json: List):
+    """
+    Apply mapping json to row
+      {
+        ""
+      }
+    :param row:
+    :param mapping_json:
+    :return:
+    """
+
+    # Get mapping dict by project_name / project_owner
+    try:
+        mapping_dict = next(
+            filter(
+                lambda mapping_json_iter:
+                (
+                    mapping_json_iter.get("project_owner") == row['glims_project_owner'] and
+                    mapping_json_iter.get("project_name") == row['glims_project_name']
+                ) or
+                (
+                    mapping_json_iter.get("project_owner") == "*" and
+                    mapping_json_iter.get("project_name") == row['glims_project_name']
+                ) or
+                (
+                        mapping_json_iter.get("project_owner") == row['glims_project_owner'] and
+                        mapping_json_iter.get("project_name") == "*"
+                ),
+                mapping_json
+            )
+        )
+    except StopIteration:
+        mapping_dict = next(
+            filter(
+                lambda mapping_json_iter:
+                mapping_json_iter.get("project_owner") == "*" and
+                mapping_json_iter.get("project_name") == "*",
+                mapping_json
+            )
+        )
+
+    # Determing column 'needs_redcap' by determining if default_snomed_term is set?
+    if mapping_dict.get("default_snomed_term", None) is None:
+        mapping_dict["needs_redcap"] = True
+    else:
+        mapping_dict["needs_redcap"] = False
+
+    return mapping_dict
+
+
+def get_cttso_samples_from_limsrow_df() -> pd.DataFrame:
+    """
+    Get cttso samples from GLIMS
+
+    :return: A pandas DataFrame with the following columns
+      * subject_id
+      * library_id
+      * in_glims
+      * glims_illumina_id
+      * glims_project_owner
+      * glims_project_name
+      * glims_panel
+      * glims_sample_type
+      * glims_is_identified
+      * glims_default_snomed_term
+      * glims_needs_redcap
+    """
+
+    portal_base_url = get_portal_base_url()
+    portal_url_endpoint = PORTAL_LIMSROW_ENDPOINT.format(
+        PORTAL_API_BASE_URL=portal_base_url
+    )
+    portal_auth = get_portal_creds(portal_url_endpoint)
+
+    # Initialise page and appended list
+    all_results = []
+    page_number = 1
+
+    while True:
+        req: Response = requests.get(
+            url=portal_url_endpoint,
+            auth=portal_auth,
+            params={
+                "type": PORTAL_CTTSO_SAMPLE_TYPE,
+                "assay": PORTAL_CTTSO_SAMPLE_ASSAY,
+                "phenotype": PORTAL_CTTSO_SAMPLE_PHENOTYPE,
+                "rowsPerPage": PORTAL_MAX_ROWS_PER_PAGE,
+                "ordering": PORTAL_WORKFLOW_ORDERING,
+                "page": page_number
+            }
+        )
+
+        req_dict: Dict = req.json()
+
+        results: List
+        if (results := req_dict.get("results", None)) is None:
+            raise ValueError
+
+        # Extend all results
+        all_results.extend(results)
+
+        # Get next page
+        if req_dict.get("links", {}).get("next", None) is not None:
+            page_number += 1
+        else:
+            break
+
+    # Convret to dataframe
+    portal_cttso_limsrow_df = pd.DataFrame(all_results)
+
+    # Set column in_glims to true for all rows in this df
+    portal_cttso_limsrow_df["in_glims"] = True
+
+    # Rename project owner and name columns
+    portal_cttso_limsrow_df = portal_cttso_limsrow_df.rename(
+        columns={
+            "project_owner": "glims_project_owner",
+            "project_name": "glims_project_name",
+        }
+    )
+
+    mapping_json: List = get_ssm_project_mapping_json()
+
+    portal_cttso_limsrow_df["mapping_json"] = portal_cttso_limsrow_df.apply(
+        lambda row: apply_mapping_json_to_row(row, mapping_json),
+        axis="columns"
+    )
+
+    # Get glims rows based on project owner and project name
+    columns_to_update = [
+        "panel",
+        "sample_type",
+        "is_identified",
+        "default_snomed_term",
+        "needs_redcap"
+    ]
+
+    for columns_to_update in columns_to_update:
+        portal_cttso_limsrow_df[f"glims_{columns_to_update}"] = portal_cttso_limsrow_df["mapping_json"].apply(
+            lambda json_map: json_map.get(columns_to_update)
+        )
+
+    # Rename illumina_id to glims_illumina_id
+    portal_cttso_limsrow_df.rename(
+        columns={
+            "illumina_id": "glims_illumina_id"
+        },
+        inplace=True
+    )
+
+    columns_to_return = [
+        "subject_id",
+        "library_id",
+        "in_glims",
+        "glims_illumina_id",
+        "glims_project_owner",
+        "glims_project_name",
+        "glims_panel",
+        "glims_sample_type",
+        "glims_is_identified",
+        "glims_default_snomed_term",
+        "glims_needs_redcap"
+    ]
+
+    return portal_cttso_limsrow_df[columns_to_return]
 

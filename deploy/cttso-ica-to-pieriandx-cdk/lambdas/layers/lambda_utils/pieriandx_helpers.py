@@ -149,6 +149,7 @@ def get_pieriandx_df() -> pd.DataFrame:
       * pieriandx_case_id
       * pieriandx_case_accession_number
       * pieriandx_case_creation_date  (as dt object)
+      * pieriandx_assignee
     """
     email, auth_token, institution, base_url = get_pieriandx_env_vars()
 
@@ -185,12 +186,31 @@ def get_pieriandx_df() -> pd.DataFrame:
 
     cases_df.columns = sanitised_columns
 
+    # Update column names
+    columns_to_update = {
+        "id": "pieriandx_case_id",
+        "accession_number": "pieriandx_case_accession_number",
+        "date_created": "pieriandx_case_creation_date"
+    }
+
+    if "assignee" in cases_df.columns.tolist():
+        columns_to_update.update(
+            {
+                "assignee": "pieriandx_assignee"
+            }
+        )
+    else:
+        # Assign nulls to column
+        cases_df["pieriandx_assignee"] = pd.NA
+
     cases_df = cases_df.rename(
-        columns={
-            "id": "pieriandx_case_id",
-            "accession_number": "pieriandx_case_accession_number",
-            "date_created": "pieriandx_case_creation_date",
-        }
+        columns=columns_to_update
+    )
+
+    # Convert pieriandx assignee from list to last assignee
+    # pieriandx assignee might not exist
+    cases_df["pieriandx_assignee"] = cases_df["pieriandx_assignee"].apply(
+        lambda x: x[-1] if isinstance(x, List) else pd.NA
     )
 
     # Convert case creation date to datetime object
@@ -220,7 +240,8 @@ def get_pieriandx_df() -> pd.DataFrame:
         "library_id",
         "pieriandx_case_id",
         "pieriandx_case_accession_number",
-        "pieriandx_case_creation_date"
+        "pieriandx_case_creation_date",
+        "pieriandx_assignee"
     ]
 
     return cases_df[columns_to_return]

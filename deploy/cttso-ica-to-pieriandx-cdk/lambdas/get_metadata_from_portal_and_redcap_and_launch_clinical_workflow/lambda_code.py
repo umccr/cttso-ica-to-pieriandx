@@ -58,6 +58,7 @@ def merge_clinical_redcap_and_portal_data(redcap_df: pd.DataFrame, portal_df: pd
     Whilst the portal dataframe contains the following columns:
       * subject_id
       * library_id
+      * project_name
       * external_sample_id
       * external_subject_id
     :param redcap_df:
@@ -109,7 +110,9 @@ def lambda_handler(event, context):
         "case_accession_number": "SBJID_LIBID_123",
         "ica_workflow_run_id": "wfr.123abc",
         "allow_missing_redcap_entry": false,
-        "panel_type": "main"
+        "panel_type": "main",
+        "sample_type": "patient_care_sample",
+        "is_identified": true,
     }
     """
 
@@ -204,6 +207,17 @@ def lambda_handler(event, context):
     if (panel_type := event.get("panel_type", None)) is None:
         panel_type = CLINICAL_DEFAULTS["panel_type"].name.lower()
 
+    if (sample_type := event.get("sample_type", None)) is None:
+        sample_type = CLINICAL_DEFAULTS["sample_type"].name.lower()
+
+    if (is_identified := event.get("is_identified", None)) is None:
+        is_identified = CLINICAL_DEFAULTS["is_identified"].name.lower()
+
+    # Set panel type (if not null)
+    merged_df["panel_type"] = panel_type
+    merged_df["sample_type"] = sample_type
+    merged_df["is_identified"] = is_identified
+
     # Check length
     if merged_df.shape[0] == 0:
         logger.error("PierianDx metadata was not 'Complete', exiting")
@@ -236,7 +250,6 @@ def lambda_handler(event, context):
 
     # Set defaults
     merged_df["specimen_type"] = CLINICAL_DEFAULTS["specimen_type"]
-    merged_df["is_identified"] = CLINICAL_DEFAULTS["is_identified"]
     merged_df["indication"] = CLINICAL_DEFAULTS["indication"]
     merged_df["hospital_number"] = CLINICAL_DEFAULTS["hospital_number"]
     merged_df["accession_number"] = case_accession_number
@@ -252,8 +265,7 @@ def lambda_handler(event, context):
     logger.info("Rename external subject and external sample columns")
     merged_df = merged_df.rename(
         columns={
-            "external_sample_id": "external_specimen_id",
-            "external_subject_id": "mrn"
+            "external_sample_id": "external_specimen_id"
         }
     )
 
@@ -268,18 +280,32 @@ def lambda_handler(event, context):
             raise ValueError
 
     # Step 7a - make up the 'identified' values (date_of_birth / first_name / last_name)
-    merged_df["date_of_birth"] = datetime_obj_to_utc_isoformat(CLINICAL_DEFAULTS["date_of_birth"])
-    merged_df["first_name"] = merged_df.apply(
-        lambda x: CLINICAL_DEFAULTS["patient_name"][x.gender.lower()].split(" ")[0],
-        axis="columns"
-    )
-    merged_df["last_name"] = merged_df.apply(
-        lambda x: CLINICAL_DEFAULTS["patient_name"][x.gender.lower()].split(" ")[-1],
-        axis="columns"
-    )
+    # We set all but we only have one row (as asserted in the merge df)
+    if all(merged_df["is_identified"]):
+        merged_df["date_of_birth"] = datetime_obj_to_utc_isoformat(CLINICAL_DEFAULTS["date_of_birth"])
+        merged_df["first_name"] = merged_df.apply(
+            lambda x: CLINICAL_DEFAULTS["patient_name"][x.gender.lower()].split(" ")[0],
+            axis="columns"
+        )
+        merged_df["last_name"] = merged_df.apply(
+            lambda x: CLINICAL_DEFAULTS["patient_name"][x.gender.lower()].split(" ")[-1],
+            axis="columns"
+        )
+        merged_df = merged_df.rename(
+            columns={
+                "external_subject_id": "mrn"
+            }
+        )
+    # Step 7b - for deidentified samples, use study_identified and study_subject_identifier
+    else:
+        merged_df["study_identifier"] = merged_df["project_name"]
+        merged_df = merged_df.rename(
+            columns={
+                "external_subject_id": "study_subject_identifier"
+            }
+        )
 
-    # Set panel type
-    merged_df["panel_type"] = panel_type
+    # Set is_identified
 
     # Step 7 - Launch batch lambda function
     accession_json: Dict = merged_df.to_dict(orient="records")[0]

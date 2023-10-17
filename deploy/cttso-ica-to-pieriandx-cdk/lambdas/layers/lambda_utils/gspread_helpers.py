@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
-
+from datetime import datetime
 from pathlib import Path
 from tempfile import TemporaryDirectory
 import os
+from typing import List
+
 import pandas as pd
 import numpy as np
 from gspread_pandas import Spread
@@ -67,6 +69,9 @@ def create_gspread_pandas_dir() -> Path:
 
 
 def set_google_secrets():
+    if os.environ.get("GSPREAD_PANDAS_CONFIG_DIR", None) is not None:
+        return
+
     # Add in the secret and set the env var
     gspread_pandas_dir = create_gspread_pandas_dir()
 
@@ -75,45 +80,28 @@ def set_google_secrets():
     os.environ["GSPREAD_PANDAS_CONFIG_DIR"] = str(gspread_pandas_dir)
 
 
-def get_cttso_samples_from_glims() -> pd.DataFrame:
+def get_column_range(series_length: int) -> List:
     """
-    Get cttso samples from GLIMS
-    :return: A pandas DataFrame with the following columns
-      * subject_id
-      * library_id
-      * sequence_run_name
-      * glims_is_validation -> Is this a validation sample? Determined by ProjectName is equal to "Validation" or "Control"
-      * glims_is_research -> Is this a research sample? Determined by ProjectName is equal to "Research"
+    A to Z plus AA, AB, AC etc
+    :param series_length:
+    :return:
     """
+    column_range = get_alphabet()
+    counter = 0
 
-    if os.environ.get("GSPREAD_PANDAS_CONFIG_DIR") is None:
-        set_google_secrets()
+    while True:
+        if len(column_range) >= series_length:
+            break
+        column_range = column_range + list(
+            map(
+                lambda letter: get_alphabet()[counter] + letter,
+                get_alphabet()
+            )
+        )
 
-    # Pull in from sheet data
-    glims_df: pd.DataFrame = Spread(spread=get_glims_sheet_id(), sheet="Sheet1").sheet_to_df(index=0)
+        counter += 1
 
-    # We also set Phenotype to 'tumor' to prevent NTC being uploaded to PierianDx
-    glims_df = glims_df.query("Type=='ctDNA' & Assay=='ctTSO' & Phenotype=='tumor'")
-
-    glims_df["glims_is_validation"] = glims_df.apply(
-        lambda x: True if x.ProjectName.lower() in ["validation", "control"] else False,
-        axis="columns"
-    )
-    glims_df["glims_is_research"] = glims_df.apply(
-        lambda x: True if x.Workflow.lower() in ["research"] else False,
-        axis="columns"
-    )
-
-    glims_df = glims_df.rename(
-        columns={
-            "SubjectID": "subject_id",
-            "IlluminaID": "sequence_run_name",
-            "LibraryID": "library_id"
-        }
-    )
-
-    # Drop duplicate rows and return
-    return glims_df[["subject_id", "library_id", "sequence_run_name", "glims_is_validation", "glims_is_research"]].drop_duplicates()
+    return column_range[:series_length]
 
 
 def update_cttso_lims_row(new_row: pd.Series, row_number: int):
@@ -127,7 +115,7 @@ def update_cttso_lims_row(new_row: pd.Series, row_number: int):
     new_row = new_row.replace({pd.NaT: None}).replace({'NaT': None}).replace({np.NaN: ""})
 
     series_length = new_row.shape[0]
-    column_range = get_alphabet()[:series_length]
+    column_range = get_column_range(series_length)
     sheet_obj = Spread(spread=get_cttso_lims_sheet_id(), sheet="Sheet1")
     sheet_obj.update_cells(
         start=f"{column_range[0]}{row_number}",
@@ -214,8 +202,13 @@ def get_cttso_lims() -> (pd.DataFrame, pd.DataFrame):
         * in_portal
         * in_redcap
         * in_pieriandx
-        * glims_is_validation
-        * glims_is_research
+        * glims_project_owner
+        * glims_project_name
+        * glims_panel
+        * glims_sample_type
+        * glims_is_identified
+        * glims_default_snomed_term
+        * glims_needs_redcap
         * redcap_sample_type
         * redcap_is_complete
         * portal_wfr_id
@@ -228,6 +221,7 @@ def get_cttso_lims() -> (pd.DataFrame, pd.DataFrame):
         * pieriandx_case_accession_number
         * pieriandx_case_creation_date
         * pieriandx_case_identified
+        * pieriandx_assignee
         * pieriandx_panel_type
         * pieriandx_sample_type
         * pieriandx_workflow_id
