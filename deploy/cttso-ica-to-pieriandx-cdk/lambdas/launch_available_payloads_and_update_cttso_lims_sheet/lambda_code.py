@@ -1597,6 +1597,126 @@ def bind_pieriandx_case_submission_time_to_merged_df(merged_df: pd.DataFrame, ct
     return merged_lims_df
 
 
+def drop_to_be_deleted_cases(merged_df: pd.DataFrame, cttso_lims_df: pd.DataFrame, excel_row_mapping_number_df: pd.DataFrame) -> (pd.DataFrame, pd.DataFrame, pd.DataFrame):
+    """
+    Cases that have been assigned to ToBeDeleted need to be dropped from row list
+    and instead attached to a new sheet
+    :param merged_df:
+      * subject_id
+      * library_id
+      * in_redcap
+      * in_portal
+      * in_glims
+      * in_pieriandx
+      * redcap_sample_type
+      * redcap_is_complete
+      * portal_wfr_id
+      * portal_wfr_end
+      * portal_wfr_status
+      * portal_sequence_run_name
+      * portal_is_failed_run
+      * glims_project_owner
+      * glims_project_name
+      * glims_panel
+      * glims_sample_type
+      * glims_is_identified
+      * glims_default_snomed_term
+      * glims_needs_redcap
+      * pieriandx_case_id
+      * pieriandx_case_accession_number
+      * pieriandx_case_creation_date
+      * pieriandx_assignee
+    :param cttso_lims_df:
+     A pandas DataFrame with the following columns:
+        * subject_id
+        * library_id
+        * in_glims
+        * in_portal
+        * in_redcap
+        * in_pieriandx
+        * glims_project_owner
+        * glims_project_name
+        * glims_panel
+        * glims_sample_type
+        * glims_is_identified
+        * glims_default_snomed_term
+        * glims_needs_redcap
+        * redcap_sample_type
+        * redcap_is_complete
+        * portal_wfr_id
+        * portal_wfr_end
+        * portal_wfr_status
+        * portal_sequence_run_name
+        * portal_is_failed_run
+        * pieriandx_submission_time
+        * pieriandx_case_id
+        * pieriandx_case_accession_number
+        * pieriandx_case_creation_date
+        * pieriandx_case_identified
+        * pieriandx_assignee
+        * pieriandx_panel_type
+        * pieriandx_sample_type
+        * pieriandx_workflow_id
+        * pieriandx_workflow_status
+        * pieriandx_report_status
+        * pieriandx_report_signed_out  - currently ignored
+    :param excel_row_mapping_number_df:
+      A pandas DataFrame with the following columns:
+        * cttso_lims_index
+        * excel_row_number
+    :return:
+    """
+    # Split cttso lims df by query
+    to_be_deleted_cases_lims = cttso_lims_df.query("pieriandx_assignee == 'ToBeDeleted'")
+    to_be_deleted_cases_merged_df = merged_df.query("pieriandx_assignee == 'ToBeDeleted'")
+
+    if to_be_deleted_cases_lims.shape[0] == 0 and to_be_deleted_cases_merged_df.shape[0] == 0:
+        logger.info("Nothing to transfer to delete pile")
+        return merged_df, cttso_lims_df, excel_row_mapping_number_df
+
+    cttso_lims_df_cleaned = cttso_lims_df.query("pieriandx_assignee != 'ToBeDeleted'")
+    clean_cttso_case_ids_list = cttso_lims_df_cleaned["pieriandx_case_id"].tolist()
+    deleted_case_ids_list = to_be_deleted_cases_lims["pieriandx_case_id"].tolist()
+
+    # Clean out merged df with existing deleted cases
+    # And any cases we're about to put into the deleted lims as well
+    deleted_lims_df, deleted_lims_excel_row_mapping_number = get_deleted_lims_df()
+    case_ids_to_remove_from_merged_df = list(
+        set(
+            deleted_lims_df["pieriandx_case_id"].tolist() +
+            to_be_deleted_cases_lims["pieriandx_case_id"].tolist()
+        )
+    )
+
+    # If the case id is in both, we need to keep it, and have it reassigned
+    merged_df = merged_df.query(
+        "pieriandx_case_id.isnull() or "
+        "pieriandx_case_id not in @case_ids_to_remove_from_merged_df or "
+        "( "
+        "  pieriandx_case_id in @clean_cttso_case_ids_list and "
+        "  pieriandx_case_id in @deleted_case_ids_list "
+        ")",
+        engine="python"
+    )
+
+    # Update cttso lims sheet with replacement
+    append_df_to_cttso_lims(cttso_lims_df_cleaned, replace=True)
+    # Wait for doc population
+    sleep(10)
+
+    # Collect new values
+    cttso_lims_df: pd.DataFrame
+    excel_row_number_mapping_df: pd.DataFrame
+    cttso_lims_df, excel_row_number_mapping_df = get_cttso_lims()
+
+    # Update deleted sheet - note we only add in the cases that are in the LIMS -
+    # cases in merged_df will need to be updated into LIMS first THEN pulled out of LIMS in the next iteration of this
+    # lambda script
+    add_deleted_cases_to_deleted_sheet(to_be_deleted_cases_lims)
+
+    return merged_df, cttso_lims_df, excel_row_number_mapping_df
+
+
 def lambdas_awake() -> bool:
     """
     Go through the lambdas that are required for this service and make sure that they're all awake
@@ -1719,6 +1839,10 @@ def lambda_handler(event, context):
     cttso_lims_df: pd.DataFrame
     excel_row_number_mapping_df: pd.DataFrame
     cttso_lims_df, excel_row_number_mapping_df = get_cttso_lims()
+
+    # Clean out to-be-deleted cases
+    merged_df, cttso_lims_df, excel_row_number_mapping_df = \
+        drop_to_be_deleted_cases(merged_df, cttso_lims_df, excel_row_number_mapping_df)
 
     merged_df, cttso_lims_df, excel_row_number_mapping_df = \
         cleanup_duplicate_rows(merged_df, cttso_lims_df, excel_row_number_mapping_df)
