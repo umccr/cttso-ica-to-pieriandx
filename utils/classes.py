@@ -733,7 +733,7 @@ class DeIdentifiedCase(Case):
         return cls(case_accession_number=case_dict.get("accession_number"),
                    disease=case_dict.get("disease_obj"),
                    sample_type=SampleType(case_dict.get("sample_type")),
-                   panel_type=PanelType[case_dict.get("panel_type").upper()],
+                   panel_type=PanelType[case_dict.get("panel_type").upper().replace("_", "")],
                    # Still need to load this
                    specimen=DeIdentifiedSpecimen.from_dict(case_dict),
                    indication=case_dict.get("indication"))
@@ -786,7 +786,7 @@ class IdentifiedCase(Case):
             case_accession_number=case_dict.get("accession_number"),
             disease=case_dict.get("disease_obj"),
             sample_type=SampleType(case_dict.get("sample_type")),
-            panel_type=PanelType[case_dict.get("panel_type").upper()],
+            panel_type=PanelType[case_dict.get("panel_type").upper().replace("_", "")],
             requesting_physicians=[
                 Physician.from_dict(physician)
                 for physician in case_dict.get("requesting_physicians")
