@@ -139,12 +139,6 @@ def lambda_handler(event, context):
     sample_df["accession_number"] = case_accession_number
     sample_df["date_accessioned"] = datetime_obj_to_utc_isoformat(CURRENT_TIME)
 
-    # Convert times to utc time and strings
-    for date_column in ["date_received", "date_collected", "date_of_birth"]:
-        sample_df[date_column] = sample_df[date_column].apply(
-            lambda x: datetime_obj_to_utc_isoformat(handle_date(x))
-        )
-
     # Rename columns
     logger.info("Rename external subject and external sample columns")
     sample_df = sample_df.rename(
@@ -179,6 +173,12 @@ def lambda_handler(event, context):
             columns={
                 "external_subject_id": "study_subject_identifier"
             }
+        )
+
+    # Convert times to utc time and strings
+    for date_column in ["date_received", "date_collected", "date_of_birth"]:
+        sample_df[date_column] = sample_df[date_column].apply(
+            lambda x: datetime_obj_to_utc_isoformat(handle_date(x))
         )
 
     # Assert expected values exist
