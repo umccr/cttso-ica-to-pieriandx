@@ -112,7 +112,7 @@ def main():
             except ValueError:
                 logger.warning(f"Could not get run flowcell id from '{portal_run_id}', skipping renaming run")
             else:
-                run.rename_run(new_run_name=f"{case.case_accession_number}_{run_flowcell_id}_{run.get_timestamp()}")
+                run.rename_run(new_run_name=f"{case.case_accession_number}_{run_flowcell_id}_{portal_run_id}_{run.get_timestamp()}")
         else:
             logger.info(f"Couldn't rename the run object since workflow "
                         f"run name '{ica_workflow_run_obj.name}' was not in recognised regex form")
