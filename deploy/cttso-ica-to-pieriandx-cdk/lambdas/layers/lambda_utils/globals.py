@@ -29,9 +29,13 @@ class SampleType(Enum):
 PORTAL_API_BASE_URL_SSM_PATH = "/data_portal/backend/api_domain_name"
 PORTAL_METADATA_ENDPOINT = "https://{PORTAL_API_BASE_URL}/iam/metadata/"
 PORTAL_WORKFLOWS_ENDPOINT = "https://{PORTAL_API_BASE_URL}/iam/workflows"
+PORTAL_LIMSROW_ENDPOINT = "https://{PORTAL_API_BASE_URL}/iam/lims"
 PORTAL_SEQUENCE_RUNS_ENDPOINT = "https://{PORTAL_API_BASE_URL}/iam/sequencerun"
 PORTAL_MAX_ROWS_PER_PAGE = 100
-PORTAL_CTTSO_TYPE_NAME = "tso_ctdna_tumor_only"
+PORTAL_CTTSO_WORKFLOW_TYPE_NAME = "tso_ctdna_tumor_only"
+PORTAL_CTTSO_SAMPLE_TYPE = "ctDNA"
+PORTAL_CTTSO_SAMPLE_ASSAY = "ctTSO"
+PORTAL_CTTSO_SAMPLE_PHENOTYPE = "tumor"
 PORTAL_WORKFLOW_ORDERING = "-start"  # We generally want the latest
 
 GOOGLE_LIMS_AUTH_JSON_SSM_PARAMETER_PATH = "/umccr/google/drive/lims_service_account_json"
@@ -54,6 +58,8 @@ PIERIANDX_USER_AUTH_TOKEN_SECRETS_PATH: Path = Path("PierianDx") / "UserAuthToke
 PIERIANDX_USER_AUTH_TOKEN_SECRETS_KEY: str = "PierianDxUserAuthToken"
 
 PIERIANDX_LAMBDA_LAUNCH_FUNCTION_ARN_SSM_PATH = "cttso-ica-to-pieriandx-lambda-function"
+
+LIMS_PROJECT_NAME_MAPPING_SSM_PATH = "cttso-lims-project-name-to-pieriandx-mapping"
 
 MAX_ATTEMPTS_GET_CASES = 5
 LIST_CASES_RETRY_TIME = 5
@@ -162,6 +168,7 @@ REDCAP_LABEL_FIELDS_CLINICAL: List = [
 PORTAL_FIELDS: List = [
     "subject_id",
     "library_id",
+    "project_name",
     "external_sample_id",
     "external_subject_id"
 ]
@@ -185,6 +192,6 @@ EXPECTED_ATTRIBUTES = [
 
 WFR_NAME_REGEX = re.compile(
     # "umccr__automated__tso_ctdna_tumor_only__SBJ00998__L2101500__202112115d8bdae7"
-    rf"umccr__automated__{PORTAL_CTTSO_TYPE_NAME}__(SBJ\d{{5}})__(L\d{{7}})__\S+"
+    rf"umccr__automated__{PORTAL_CTTSO_WORKFLOW_TYPE_NAME}__(SBJ\d{{5}})__(L\d{{7}})__\S+"
 )
 

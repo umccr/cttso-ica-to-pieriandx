@@ -17,7 +17,8 @@ import {
     SSM_CLINICAL_LAMBDA_FUNCTION_ARN_VALUE,
     GLIMS_SSM_PARAMETER_PATH,
     REDCAP_LAMBDA_FUNCTION_SSM_KEY,
-    SSM_LIMS_LAMBDA_FUNCTION_EVENT_RULE_NAME_VALUE
+    SSM_LIMS_LAMBDA_FUNCTION_EVENT_RULE_NAME_VALUE,
+    SSM_PROJECT_NAME_TO_PIERIANDX_CONFIG_SSM_PATH
 } from "../constants";
 import {Rule, Schedule} from "aws-cdk-lib/aws-events";
 import { LambdaFunction as LambdaFunctionTarget } from "aws-cdk-lib/aws-events-targets"
@@ -136,6 +137,9 @@ export class CttsoIcaToPieriandxLimsMakerLambdaStack extends Stack {
             })
         ))
 
+        // Get permission to project owner configuration SSM Parameter
+
+
         // Add pieriandx secrets access to lambda policy
         const pieriandx_secrets_path = Secret.fromSecretNameV2(
             this,
@@ -225,6 +229,12 @@ export class CttsoIcaToPieriandxLimsMakerLambdaStack extends Stack {
             `${props.stack_prefix}-ica-to-pieriandx-function-arn`,
             SSM_LAMBDA_FUNCTION_ARN_VALUE
         )
+        const cttso_project_mapping_to_pieriandx_ssm = StringParameter.fromStringParameterName(
+            this,
+            `${props.stack_prefix}-ica-to-pieriandx-project-mapping-arn`,
+            SSM_PROJECT_NAME_TO_PIERIANDX_CONFIG_SSM_PATH
+        )
+
         // Step 2: Add ssm to policy
         lambda_function.addToRolePolicy(
             new PolicyStatement({
@@ -234,7 +244,8 @@ export class CttsoIcaToPieriandxLimsMakerLambdaStack extends Stack {
                     resources: [
                         clinical_lambda_function_ssm.parameterArn,
                         validation_lambda_function_ssm.parameterArn,
-                        cttso_ica_to_pieriandx_ssm.parameterArn
+                        cttso_ica_to_pieriandx_ssm.parameterArn,
+                        cttso_project_mapping_to_pieriandx_ssm.parameterArn
                     ]
                 }
             )

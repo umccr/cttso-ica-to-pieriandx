@@ -79,6 +79,7 @@ async def async_get_metadata_information_from_portal(subject_id: str, library_id
     :return: A pandas DataFrame with the following columns:
       * subject_id
       * library_id
+      * project_name
       * external_sample_id
       * external_subject_id
     """
