@@ -3,6 +3,27 @@
 Changes in this log refer only to changes that make it to the 'main' branch and
 are nested under deploy/cttso-ica-to-pieriandx-cdk.  
 
+## 2023-10-18
+
+> Author: Alexis Lucattini
+> Email: [Alexis.Lucattini@umccr.org](mailto:alexis.lucattini@umccr.org)
+
+### Enhancements
+
+* Move to project owner / project name mapping logic (https://github.com/umccr/cttso-ica-to-pieriandx/pull/141)
+  * And restructure LIMS sheet
+  * Diagram also updated
+  * Resolves:
+    * https://github.com/umccr/cttso-ica-to-pieriandx/issues/131
+    * https://github.com/umccr/cttso-ica-to-pieriandx/issues/132
+    * https://github.com/umccr/cttso-ica-to-pieriandx/issues/134
+    * https://github.com/umccr/cttso-ica-to-pieriandx/issues/135
+
+* Add deleted sheet (https://github.com/umccr/cttso-ica-to-pieriandx/pull/140)
+  * All cases assigned to user ToBe Deleted, are moved to a separate sheet
+
+
+
 ## 2023-08-13
 
 > Author: Alexis Lucattini
