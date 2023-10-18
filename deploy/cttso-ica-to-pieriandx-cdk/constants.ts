@@ -44,3 +44,6 @@ export const SSM_TOKEN_REFRESH_LAMBDA_FUNCTION_ARN_VALUE: string = "token-refres
 
 // Output things
 export const SSM_LAMBDA_FUNCTION_ARN_VALUE: string = "cttso-ica-to-pieriandx-lambda-function"
+
+// Project Owner mapping path
+export const SSM_PROJECT_NAME_TO_PIERIANDX_CONFIG_SSM_PATH: string = "cttso-lims-project-name-to-pieriandx-mapping"

@@ -44,7 +44,9 @@ def lambda_handler(event, context):
         "library_id": "L1234567",
         "case_accession_number": "SBJID_LIBID_123",
         "ica_workflow_run_id": "wfr.123abc",
-        "panel_type": "main"
+        "panel_type": "main",
+        "sample_type": "validation",
+        "is_identified": False
     }
     """
 
@@ -76,17 +78,30 @@ def lambda_handler(event, context):
                      f"for subject id '{subject_id}' / library id '{library_id}'")
         raise ValueError
 
+    # Get Panel Type (or get default if none
+    panel_type: str
+    if (panel_type := event.get("panel_type", None)) is None:
+        panel_type = VALIDATION_DEFAULTS["panel_type"]
+
+    # Get is identified
+    sample_type: str
+    if (sample_type := event.get("sample_type", None)) is None:
+        sample_type = VALIDATION_DEFAULTS["sample_type"]
+
+    # Get is identified
+    is_identified: str
+    if (is_identified := event.get("is_identified", None)) is None:
+        is_identified = VALIDATION_DEFAULTS["is_identified"]
+
     # Update sample_df with validation defaults
-    sample_df["sample_type"] = VALIDATION_DEFAULTS["sample_type"]
+    sample_df["sample_type"] = sample_type
+    sample_df["panel_type"] = panel_type
+    sample_df["is_identified"] = is_identified
     sample_df["indication"] = VALIDATION_DEFAULTS["indication"]
     sample_df["disease_id"] = VALIDATION_DEFAULTS["disease_id"]
     sample_df["disease_name"] = VALIDATION_DEFAULTS["disease_name"]
-    sample_df["is_identified"] = VALIDATION_DEFAULTS["is_identified"]
     sample_df["requesting_physicians_first_name"] = VALIDATION_DEFAULTS["requesting_physicians_first_name"]
     sample_df["requesting_physicians_last_name"] = VALIDATION_DEFAULTS["requesting_physicians_last_name"]
-    sample_df["first_name"] = VALIDATION_DEFAULTS["first_name"]
-    sample_df["last_name"] = VALIDATION_DEFAULTS["last_name"]
-    sample_df["date_of_birth"] = VALIDATION_DEFAULTS["date_of_birth"]
     sample_df["specimen_type"] = VALIDATION_DEFAULTS["specimen_type"]
     sample_df["date_accessioned"] = VALIDATION_DEFAULTS["date_accessioned"]
     sample_df["date_collected"] = VALIDATION_DEFAULTS["date_collected"]
@@ -124,18 +139,11 @@ def lambda_handler(event, context):
     sample_df["accession_number"] = case_accession_number
     sample_df["date_accessioned"] = datetime_obj_to_utc_isoformat(CURRENT_TIME)
 
-    # Convert times to utc time and strings
-    for date_column in ["date_received", "date_collected", "date_of_birth"]:
-        sample_df[date_column] = sample_df[date_column].apply(
-            lambda x: datetime_obj_to_utc_isoformat(handle_date(x))
-        )
-
     # Rename columns
     logger.info("Rename external subject and external sample columns")
     sample_df = sample_df.rename(
         columns={
             "external_sample_id": "external_specimen_id",
-            "external_subject_id": "mrn"
         }
     )
 
@@ -148,6 +156,31 @@ def lambda_handler(event, context):
         axis="columns"
     )
 
+    # For identified - we rename external subject id as the medical record number
+    if all(sample_df["is_identified"]):
+        sample_df["first_name"] = VALIDATION_DEFAULTS["first_name"]
+        sample_df["last_name"] = VALIDATION_DEFAULTS["last_name"]
+        sample_df["date_of_birth"] = VALIDATION_DEFAULTS["date_of_birth"]
+        sample_df = sample_df.rename(
+            columns={
+                "external_subject_id": "mrn"
+            }
+        )
+    # For deidentified - we rename the external subject id as the study subject identifier
+    else:
+        sample_df["study_identifier"] = sample_df["project_name"]
+        sample_df = sample_df.rename(
+            columns={
+                "external_subject_id": "study_subject_identifier"
+            }
+        )
+
+    # Convert times to utc time and strings
+    for date_column in ["date_received", "date_collected", "date_of_birth"]:
+        sample_df[date_column] = sample_df[date_column].apply(
+            lambda x: datetime_obj_to_utc_isoformat(handle_date(x))
+        )
+
     # Assert expected values exist
     logger.info("Check we have all of the expected information")
     for expected_column in EXPECTED_ATTRIBUTES:
@@ -157,10 +190,6 @@ def lambda_handler(event, context):
                 f"did not find it in columns {', '.join(sample_df.columns.tolist())}"
             )
             raise ValueError
-
-    if (panel_type := event.get("panel_type", None)) is None:
-        panel_type = VALIDATION_DEFAULTS["panel_type"].name.lower()
-    sample_df["panel_type"] = panel_type
 
     # Launch batch lambda function
     accession_json: Dict = sample_df.to_dict(orient="records")[0]

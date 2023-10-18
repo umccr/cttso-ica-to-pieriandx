@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
-
+from datetime import datetime
 from pathlib import Path
 from tempfile import TemporaryDirectory
 import os
+from typing import List
+
 import pandas as pd
 import numpy as np
 from gspread_pandas import Spread
@@ -67,6 +69,9 @@ def create_gspread_pandas_dir() -> Path:
 
 
 def set_google_secrets():
+    if os.environ.get("GSPREAD_PANDAS_CONFIG_DIR", None) is not None:
+        return
+
     # Add in the secret and set the env var
     gspread_pandas_dir = create_gspread_pandas_dir()
 
@@ -75,45 +80,28 @@ def set_google_secrets():
     os.environ["GSPREAD_PANDAS_CONFIG_DIR"] = str(gspread_pandas_dir)
 
 
-def get_cttso_samples_from_glims() -> pd.DataFrame:
+def get_column_range(series_length: int) -> List:
     """
-    Get cttso samples from GLIMS
-    :return: A pandas DataFrame with the following columns
-      * subject_id
-      * library_id
-      * sequence_run_name
-      * glims_is_validation -> Is this a validation sample? Determined by ProjectName is equal to "Validation" or "Control"
-      * glims_is_research -> Is this a research sample? Determined by ProjectName is equal to "Research"
+    A to Z plus AA, AB, AC etc
+    :param series_length:
+    :return:
     """
+    column_range = get_alphabet()
+    counter = 0
 
-    if os.environ.get("GSPREAD_PANDAS_CONFIG_DIR") is None:
-        set_google_secrets()
+    while True:
+        if len(column_range) >= series_length:
+            break
+        column_range = column_range + list(
+            map(
+                lambda letter: get_alphabet()[counter] + letter,
+                get_alphabet()
+            )
+        )
 
-    # Pull in from sheet data
-    glims_df: pd.DataFrame = Spread(spread=get_glims_sheet_id(), sheet="Sheet1").sheet_to_df(index=0)
+        counter += 1
 
-    # We also set Phenotype to 'tumor' to prevent NTC being uploaded to PierianDx
-    glims_df = glims_df.query("Type=='ctDNA' & Assay=='ctTSO' & Phenotype=='tumor'")
-
-    glims_df["glims_is_validation"] = glims_df.apply(
-        lambda x: True if x.ProjectName.lower() in ["validation", "control"] else False,
-        axis="columns"
-    )
-    glims_df["glims_is_research"] = glims_df.apply(
-        lambda x: True if x.Workflow.lower() in ["research"] else False,
-        axis="columns"
-    )
-
-    glims_df = glims_df.rename(
-        columns={
-            "SubjectID": "subject_id",
-            "IlluminaID": "sequence_run_name",
-            "LibraryID": "library_id"
-        }
-    )
-
-    # Drop duplicate rows and return
-    return glims_df[["subject_id", "library_id", "sequence_run_name", "glims_is_validation", "glims_is_research"]].drop_duplicates()
+    return column_range[:series_length]
 
 
 def update_cttso_lims_row(new_row: pd.Series, row_number: int):
@@ -127,7 +115,7 @@ def update_cttso_lims_row(new_row: pd.Series, row_number: int):
     new_row = new_row.replace({pd.NaT: None}).replace({'NaT': None}).replace({np.NaN: ""})
 
     series_length = new_row.shape[0]
-    column_range = get_alphabet()[:series_length]
+    column_range = get_column_range(series_length)
     sheet_obj = Spread(spread=get_cttso_lims_sheet_id(), sheet="Sheet1")
     sheet_obj.update_cells(
         start=f"{column_range[0]}{row_number}",
@@ -214,8 +202,13 @@ def get_cttso_lims() -> (pd.DataFrame, pd.DataFrame):
         * in_portal
         * in_redcap
         * in_pieriandx
-        * glims_is_validation
-        * glims_is_research
+        * glims_project_owner
+        * glims_project_name
+        * glims_panel
+        * glims_sample_type
+        * glims_is_identified
+        * glims_default_snomed_term
+        * glims_needs_redcap
         * redcap_sample_type
         * redcap_is_complete
         * portal_wfr_id
@@ -228,6 +221,7 @@ def get_cttso_lims() -> (pd.DataFrame, pd.DataFrame):
         * pieriandx_case_accession_number
         * pieriandx_case_creation_date
         * pieriandx_case_identified
+        * pieriandx_assignee
         * pieriandx_panel_type
         * pieriandx_sample_type
         * pieriandx_workflow_id
@@ -270,3 +264,122 @@ def get_cttso_lims() -> (pd.DataFrame, pd.DataFrame):
     )
 
     return cttso_lims_df, excel_row_number_df
+
+
+def get_deleted_lims_df() -> (pd.DataFrame, pd.DataFrame):
+    """
+    Collect the values from the existing GSuite spreadsheet
+    Maps the values from the existing GSuite spreadsheet to their excel row number
+    Also returns the row value for each of the items
+    :return: (
+      A pandas DataFrame with the following columns:
+        * subject_id
+        * library_id
+        * in_glims
+        * in_portal
+        * in_redcap
+        * in_pieriandx
+        * glims_project_owner
+        * glims_project_name
+        * glims_panel
+        * glims_sample_type
+        * glims_is_identified
+        * glims_default_snomed_term
+        * glims_needs_redcap
+        * redcap_sample_type
+        * redcap_is_complete
+        * portal_wfr_id
+        * portal_wfr_end
+        * portal_wfr_status
+        * portal_sequence_run_name
+        * portal_is_failed_run
+        * pieriandx_submission_time
+        * pieriandx_case_id
+        * pieriandx_case_accession_number
+        * pieriandx_case_creation_date
+        * pieriandx_case_identified
+        * pieriandx_assignee
+        * pieriandx_panel_type
+        * pieriandx_sample_type
+        * pieriandx_workflow_id
+        * pieriandx_workflow_status
+        * pieriandx_report_status
+        * pieriandx_report_signed_out  - currently ignored
+        * date_added_to_deletion_table
+      ,
+      A pandas DataFrame with the following columns:
+        * cttso_lims_index
+        * excel_row_number
+    )
+    :return:
+    """
+    deleted_lims_df: pd.DataFrame = Spread(spread=get_cttso_lims_sheet_id(), sheet="Deleted Cases").sheet_to_df(index=0)
+
+    deleted_lims_df = deleted_lims_df.replace("", pd.NA)
+
+    # Replace booleans
+    deleted_lims_df = deleted_lims_df.replace({
+        "TRUE": True,
+        "FALSE": False
+    })
+
+    excel_row_number_df: pd.DataFrame = pd.DataFrame({"cttso_lims_index": deleted_lims_df.index})
+
+    # Conversion to 1-based index plus single header row
+    excel_row_number_df["excel_row_number"] = excel_row_number_df.index + 2
+
+    return deleted_lims_df, excel_row_number_df
+
+
+def append_rows_to_deleted_lims(to_be_deleted: pd.DataFrame):
+    """
+    List of rows to be added to the deleted lims database
+    # FIXME add df
+    :param to_be_deleted:
+    :return:
+    """
+    # Open up the sheet object
+    sheet_obj = Spread(spread=get_cttso_lims_sheet_id(), sheet="Deleted Cases")
+
+    # Perform a proper NA replacement
+    # https://github.com/pandas-dev/pandas/issues/29024#issuecomment-1098052276
+    new_df = to_be_deleted.replace({pd.NaT: None}).replace({'NaT': None}).replace({np.NaN: ""})
+
+    # Get existing sheet
+    existing_sheet = sheet_obj.sheet_to_df(index=0)
+    # Update the sheet object with the list
+    sheet_obj.df_to_sheet(
+        pd.concat(
+            [
+                existing_sheet,
+                new_df,
+                pd.DataFrame(columns=existing_sheet.columns, index=range(1000))
+            ]
+        ),
+        index=False, replace=True, fill_value=""
+    )
+
+
+def add_deleted_cases_to_deleted_sheet(new_cases_to_delete_df: pd.DataFrame):
+    """
+    # FIXME add df here
+    :param new_cases_to_delete_df:
+    :return:
+    """
+    deleted_lims_df, excel_row_mapping_number = get_deleted_lims_df()
+
+    # Create list for query
+    existing_deleted_case_ids = deleted_lims_df["pieriandx_case_id"].tolist()
+
+    # Get list of deleted cases
+    new_cases_to_delete_df = new_cases_to_delete_df.query(
+        "pieriandx_case_id not in @existing_deleted_case_ids",
+        engine="python"
+    )
+
+    if new_cases_to_delete_df.shape[0] == 0:
+        return
+
+    new_cases_to_delete_df["date_added_to_deletion_table"] = datetime.utcnow().isoformat(sep="T", timespec="seconds") + "Z"
+
+    append_rows_to_deleted_lims(new_cases_to_delete_df)

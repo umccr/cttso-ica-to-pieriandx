@@ -44,8 +44,13 @@ new_headers = [
     "in_portal",
     "in_redcap",
     "in_pieriandx",
-    "glims_is_validation",
-    "glims_is_research",
+    "glims_project_owner",
+    "glims_project_name",
+    "glims_panel",
+    "glims_sample_type",
+    "glims_is_identified",
+    "glims_default_snomed_term",
+    "glims_needs_redcap",
     "redcap_sample_type",
     "redcap_is_complete",
     "portal_wfr_id",
@@ -58,11 +63,12 @@ new_headers = [
     "pieriandx_case_accession_number",
     "pieriandx_case_creation_date",
     "pieriandx_case_identified",
+    "pieriandx_assignee",
     "pieriandx_panel_type",
     "pieriandx_sample_type",
     "pieriandx_workflow_id",
     "pieriandx_workflow_status",
-    "pieriandx_report_status",
+    "pieriandx_report_status"
 ]
 
 headers_df = pd.DataFrame(columns=new_headers)
@@ -87,35 +93,14 @@ print(new_spread.url)
 
 ## ctTSO LIMS Decision Tree
 
-* Sample Types are determined by Google LIMS and RedCap
-  * If the ProjectName column in Google LIMS is set to _Validation_ or _Control_.
-    * Validation Sample goes through Validation Lambda
-  * If the Workflow column in Google LIMS is set to _Research_ AND Sample does not exist in RedCap
-    * Validation Sample goes through Validation Lambda
-  * If the Sample Type is Validation in RedCap
-    * Validation Sample goes through RedCap Lambda (but with SampleType set to Validation)
-  
-  * If Sample Type is PatientCare in RedCap
-    * Patient Care Sample goes through RedCap Lambda (with SampleType set to PatientCare)
-  
-  * If none of the above is true
-    * We assume this is a patient sample that is not in RedCap yet and hold off on running sample.
-
-* Panel Types are coupled to the Sample Type
-  * If the Sample is a Validation Sample
-    * Panel Type will always be _MAIN_
-  * If the Sample is a Clinical Sample
-    * Panel Type will always be _SUBPANEL_
-
-The following diagram(s) may be of assistance
+Please see [#validation-or-clinical-script](#validation-or-clinical-script) for more information.
 
 ### Overview
 
+> The following diagram may be of assistance
+
 ![images/overview.drawio.png](images/overview.drawio.png)
 
-### Choose Launch Pathway
-
-![images/choose-launch-pathway.drawio.png](images/choose-launch-pathway.drawio.png)
 
 ## Helpful scripts
 
@@ -253,7 +238,7 @@ Now change to the deployment directory (the directory this readme is in)
 cd deploy/cttso-ica-to-pieriandx-cdk
 ```
 
-### Wake up lamdas!
+### Wake up lambdas!
 
 Before we launch any payloads, let's ensure that the lambda (and any downstream lambdas)
 are active.
@@ -282,6 +267,106 @@ Find the workflow with the subject id and library id of interest in the workflow
 Use the Google LIMS page to check if you're sample is a validation sample (ProjectName field is either _control_ or _validation_).  
 Validation samples do not go through the subpanel pipeline, clinical samples go through the subpanel pipeline.
 
+We use the following JSON logic to determine the pathway for each pieriandx sample based on it's project owner 
+
+This file can be found in `project-name-to-pieriandx-mapping.json`.  
+
+The mapping can be updated with the script `update_project_name_mapping.sh`.  
+
+This ssm parameter is NOT part of the cdk stack and MUST be updated using the script above.  
+
+```json
+[
+  {
+    "project_owner": "VCCC",
+    "project_name": "PO",
+    "panel": "subpanel",
+    "sample_type": "patient_care_sample",
+    "is_identified": "identified",
+    "default_snomed_term":null
+  },
+  {
+    "project_owner": "Grimmond",
+    "project_name": "COUMN",
+    "panel": "subpanel",
+    "sample_type": "patient_care_sample",
+    "is_identified": "identified",
+    "default_snomed_term": null
+  },
+  {
+    "project_owner": "Tothill",
+    "project_name": "CUP",
+    "panel": "main",
+    "sample_type": "patient_care_sample",
+    "is_identified": "identified",
+    "default_snomed_term": "Disseminated malignancy of unknown primary"
+  },
+  {
+    "project_owner": "Tothill",
+    "project_name": "PPGL",
+    "panel": "main",
+    "sample_type": "patient_care_sample",
+    "is_identified": "identified",
+    "default_snomed_term": null
+  },
+  {
+    "project_owner": "TJohn",
+    "project_name": "MESO",
+    "panel": "subpanel",
+    "sample_type": "patient_care_sample",
+    "is_identified": "identified",
+    "default_snomed_term": null
+  },
+  {
+    "project_owner": "TJohn",
+    "project_name": "OCEANiC",
+    "panel": "subpanel",
+    "sample_type": "patient_care_sample",
+    "is_identified": "deidentified",
+    "default_snomed_term": null
+  },
+  {
+    "project_owner": "*",
+    "project_name": "SOLACE2",
+    "panel": "main",
+    "sample_type": "patient_care_sample",
+    "is_identified": "deidentified",
+    "default_snomed_term": "Neoplastic disease"
+  },
+  {
+    "project_owner": "SLuen",
+    "project_name": "IMPARP",
+    "panel": "main",
+    "sample_type": "patient_care_sample",
+    "is_identified": "deidentified",
+    "default_snomed_term": "Neoplastic disease"
+  },
+  {
+    "project_owner": "UMCCR",
+    "project_name": "Control",
+    "panel": "main",
+    "sample_type": "validation",
+    "is_identified": "deidentified",
+    "default_snomed_term": "Neoplastic disease"
+  },
+  {
+    "project_owner": "UMCCR",
+    "project_name": "QAP",
+    "panel": "subpanel",
+    "sample_type": "patient_care_sample",
+    "is_identified": "identified",
+    "default_snomed_term": null
+  },
+  {
+    "project_owner": "*",
+    "project_name": "*",
+    "panel": "main",
+    "sample_type": "patient_care_sample",
+    "is_identified": "deidentified",
+    "default_snomed_term": "Neoplastic disease"
+  }
+]
+```
 
 ### Creating the input payloads file
 

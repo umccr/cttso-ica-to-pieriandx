@@ -4,6 +4,19 @@ Changes in this log refer only to changes that make it to the 'main' branch. and
 
 For changes in deployment, please see the [deployment changelog](deploy/cttso-ica-to-pieriandx-cdk/Changelog.md) 
 
+## 2023-10-18
+
+> Author: Alexis Lucattini
+> Email: [Alexis.Lucattini@ummcr.org](mailto:alexis.lucattini@umccr.org)
+
+### Enhancement
+
+* Add portal run id to sequencer run attribute of PierianDx Case Accession (https://github.com/umccr/cttso-ica-to-pieriandx/pull/142)
+  * Resolves https://github.com/umccr/cttso-ica-to-pieriandx/issues/130
+
+* Allow both sub_panel and subpanel as valid panel types (https://github.com/umccr/cttso-ica-to-pieriandx/pull/143)
+  * Resolves https://github.com/umccr/cttso-ica-to-pieriandx/issues/139
+
 ## 2023-07-10
 
 > Author: Alexis Lucattini

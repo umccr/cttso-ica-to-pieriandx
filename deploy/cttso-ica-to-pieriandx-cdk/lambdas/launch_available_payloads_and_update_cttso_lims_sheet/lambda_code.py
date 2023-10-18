@@ -50,11 +50,11 @@ from datetime import datetime, timedelta
 from lambda_utils.arns import get_validation_lambda_arn, get_clinical_lambda_arn
 from lambda_utils.aws_helpers import get_boto3_lambda_client, get_boto3_ssm_client, get_boto3_events_client
 from lambda_utils.gspread_helpers import \
-    get_cttso_samples_from_glims, get_cttso_lims, update_cttso_lims_row, \
-    append_df_to_cttso_lims
+    get_cttso_lims, update_cttso_lims_row, \
+    append_df_to_cttso_lims, add_deleted_cases_to_deleted_sheet, get_deleted_lims_df, set_google_secrets
 from lambda_utils.logger import get_logger
 from lambda_utils.pieriandx_helpers import get_pieriandx_df, get_pieriandx_status_for_missing_sample
-from lambda_utils.portal_helpers import get_portal_workflow_run_data_df
+from lambda_utils.portal_helpers import get_portal_workflow_run_data_df, get_cttso_samples_from_limsrow_df
 from lambda_utils.redcap_helpers import get_full_redcap_data_df
 from lambda_utils.globals import \
     PIERIANDX_LAMBDA_LAUNCH_FUNCTION_ARN_SSM_PATH, \
@@ -88,9 +88,14 @@ def merge_redcap_portal_and_glims_data(redcap_df, portal_df, glims_df) -> pd.Dat
       * subject_id
       * library_id
       * in_glims
-      * sequence_run_name
-      * glims_is_validation
-      * glims_is_research
+      * glims_illumina_id
+      * glims_project_owner
+      * glims_project_name
+      * glims_panel
+      * glims_sample_type
+      * glims_is_identified
+      * glims_default_snomed_term
+      * glims_needs_redcap
     :return: A pandas dataframe with the following columns:
       * subject_id
       * library_id
@@ -104,8 +109,13 @@ def merge_redcap_portal_and_glims_data(redcap_df, portal_df, glims_df) -> pd.Dat
       * portal_wfr_status
       * portal_sequence_run_name
       * portal_is_failed_run
-      * glims_is_validation
-      * glims_is_research
+      * glims_project_owner
+      * glims_project_name
+      * glims_panel
+      * glims_sample_type
+      * glims_is_identified
+      * glims_default_snomed_term
+      * glims_needs_redcap
     """
     portal_redcap_df = pd.merge(portal_df, redcap_df,
                                 on=["subject_id", "library_id"],
@@ -115,7 +125,7 @@ def merge_redcap_portal_and_glims_data(redcap_df, portal_df, glims_df) -> pd.Dat
     # aren't in the portal df
     glims_df = glims_df.rename(
         columns={
-            "sequence_run_name": "portal_sequence_run_name"
+            "glims_illumina_id": "portal_sequence_run_name"
         }
     )
     # Use portal_sequence_run_name to drop values from glims df that
@@ -161,12 +171,18 @@ def get_libraries_for_processing(merged_df) -> pd.DataFrame:
       * portal_wfr_status
       * portal_sequence_run_name
       * portal_is_failed_run
-      * glims_is_validation
-      * glims_is_research
+      * glims_project_owner
+      * glims_project_name
+      * glims_panel
+      * glims_sample_type
+      * glims_is_identified
+      * glims_default_snomed_term
+      * glims_needs_redcap
       * pieriandx_submission_time
       * pieriandx_case_id
       * pieriandx_case_accession_number
       * pieriandx_case_creation_date
+      * pieriandx_assignee
       * pieriandx_case_identified
       * pieriandx_panel_type
       * pieriandx_sample_type
@@ -174,8 +190,10 @@ def get_libraries_for_processing(merged_df) -> pd.DataFrame:
       * subject_id
       * library_id
       * portal_wfr_id
-      * is_validation_sample
-      * is_research_sample
+      * panel
+      * sample_type
+      * is_identified
+      * needs_redcap
       * redcap_is_complete
     """
 
@@ -184,10 +202,10 @@ def get_libraries_for_processing(merged_df) -> pd.DataFrame:
         "subject_id",
         "library_id",
         "portal_wfr_id",
-        "glims_is_validation",
-        "glims_is_research",
-        "is_validation_sample",
-        "is_research_sample",
+        "panel",
+        "sample_type",
+        "is_identified",
+        "needs_redcap",
         "redcap_is_complete"
     ]
 
@@ -218,11 +236,8 @@ def get_libraries_for_processing(merged_df) -> pd.DataFrame:
         "      not redcap_is_complete.isnull() and redcap_is_complete.str.lower() == 'complete' "
         "    ) or "
         "    ( "
-        "      not glims_is_validation.isnull() and glims_is_validation == True "
-        "    ) or "
-        "    ( "
-        "      not glims_is_research.isnull() and glims_is_research == True "
-        "    )"
+        "      glims_needs_redcap == False "
+        "    ) "
         "  ) "
         ") ",
         engine="python"  # Required for the isnull bit - https://stackoverflow.com/a/54099389/6946787
@@ -234,36 +249,24 @@ def get_libraries_for_processing(merged_df) -> pd.DataFrame:
             columns=processing_columns
         )
 
-    # For validation sample to be set to true
-    # Must not be in redcap
-    # AND be in glims
-    # Redcap samples can be validation samples
-    # But samples not in redcap are processed through a different
-    # lambda endpoint
-    to_process_df["is_validation_sample"] = to_process_df.apply(
-        lambda x: True
-        if x.glims_is_validation is True
-        or (
-               not pd.isnull(x.redcap_is_complete)
-               and x.redcap_is_complete.lower() == "complete"
-               and x.redcap_sample_type.lower() == "validation"
-           )
-        else False,
-        axis="columns"
-    )
+    # Update columns to strip glims_ attributes
+    new_column_names = [
+      "panel",
+      "sample_type",
+      "is_identified",
+      "needs_redcap"
+    ]
 
-    to_process_df["is_research_sample"] = to_process_df.apply(
-        lambda x: True
-        if x.glims_is_research is True else False,
-        axis="columns"
-    )
+    for column_name in new_column_names:
+        to_process_df[column_name] = to_process_df[f"glims_{column_name}"]
 
+    # Return subsetted dataframe
     return to_process_df[
         processing_columns
     ]
 
 
-def submit_library_to_pieriandx(subject_id: str, library_id: str, workflow_run_id: str, lambda_arn: str, panel_type: str):
+def submit_library_to_pieriandx(subject_id: str, library_id: str, workflow_run_id: str, lambda_arn: str, panel_type: str, sample_type: str, is_identified: bool):
     """
     Submit library to pieriandx
     :param subject_id:
@@ -279,7 +282,9 @@ def submit_library_to_pieriandx(subject_id: str, library_id: str, workflow_run_i
             "subject_id": subject_id,
             "library_id": library_id,
             "ica_workflow_run_id": workflow_run_id,
-            "panel_type": panel_type
+            "panel_type": panel_type,
+            "sample_type": sample_type,
+            "is_identified": is_identified
     }
 
     logger.info(f"Launching lambda function {lambda_arn} with the following payload {json.dumps(lambda_payload)}")
@@ -333,44 +338,44 @@ def submit_libraries_to_pieriandx(processing_df: pd.DataFrame) -> pd.DataFrame:
       * subject_id
       * library_id
       * portal_wfr_id
-      * is_validation_sample
-      * glims_is_validation
-      * glims_is_research
-      * is_research_sample
+      * panel
+      * sample_type
+      * is_identified
+      * needs_redcap
       * redcap_is_complete
     :return:
+      A pandas dataframe with the following columns
+      * subject_id
+      * library_id
+      * portal_wfr_id
+      * panel
+      * sample_type
+      * is_identified
+      * needs_redcap
+      * redcap_is_complete
+      * submission_succeeded
+      * submission_time
     """
     # Get number of rows to submit
     num_submissions = processing_df.shape[0]
 
     if num_submissions > MAX_SUBMISSIONS_PER_LIMS_UPDATE_CYCLE:
         logger.info(f"Dropping submission number from {num_submissions} to {MAX_SUBMISSIONS_PER_LIMS_UPDATE_CYCLE}")
-        processing_df = processing_df.head(MAX_SUBMISSIONS_PER_LIMS_UPDATE_CYCLE)
+        processing_df = processing_df.head(n=MAX_SUBMISSIONS_PER_LIMS_UPDATE_CYCLE)
 
     # Validation df
     # Validation if is validation sample or IS research sample with no redcap information
     processing_df["submission_arn"] = processing_df.apply(
         lambda x: get_validation_lambda_arn()
-        if x.glims_is_validation is True
-           or (
-               # Sample not in RedCap
-               (
-                   pd.isnull(x.redcap_is_complete) or
-                   not x.redcap_is_complete.lower() == "complete"
-               ) and
-               # GLIMS Workflow is set to 'Research'
-               (
-                 x.glims_is_research
-               )
+        if not x.needs_redcap and
+           (
+              # Sample not in RedCap
+              (
+                  pd.isnull(x.redcap_is_complete) or
+                  not x.redcap_is_complete.lower() == "complete"
+              )
            )
         else get_clinical_lambda_arn(),
-        axis="columns"
-    )
-
-    processing_df["panel_type"] = processing_df.apply(
-        lambda x: "main"
-        if (x.is_validation_sample or x.is_research_sample)
-        else "subpanel",
         axis="columns"
     )
 
@@ -386,7 +391,9 @@ def submit_libraries_to_pieriandx(processing_df: pd.DataFrame) -> pd.DataFrame:
                 library_id=row.library_id,
                 workflow_run_id=row.portal_wfr_id,
                 lambda_arn=row.submission_arn,
-                panel_type=row.panel_type
+                panel_type=row.panel,
+                sample_type=row.sample_type,
+                is_identified=row.is_identified
             )
         except ValueError:
             pass
@@ -414,17 +421,31 @@ def append_to_cttso_lims(merged_df: pd.DataFrame, cttso_lims_df: pd.DataFrame, e
       * portal_wfr_status
       * portal_sequence_run_name
       * portal_is_failed_run
-      * glims_is_validation
-      * glims_is_research
+      * glims_project_owner
+      * glims_project_name
+      * glims_panel
+      * glims_sample_type
+      * glims_is_identified
+      * glims_default_snomed_term
+      * glims_needs_redcap
       * pieriandx_case_id
+      * pieriandx_case_accession_number
+      * pieriandx_case_creation_date
+      * pieriandx_assignee
     :param cttso_lims_df: A pandas dataframe with the following columns
       * subject_id
       * library_id
-      * in_redcap
-      * in_portal
       * in_glims
-      * glims_is_validation
-      * glims_is_research
+      * in_portal
+      * in_redcap
+      * in_pieriandx
+      * glims_project_owner
+      * glims_project_name
+      * glims_panel
+      * glims_sample_type
+      * glims_is_identified
+      * glims_default_snomed_term
+      * glims_needs_redcap
       * redcap_sample_type
       * redcap_is_complete
       * portal_wfr_id
@@ -432,16 +453,17 @@ def append_to_cttso_lims(merged_df: pd.DataFrame, cttso_lims_df: pd.DataFrame, e
       * portal_wfr_status
       * portal_sequence_run_name
       * portal_is_failed_run
+      * pieriandx_submission_time
       * pieriandx_case_id
       * pieriandx_case_accession_number
       * pieriandx_case_creation_date
       * pieriandx_case_identified
+      * pieriandx_assignee
       * pieriandx_panel_type
       * pieriandx_sample_type
       * pieriandx_workflow_id
       * pieriandx_workflow_status
       * pieriandx_report_status
-      * pieriandx_report_signed_out  - currently ignored
   :param excel_row_number_mapping_df: A pandas DataFrame with the following columns:
         * cttso_lims_index
         * excel_row_number
@@ -561,6 +583,7 @@ def append_to_cttso_lims(merged_df: pd.DataFrame, cttso_lims_df: pd.DataFrame, e
             excel_row_number
         )
 
+
     if len(rows_to_append) == 0:
         return
 
@@ -585,13 +608,19 @@ def get_pieriandx_incomplete_job_df_from_cttso_lims_df(cttso_lims_df: pd.DataFra
     :param cttso_lims_df: A pandas dataframe with the following columns:
         * subject_id
         * library_id
-        * glims_is_validation
-        * glims_is_research
         * in_redcap
         * in_portal
         * in_glims
+        * in_pieriandx
         * redcap_sample_type
         * redcap_is_complete
+        * glims_project_owner
+        * glims_project_name
+        * glims_panel
+        * glims_sample_type
+        * glims_is_identified
+        * glims_default_snomed_term
+        * glims_needs_redcap
         * portal_wfr_id
         * portal_wfr_end
         * portal_wfr_status
@@ -611,13 +640,19 @@ def get_pieriandx_incomplete_job_df_from_cttso_lims_df(cttso_lims_df: pd.DataFra
     :return: A pandas DataFrame with the following columns:
         * subject_id
         * library_id
-        * glims_is_validation
-        * glims_is_research
         * in_redcap
         * in_portal
         * in_glims
+        * in_pieriandx
         * redcap_sample_type
         * redcap_is_complete
+        * glims_project_owner
+        * glims_project_name
+        * glims_panel
+        * glims_sample_type
+        * glims_is_identified
+        * glims_default_snomed_term
+        * glims_needs_redcap
         * portal_wfr_id
         * portal_wfr_end
         * portal_wfr_status
@@ -674,6 +709,7 @@ def update_merged_df_with_processing_df(merged_df, processing_df) -> pd.DataFram
       * in_redcap
       * in_portal
       * in_glims
+      * in_pieriandx
       * redcap_sample_type
       * redcap_is_complete
       * portal_wfr_id
@@ -681,20 +717,35 @@ def update_merged_df_with_processing_df(merged_df, processing_df) -> pd.DataFram
       * portal_wfr_status
       * portal_sequence_run_name
       * portal_is_failed_run
-      * glims_is_validation
-      * glims_is_research
+      * glims_project_owner
+      * glims_project_name
+      * glims_panel
+      * glims_sample_type
+      * glims_is_identified
+      * glims_default_snomed_term
+      * glims_needs_redcap
+      * pieriandx_case_id
+      * pieriandx_case_accession_number
+      * pieriandx_case_creation_date
+      * pieriandx_assignee
     :param processing_df: A pandas dataframe with the following columns
       * subject_id
       * library_id
       * portal_wfr_id
-      * is_validation_sample
+      * panel
+      * sample_type
+      * is_identified
+      * needs_redcap
+      * redcap_is_complete
       * submission_succeeded
+      * submission_time
     :return: A pandas dataframe with the following columns
       * subject_id
       * library_id
       * in_redcap
       * in_portal
       * in_glims
+      * in_pieriandx
       * redcap_sample_type
       * redcap_is_complete
       * portal_wfr_id
@@ -702,9 +753,18 @@ def update_merged_df_with_processing_df(merged_df, processing_df) -> pd.DataFram
       * portal_wfr_status
       * portal_sequence_run_name
       * portal_is_failed_run
-      * glims_is_validation
-      * glims_is_research
+      * glims_project_owner
+      * glims_project_name
+      * glims_panel
+      * glims_sample_type
+      * glims_is_identified
+      * glims_default_snomed_term
+      * glims_needs_redcap
       * pieriandx_case_id
+      * pieriandx_case_accession_number
+      * pieriandx_case_creation_date
+      * pieriandx_assignee
+      * pieriandx_submission_time
     """
     # Set the pieriandx case id to these samples as 'pending'
     for index, row in processing_df.iterrows():
@@ -739,6 +799,14 @@ def update_pieriandx_job_status_missing_df(pieriandx_job_status_missing_df, merg
       * in_redcap
       * in_portal
       * in_glims
+      * in_pieriandx
+      * glims_project_owner
+      * glims_project_name
+      * glims_panel
+      * glims_sample_type
+      * glims_is_identified
+      * glims_default_snomed_term
+      * glims_needs_redcap
       * redcap_sample_type
       * redcap_is_complete
       * portal_wfr_id
@@ -746,8 +814,6 @@ def update_pieriandx_job_status_missing_df(pieriandx_job_status_missing_df, merg
       * portal_wfr_status
       * portal_sequence_run_name
       * portal_is_failed_run
-      * glims_is_validation
-      * glims_is_research
       * pieriandx_case_id
       * pieriandx_case_accession_number
       * pieriandx_case_creation_date
@@ -757,6 +823,14 @@ def update_pieriandx_job_status_missing_df(pieriandx_job_status_missing_df, merg
       * in_redcap
       * in_portal
       * in_glims
+      * in_pieriandx
+      * glims_project_owner
+      * glims_project_name
+      * glims_panel
+      * glims_sample_type
+      * glims_is_identified
+      * glims_default_snomed_term
+      * glims_needs_redcap
       * redcap_sample_type
       * redcap_is_complete
       * portal_wfr_id
@@ -764,13 +838,9 @@ def update_pieriandx_job_status_missing_df(pieriandx_job_status_missing_df, merg
       * portal_wfr_status
       * portal_sequence_run_name
       * portal_is_failed_run
-      * glims_is_validation
-      * glims_is_research
       * pieriandx_case_id
-      * pieriandx_case_accession_number
-      * pieriandx_workflow_id
-      * pieriandx_workflow_status
-      * pieriandx_report_status
+      * pieriandx_case_creation_date
+      * pieriandx_assignee
     """
 
     # We only want some columns from merged df
@@ -788,11 +858,17 @@ def update_pieriandx_job_status_missing_df(pieriandx_job_status_missing_df, merg
         "portal_wfr_status",
         "portal_sequence_run_name",
         "portal_is_failed_run",
-        "glims_is_validation",
-        "glims_is_research",
+        "glims_project_owner",
+        "glims_project_name",
+        "glims_panel",
+        "glims_sample_type",
+        "glims_is_identified",
+        "glims_default_snomed_term",
+        "glims_needs_redcap",
         "pieriandx_submission_time",
         "pieriandx_case_id",
-        "pieriandx_case_creation_date"
+        "pieriandx_case_creation_date",
+        "pieriandx_assignee"
     ]]
 
     # We merge right since we only want jobs we've picked up in the incomplete jobs df
@@ -819,20 +895,27 @@ def add_pieriandx_df_to_merged_df(merged_df: pd.DataFrame, pieriandx_df: pd.Data
       * portal_wfr_status
       * portal_sequence_run_name
       * portal_is_failed_run
-      * glims_is_validation
-      * glims_is_research
+      * glims_project_owner
+      * glims_project_name
+      * glims_panel
+      * glims_sample_type
+      * glims_is_identified
+      * glims_default_snomed_term
+      * glims_needs_redcap
     :param pieriandx_df: A pandas dataframe with the following columns:
       * subject_id
       * library_id
       * pieriandx_case_id
       * pieriandx_case_accession_number
       * pieriandx_case_creation_date
+      * pieriandx_assignee
     :return: A pandas dataframe with the following columns:
       * subject_id
       * library_id
       * in_redcap
       * in_portal
       * in_glims
+      * in_pieriandx
       * redcap_sample_type
       * redcap_is_complete
       * portal_wfr_id
@@ -840,11 +923,17 @@ def add_pieriandx_df_to_merged_df(merged_df: pd.DataFrame, pieriandx_df: pd.Data
       * portal_wfr_status
       * portal_sequence_run_name
       * portal_is_failed_run
-      * glims_is_validation
-      * glims_is_research
+      * glims_project_owner
+      * glims_project_name
+      * glims_panel
+      * glims_sample_type
+      * glims_is_identified
+      * glims_default_snomed_term
+      * glims_needs_redcap
       * pieriandx_case_id
       * pieriandx_case_accession_number
       * pieriandx_case_creation_date
+      * pieriandx_assignee
     """
     merged_df_with_pieriandx_df = pd.merge(
         merged_df,
@@ -909,10 +998,8 @@ def add_pieriandx_df_to_merged_df(merged_df: pd.DataFrame, pieriandx_df: pd.Data
     # Drop cases in pieriandx where not found in redcap or glims and not found in portal
     merged_df_with_pieriandx_df = merged_df_with_pieriandx_df.query(
         "not ( "
-        "  ( "
-        "    in_glims == False and "
-        "    in_redcap == False "
-        "  ) and "
+        "  in_glims == False and "
+        "  in_redcap == False and "
         "  in_portal == False and "
         "  in_pieriandx == True"
         ")"
@@ -967,8 +1054,17 @@ def update_cttso_lims(update_df: pd.DataFrame, cttso_lims_df: pd.DataFrame, exce
     :param update_df: A pandas DataFrame with the following columns:
       * subject_id
       * library_id
-      * glims_is_validation
-      * glims_is_research
+      * in_redcap
+      * in_portal
+      * in_glims
+      * in_pieriandx
+      * glims_project_owner
+      * glims_project_name
+      * glims_panel
+      * glims_sample_type
+      * glims_is_identified
+      * glims_default_snomed_term
+      * glims_needs_redcap
       * redcap_sample_type
       * redcap_is_complete
       * portal_wfr_id
@@ -976,22 +1072,23 @@ def update_cttso_lims(update_df: pd.DataFrame, cttso_lims_df: pd.DataFrame, exce
       * portal_wfr_status
       * portal_sequence_run_name
       * portal_is_failed_run
-      * pieriandx_submission_time
       * pieriandx_case_id
-      * pieriandx_case_accession_number
       * pieriandx_case_creation_date
-      * pieriandx_case_identified
-      * pieriandx_panel_type
-      * pieriandx_sample_type
-      * pieriandx_workflow_id
-      * pieriandx_workflow_status
-      * pieriandx_report_status
-      * pieriandx_report_signed_out - currently ignored
+      * pieriandx_assignee
     :param cttso_lims_df: A pandas DataFrame with the following columns:
       * subject_id
       * library_id
-      * glims_is_validation
-      * glims_is_research
+      * in_glims
+      * in_portal
+      * in_redcap
+      * in_pieriandx
+      * glims_project_owner
+      * glims_project_name
+      * glims_panel
+      * glims_sample_type
+      * glims_is_identified
+      * glims_default_snomed_term
+      * glims_needs_redcap
       * redcap_sample_type
       * redcap_is_complete
       * portal_wfr_id
@@ -1004,12 +1101,12 @@ def update_cttso_lims(update_df: pd.DataFrame, cttso_lims_df: pd.DataFrame, exce
       * pieriandx_case_accession_number
       * pieriandx_case_creation_date
       * pieriandx_case_identified
+      * pieriandx_assignee
       * pieriandx_panel_type
       * pieriandx_sample_type
       * pieriandx_workflow_id
       * pieriandx_workflow_status
       * pieriandx_report_status
-      * pieriandx_report_signed_out - currently ignored
     :param excel_row_mapping_df: A pandas dataframe with the following columns:
       * cttso_lims_index
       * excel_row_number
@@ -1053,6 +1150,7 @@ def update_cttso_lims(update_df: pd.DataFrame, cttso_lims_df: pd.DataFrame, exce
             "pieriandx_case_id",
             "pieriandx_case_accession_number",
             "pieriandx_case_creation_date",
+            "pieriandx_assignee",
             "pieriandx_case_identified",
             "pieriandx_panel_type",
             "pieriandx_sample_type",
@@ -1086,12 +1184,10 @@ def get_duplicate_case_ids(lims_df: pd.DataFrame) -> List:
     :param lims_df: A pandas dataframe with the following columns
       * subject_id
       * library_id
-      * in_glims
-      * in_portal
       * in_redcap
+      * in_portal
+      * in_glims
       * in_pieriandx
-      * glims_is_validation
-      * glims_is_research
       * redcap_sample_type
       * redcap_is_complete
       * portal_wfr_id
@@ -1100,10 +1196,17 @@ def get_duplicate_case_ids(lims_df: pd.DataFrame) -> List:
       * portal_sequence_run_name
       * portal_is_failed_run
       * pieriandx_submission_time
+      * glims_project_owner
+      * glims_project_name
+      * glims_panel
+      * glims_sample_type
+      * glims_is_identified
+      * glims_default_snomed_term
+      * glims_needs_redcap
       * pieriandx_case_id
       * pieriandx_case_accession_number
       * pieriandx_case_creation_date
-      * pieriandx_case_identified
+      * pieriandx_assignee
       * pieriandx_panel_type
       * pieriandx_sample_type
       * pieriandx_workflow_id
@@ -1114,16 +1217,22 @@ def get_duplicate_case_ids(lims_df: pd.DataFrame) -> List:
       * 'in_portal_lims',
       * 'in_redcap_lims',
       * 'in_pieriandx_lims',
-      * 'glims_is_validation_lims',
-      * 'glims_is_research_lims',
       * 'redcap_sample_type_lims',
       * 'redcap_is_complete_lims',
+      * glims_project_owner
+      * glims_project_name
+      * glims_panel
+      * glims_sample_type
+      * glims_is_identified
+      * glims_default_snomed_term
+      * glims_needs_redcap
       * 'portal_wfr_end_lims',
       * 'portal_wfr_status_lims',
       * 'portal_sequence_run_name_lims',
       * 'portal_is_failed_run_lims',
       * 'pieriandx_case_accession_number_lims',
       * 'pieriandx_case_creation_date_lims'
+      * 'pieriandx_assignee_lims'
     :return:
     """
 
@@ -1144,6 +1253,16 @@ def get_duplicate_case_ids(lims_df: pd.DataFrame) -> List:
         # Check if it's just a single row
         if mini_df.shape[0] == 1:
             # Single unique row - nothing to see here
+            continue
+
+        # Any cases with an assignee should be tracked
+        # So drop any accession that have an assignment
+        mini_df = mini_df.query(
+            "pieriandx_assignee.isnull()",
+            engine="python"
+        )
+        # No cases without assignment
+        if mini_df.shape[0] == 0:
             continue
 
         # Check we don't have duplicate pieriandx case ids
@@ -1216,6 +1335,8 @@ def get_duplicate_case_ids(lims_df: pd.DataFrame) -> List:
                           for case_id in case_ids_to_remove
                           if not pd.isnull(case_id)]
 
+    print(case_ids_to_remove)
+
     return case_ids_to_remove
 
 
@@ -1236,6 +1357,7 @@ def cleanup_duplicate_rows(merged_df: pd.DataFrame, cttso_lims_df: pd.DataFrame,
       * in_redcap
       * in_portal
       * in_glims
+      * in_pieriandx
       * redcap_sample_type
       * redcap_is_complete
       * portal_wfr_id
@@ -1243,11 +1365,17 @@ def cleanup_duplicate_rows(merged_df: pd.DataFrame, cttso_lims_df: pd.DataFrame,
       * portal_wfr_status
       * portal_sequence_run_name
       * portal_is_failed_run
-      * glims_is_validation
-      * glims_is_research
+      * glims_project_owner
+      * glims_project_name
+      * glims_panel
+      * glims_sample_type
+      * glims_is_identified
+      * glims_default_snomed_term
+      * glims_needs_redcap
       * pieriandx_case_id
       * pieriandx_case_accession_number
       * pieriandx_case_creation_date
+      * pieriandx_assignee
     :param cttso_lims_df: A pandas DataFrame with the following columns:
       * subject_id
       * library_id
@@ -1255,8 +1383,13 @@ def cleanup_duplicate_rows(merged_df: pd.DataFrame, cttso_lims_df: pd.DataFrame,
       * in_portal
       * in_redcap
       * in_pieriandx
-      * glims_is_validation
-      * glims_is_research
+      * glims_project_owner
+      * glims_project_name
+      * glims_panel
+      * glims_sample_type
+      * glims_is_identified
+      * glims_default_snomed_term
+      * glims_needs_redcap
       * redcap_sample_type
       * redcap_is_complete
       * portal_wfr_id
@@ -1269,6 +1402,7 @@ def cleanup_duplicate_rows(merged_df: pd.DataFrame, cttso_lims_df: pd.DataFrame,
       * pieriandx_case_accession_number
       * pieriandx_case_creation_date
       * pieriandx_case_identified
+      * pieriandx_assignee
       * pieriandx_panel_type
       * pieriandx_sample_type
       * pieriandx_workflow_id
@@ -1279,23 +1413,30 @@ def cleanup_duplicate_rows(merged_df: pd.DataFrame, cttso_lims_df: pd.DataFrame,
       * excel_row_number
     :return: (
       A pandas DataFrame with the following columns:
-       * subject_id
-       * library_id
-       * in_redcap
-       * in_portal
-       * in_glims
-       * redcap_sample_type
-       * redcap_is_complete
-       * portal_wfr_id
-       * portal_wfr_end
-       * portal_wfr_status
-       * portal_sequence_run_name
-       * portal_is_failed_run
-       * glims_is_validation
-       * glims_is_research
-       * pieriandx_case_id
-       * pieriandx_case_accession_number
-       * pieriandx_case_creation_date
+        * subject_id
+        * library_id
+        * in_redcap
+        * in_portal
+        * in_glims
+        * in_pieriandx
+        * redcap_sample_type
+        * redcap_is_complete
+        * portal_wfr_id
+        * portal_wfr_end
+        * portal_wfr_status
+        * portal_sequence_run_name
+        * portal_is_failed_run
+        * glims_project_owner
+        * glims_project_name
+        * glims_panel
+        * glims_sample_type
+        * glims_is_identified
+        * glims_default_snomed_term
+        * glims_needs_redcap
+        * pieriandx_case_id
+        * pieriandx_case_accession_number
+        * pieriandx_case_creation_date
+        * pieriandx_assignee
       ,
       A pandas DataFrame with the following columns:
         * subject_id
@@ -1304,8 +1445,13 @@ def cleanup_duplicate_rows(merged_df: pd.DataFrame, cttso_lims_df: pd.DataFrame,
         * in_portal
         * in_redcap
         * in_pieriandx
-        * glims_is_validation
-        * glims_is_research
+        * glims_project_owner
+        * glims_project_name
+        * glims_panel
+        * glims_sample_type
+        * glims_is_identified
+        * glims_default_snomed_term
+        * glims_needs_redcap
         * redcap_sample_type
         * redcap_is_complete
         * portal_wfr_id
@@ -1318,6 +1464,7 @@ def cleanup_duplicate_rows(merged_df: pd.DataFrame, cttso_lims_df: pd.DataFrame,
         * pieriandx_case_accession_number
         * pieriandx_case_creation_date
         * pieriandx_case_identified
+        * pieriandx_assignee
         * pieriandx_panel_type
         * pieriandx_sample_type
         * pieriandx_workflow_id
@@ -1337,7 +1484,9 @@ def cleanup_duplicate_rows(merged_df: pd.DataFrame, cttso_lims_df: pd.DataFrame,
         how="outer", suffixes=("", "_lims")
     )
 
-    merged_lims_df = bind_pieriandx_case_submission_time_to_merged_df(merged_lims_df, cttso_lims_df)
+    # We might have needed to reset the lims db
+    if not cttso_lims_df.shape[0] == 0:
+        merged_lims_df = bind_pieriandx_case_submission_time_to_merged_df(merged_lims_df, cttso_lims_df)
 
     # Get list of case ids to drop
     case_ids_to_remove: List = get_duplicate_case_ids(merged_lims_df)
@@ -1384,7 +1533,10 @@ def cleanup_duplicate_rows(merged_df: pd.DataFrame, cttso_lims_df: pd.DataFrame,
         excel_row_number_mapping_df: pd.DataFrame
         cttso_lims_df, excel_row_number_mapping_df = get_cttso_lims()
 
-    merged_df_dedup = bind_pieriandx_case_submission_time_to_merged_df(merged_df_dedup, cttso_lims_df)
+    if not cttso_lims_df.shape[0] == 0:
+        merged_df_dedup = bind_pieriandx_case_submission_time_to_merged_df(merged_df_dedup, cttso_lims_df)
+    else:
+        merged_df_dedup["pieriandx_submission_time"] = pd.NA
 
     return merged_df_dedup, cttso_lims_df, excel_row_number_mapping_df
 
@@ -1429,13 +1581,125 @@ def get_pieriandx_case_id_from_merged_df_for_pending_case(cttso_lims_series, mer
     return pieriandx_case_id
 
 
-def bind_pieriandx_case_submission_time_to_merged_df(merged_df: pd.DataFrame, cttso_lims_df: pd.DataFrame):
-    # Split lims submission into two
-    # Rows with a valid pieriandx case accession id
-    # Rows that do not have a valid pieriandx case accession id
-    # We bind first set on pieriandx_case_id - simples
-    # For remaining merged df (we try bind on 'pending')
-    # If we still have remaining, we set pieriandx submission time as day of creation
+def bind_pieriandx_case_submission_time_to_merged_df(merged_df: pd.DataFrame, cttso_lims_df: pd.DataFrame) -> pd.DataFrame:
+    """
+    plit lims submission into two
+    Rows with a valid pieriandx case accession id
+    Rows that do not have a valid pieriandx case accession id
+    We bind first set on pieriandx_case_id - simples
+    For remaining merged df (we try bind on 'pending')
+    If we still have remaining, we set pieriandx submission time as day of creation
+    :param merged_df: A pandas dataframe with the following columns:
+      * subject_id
+      * library_id
+      * in_redcap
+      * in_portal
+      * in_glims
+      * in_pieriandx
+      * redcap_sample_type
+      * redcap_is_complete
+      * portal_wfr_id
+      * portal_wfr_end
+      * portal_wfr_status
+      * portal_sequence_run_name
+      * portal_is_failed_run
+      * glims_project_owner
+      * glims_project_name
+      * glims_panel
+      * glims_sample_type
+      * glims_is_identified
+      * glims_default_snomed_term
+      * glims_needs_redcap
+      * pieriandx_case_id
+      * pieriandx_case_accession_number
+      * pieriandx_case_creation_date
+      * pieriandx_assignee
+    :param cttso_lims_df: A pandas dataframe with the following columns:
+      * subject_id
+      * library_id
+      * in_glims
+      * in_portal
+      * in_redcap
+      * in_pieriandx
+      * glims_project_owner
+      * glims_project_name
+      * glims_panel
+      * glims_sample_type
+      * glims_is_identified
+      * glims_default_snomed_term
+      * glims_needs_redcap
+      * redcap_sample_type
+      * redcap_is_complete
+      * portal_wfr_id
+      * portal_wfr_end
+      * portal_wfr_status
+      * portal_sequence_run_name
+      * portal_is_failed_run
+      * pieriandx_submission_time
+      * pieriandx_case_id
+      * pieriandx_case_accession_number
+      * pieriandx_case_creation_date
+      * pieriandx_case_identified
+      * pieriandx_assignee
+      * pieriandx_panel_type
+      * pieriandx_sample_type
+      * pieriandx_workflow_id
+      * pieriandx_workflow_status
+      * pieriandx_report_status
+    :return: A pandas DataFrame with the following columns:
+      * subject_id
+      * library_id
+      * in_redcap
+      * in_portal
+      * in_glims
+      * in_pieriandx
+      * redcap_sample_type
+      * redcap_is_complete
+      * portal_wfr_id
+      * portal_wfr_end
+      * portal_wfr_status
+      * portal_sequence_run_name
+      * portal_is_failed_run
+      * pieriandx_submission_time
+      * glims_project_owner
+      * glims_project_name
+      * glims_panel
+      * glims_sample_type
+      * glims_is_identified
+      * glims_default_snomed_term
+      * glims_needs_redcap
+      * pieriandx_case_id
+      * pieriandx_case_accession_number
+      * pieriandx_case_creation_date
+      * pieriandx_assignee
+      * pieriandx_panel_type
+      * pieriandx_sample_type
+      * pieriandx_workflow_id
+      * pieriandx_workflow_status
+      * pieriandx_report_status
+      # Duplicate columns
+      * 'in_glims_lims',
+      * 'in_portal_lims',
+      * 'in_redcap_lims',
+      * 'in_pieriandx_lims',
+      * 'redcap_sample_type_lims',
+      * 'redcap_is_complete_lims',
+      * glims_project_owner
+      * glims_project_name
+      * glims_panel
+      * glims_sample_type
+      * glims_is_identified
+      * glims_default_snomed_term
+      * glims_needs_redcap
+      * 'portal_wfr_end_lims',
+      * 'portal_wfr_status_lims',
+      * 'portal_sequence_run_name_lims',
+      * 'portal_is_failed_run_lims',
+      * 'pieriandx_case_accession_number_lims',
+      * 'pieriandx_case_creation_date_lims'
+      * 'pieriandx_assignee_lims'
+    """
+
     cttso_lims_df_valid_merge = cttso_lims_df.query(
         "not pieriandx_case_id.isnull() and "
         "not pieriandx_submission_time.isnull() "
@@ -1519,7 +1783,7 @@ def bind_pieriandx_case_submission_time_to_merged_df(merged_df: pd.DataFrame, ct
             # All actions are the same - just logging is different
             if pd.isnull(pieriandx_case_submission_time):
                 logger.info("Pieriandx Case Submission time is null, we just merge as null")
-            elif pieriandx_case_submission_time < one_week_ago:
+            elif pd.to_datetime(pieriandx_case_submission_time).tz_localize("UTC") < one_week_ago:
                 logger.info("Case pending for over one week, this case will be resubmitted")
             else:
                 logger.info("Case pending for less than one week, please resubmit manually")
@@ -1595,6 +1859,126 @@ def bind_pieriandx_case_submission_time_to_merged_df(merged_df: pd.DataFrame, ct
     )
 
     return merged_lims_df
+
+
+def drop_to_be_deleted_cases(merged_df: pd.DataFrame, cttso_lims_df: pd.DataFrame, excel_row_mapping_number_df: pd.DataFrame) -> (pd.DataFrame, pd.DataFrame, pd.DataFrame):
+    """
+    Cases that have been assigned to ToBeDeleted need to be dropped from row list
+    and instead attached to a new sheet
+    :param merged_df:
+      * subject_id
+      * library_id
+      * in_redcap
+      * in_portal
+      * in_glims
+      * in_pieriandx
+      * redcap_sample_type
+      * redcap_is_complete
+      * portal_wfr_id
+      * portal_wfr_end
+      * portal_wfr_status
+      * portal_sequence_run_name
+      * portal_is_failed_run
+      * glims_project_owner
+      * glims_project_name
+      * glims_panel
+      * glims_sample_type
+      * glims_is_identified
+      * glims_default_snomed_term
+      * glims_needs_redcap
+      * pieriandx_case_id
+      * pieriandx_case_accession_number
+      * pieriandx_case_creation_date
+      * pieriandx_assignee
+    :param cttso_lims_df:
+     A pandas DataFrame with the following columns:
+        * subject_id
+        * library_id
+        * in_glims
+        * in_portal
+        * in_redcap
+        * in_pieriandx
+        * glims_project_owner
+        * glims_project_name
+        * glims_panel
+        * glims_sample_type
+        * glims_is_identified
+        * glims_default_snomed_term
+        * glims_needs_redcap
+        * redcap_sample_type
+        * redcap_is_complete
+        * portal_wfr_id
+        * portal_wfr_end
+        * portal_wfr_status
+        * portal_sequence_run_name
+        * portal_is_failed_run
+        * pieriandx_submission_time
+        * pieriandx_case_id
+        * pieriandx_case_accession_number
+        * pieriandx_case_creation_date
+        * pieriandx_case_identified
+        * pieriandx_assignee
+        * pieriandx_panel_type
+        * pieriandx_sample_type
+        * pieriandx_workflow_id
+        * pieriandx_workflow_status
+        * pieriandx_report_status
+        * pieriandx_report_signed_out  - currently ignored
+    :param excel_row_mapping_number_df:
+      A pandas DataFrame with the following columns:
+        * cttso_lims_index
+        * excel_row_number
+    :return:
+    """
+    # Split cttso lims df by query
+    to_be_deleted_cases_lims = cttso_lims_df.query("pieriandx_assignee == 'ToBeDeleted'")
+    to_be_deleted_cases_merged_df = merged_df.query("pieriandx_assignee == 'ToBeDeleted'")
+
+    if to_be_deleted_cases_lims.shape[0] == 0 and to_be_deleted_cases_merged_df.shape[0] == 0:
+        logger.info("Nothing to transfer to delete pile")
+        return merged_df, cttso_lims_df, excel_row_mapping_number_df
+
+    cttso_lims_df_cleaned = cttso_lims_df.query("pieriandx_assignee != 'ToBeDeleted'")
+    clean_cttso_case_ids_list = cttso_lims_df_cleaned["pieriandx_case_id"].tolist()
+    deleted_case_ids_list = to_be_deleted_cases_lims["pieriandx_case_id"].tolist()
+
+    # Clean out merged df with existing deleted cases
+    # And any cases we're about to put into the deleted lims as well
+    deleted_lims_df, deleted_lims_excel_row_mapping_number = get_deleted_lims_df()
+    case_ids_to_remove_from_merged_df = list(
+        set(
+            deleted_lims_df["pieriandx_case_id"].tolist() +
+            to_be_deleted_cases_lims["pieriandx_case_id"].tolist()
+        )
+    )
+
+    # If the case id is in both, we need to keep it, and have it reassigned
+    merged_df = merged_df.query(
+        "pieriandx_case_id.isnull() or "
+        "pieriandx_case_id not in @case_ids_to_remove_from_merged_df or "
+        "( "
+        "  pieriandx_case_id in @clean_cttso_case_ids_list and "
+        "  pieriandx_case_id in @deleted_case_ids_list "
+        ")",
+        engine="python"
+    )
+
+    # Update cttso lims sheet with replacement
+    append_df_to_cttso_lims(cttso_lims_df_cleaned, replace=True)
+    # Wait for doc population
+    sleep(10)
+
+    # Collect new values
+    cttso_lims_df: pd.DataFrame
+    excel_row_number_mapping_df: pd.DataFrame
+    cttso_lims_df, excel_row_number_mapping_df = get_cttso_lims()
+
+    # Update deleted sheet - note we only add in the cases that are in the LIMS -
+    # cases in merged_df will need to be updated into LIMS first THEN pulled out of LIMS in the next iteration of this
+    # lambda script
+    add_deleted_cases_to_deleted_sheet(to_be_deleted_cases_lims)
+
+    return merged_df, cttso_lims_df, excel_row_number_mapping_df
 
 
 def lambdas_awake() -> bool:
@@ -1699,12 +2083,15 @@ def lambda_handler(event, context):
     :param context:
     :return:
     """
+    # Set GLIMS Secrets env vars
+    set_google_secrets()
+
     # Get raw data values
     redcap_df: pd.DataFrame = get_full_redcap_data_df()
     redcap_df["in_redcap"] = True
     portal_df: pd.DataFrame = get_portal_workflow_run_data_df()
     portal_df["in_portal"] = True
-    glims_df: pd.DataFrame = get_cttso_samples_from_glims()
+    glims_df: pd.DataFrame = get_cttso_samples_from_limsrow_df()
     glims_df["in_glims"] = True
     pieriandx_df: pd.DataFrame = get_pieriandx_df()
     pieriandx_df["in_pieriandx"] = True
@@ -1719,6 +2106,10 @@ def lambda_handler(event, context):
     cttso_lims_df: pd.DataFrame
     excel_row_number_mapping_df: pd.DataFrame
     cttso_lims_df, excel_row_number_mapping_df = get_cttso_lims()
+
+    # Clean out to-be-deleted cases
+    merged_df, cttso_lims_df, excel_row_number_mapping_df = \
+        drop_to_be_deleted_cases(merged_df, cttso_lims_df, excel_row_number_mapping_df)
 
     merged_df, cttso_lims_df, excel_row_number_mapping_df = \
         cleanup_duplicate_rows(merged_df, cttso_lims_df, excel_row_number_mapping_df)
@@ -1781,6 +2172,7 @@ def lambda_handler(event, context):
                 "Please fix this manually, stopping all further submissions then reenable the event bridge"
             )
             disable_event_rule()
+
             sys.exit(1)
 
     # Launch payloads for pieriandx_df samples that have no case id - if existent
@@ -1803,4 +2195,4 @@ def lambda_handler(event, context):
 
 ## LOCAL DEBUG ONLY ##
 # if __name__ == "__main__":
-#   lambda_handler(None, None)
+#     lambda_handler(None, None)
