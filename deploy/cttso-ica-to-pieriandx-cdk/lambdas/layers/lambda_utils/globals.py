@@ -184,7 +184,7 @@ EXPECTED_ATTRIBUTES = [
     "date_received",
     "hospital_number",
     "gender",
-    "mrn",
+    "external_subject_id",
     "requesting_physicians_first_name",
     "requesting_physicians_last_name"
 ]
