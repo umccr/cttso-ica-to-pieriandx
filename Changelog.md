@@ -4,6 +4,18 @@ Changes in this log refer only to changes that make it to the 'main' branch. and
 
 For changes in deployment, please see the [deployment changelog](deploy/cttso-ica-to-pieriandx-cdk/Changelog.md) 
 
+
+## 2023-10-18
+
+> Author: Alexis Lucattini
+> Email: [Alexis.Lucattini@umccr.org](mailto:alexis.lucattini@umccr.org)
+
+
+### Bugfixes
+
+* Update sample type trimming of _sample suffix (https://github.com/umccr/cttso-ica-to-pieriandx/pull/150)
+  * Resolves https://github.com/umccr/cttso-ica-to-pieriandx/issues/149
+
 ## 2023-10-18
 
 > Author: Alexis Lucattini

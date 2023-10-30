@@ -12,6 +12,8 @@ import json
 import pandas as pd
 import time
 
+from pyriandx.utils import retry_session
+
 from .globals import \
     PIERIANDX_CDK_SSM_LIST, \
     PIERIANDX_CDK_SSM_PATH, \
@@ -352,6 +354,40 @@ def validate_case_accession_number(subject_id: str, library_id: str, case_access
         raise ValueError
 
 
+def check_case_exists(case_id: str) -> bool:
+    """
+    Check a case actually exists and has not been deleted
+    :param case_id:
+    :return:
+    """
+    email, auth_token, institution, base_url = get_pieriandx_env_vars()
+
+    pyriandx_client = get_pieriandx_client(
+        email=email,
+        auth_token=auth_token,
+        institution=institution,
+        base_url=base_url
+    )
+
+    # Go around _get_api to collect error code if it exists
+    url = pyriandx_client.baseURL + f"/case/{case_id}"
+    response = retry_session(pyriandx_client.headers).get(url, params=None)
+
+    if response.status_code == 200:
+        return True
+
+    if response.status_code == 400:
+        logger.info(f"Case {case_id} is not found, it may have been deleted")
+        return False
+
+    if response.status_code == 401:
+        logger.error("Got unauthorized status code 401. Cannot continue with script")
+        raise ChildProcessError
+
+    logger.warning(f"Got status_code {response.status_code}. Assuming case does not exist")
+    return False
+
+
 def get_pieriandx_status_for_missing_sample(case_id: str) -> pd.Series:
     """
     Get pieriandx results for a sample with incomplete results
@@ -382,7 +418,7 @@ def get_pieriandx_status_for_missing_sample(case_id: str) -> pd.Series:
         iter_count += 1
         if iter_count >= MAX_ATTEMPTS_GET_CASES:
             logger.error(f"Tried to get all cases {str(MAX_ATTEMPTS_GET_CASES)} times and failed")
-            raise EnvironmentError
+            raise ChildProcessError
 
         # Attempt to get cases
         response: Dict = pyriandx_client._get_api(endpoint=f"/case/{case_id}")
