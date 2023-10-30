@@ -15,6 +15,9 @@ are nested under deploy/cttso-ica-to-pieriandx-cdk.
   * Resolves https://github.com/umccr/cttso-ica-to-pieriandx/issues/146 
 * Use loc over iloc for pandas selection (https://github.com/umccr/cttso-ica-to-pieriandx/pull/154)
   * Resolves https://github.com/umccr/cttso-ica-to-pieriandx/issues/153
+* Replace mrn with external_subject_id for list of required fields (https://github.com/umccr/cttso-ica-to-pieriandx/pull/159)
+  * Resolves https://github.com/umccr/cttso-ica-to-pieriandx/issues/158
+
 
 ## 2023-10-18
 
