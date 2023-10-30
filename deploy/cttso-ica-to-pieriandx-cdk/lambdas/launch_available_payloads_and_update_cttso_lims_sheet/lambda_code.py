@@ -263,7 +263,7 @@ def get_libraries_for_processing(merged_df) -> pd.DataFrame:
             logger.warning(f"Already run and deleted this combination {process_row['subject_id']} / {process_row['library_id']} / {process_row['portal_wfr_id']}, not reprocessing")
 
     # Delete via index
-    to_process_df = to_process_df.iloc[list(
+    to_process_df = to_process_df.loc[list(
         set(to_process_df.index.tolist()) - set(already_deleted_list_index)
     )]
 
