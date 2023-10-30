@@ -8,6 +8,17 @@ are nested under deploy/cttso-ica-to-pieriandx-cdk.
 > Author: Alexis Lucattini
 > Email: [Alexis.Lucattini@umccr.org](mailto:alexis.lucattini@umccr.org)
 
+
+### Bugfixes
+
+* Dont resubmit deleted samples - also remove deleted samples from the lims sheet (https://github.com/umccr/cttso-ica-to-pieriandx/pull/151)
+  * Resolves https://github.com/umccr/cttso-ica-to-pieriandx/issues/146 
+
+## 2023-10-18
+
+> Author: Alexis Lucattini
+> Email: [Alexis.Lucattini@umccr.org](mailto:alexis.lucattini@umccr.org)
+
 ### Enhancements
 
 * Move to project owner / project name mapping logic (https://github.com/umccr/cttso-ica-to-pieriandx/pull/141)
