@@ -15,6 +15,8 @@ For changes in deployment, please see the [deployment changelog](deploy/cttso-ic
 
 * Update sample type trimming of _sample suffix (https://github.com/umccr/cttso-ica-to-pieriandx/pull/150)
   * Resolves https://github.com/umccr/cttso-ica-to-pieriandx/issues/149
+* Update patient_care naming to patientcare (https://github.com/umccr/cttso-ica-to-pieriandx/pull/156)
+  * Resolves https://github.com/umccr/cttso-ica-to-pieriandx/issues/155
 
 ## 2023-10-18
 

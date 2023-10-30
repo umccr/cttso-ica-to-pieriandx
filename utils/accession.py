@@ -450,7 +450,11 @@ def sanitise_data_frame(input_df: pd.DataFrame) -> pd.DataFrame:
     # Coerce patient care sample to patientcare
     input_df["sample_type"] = input_df["sample_type"].apply(lambda x:
                                                             SampleType(
-                                                                re.sub(r"_?sample$", "", x.lower().replace(" ", ""))
+                                                                re.sub(
+                                                                    r"_?sample$",
+                                                                    "",
+                                                                    x.lower().replace(" ", "").replace("patient_care", "patientcare")
+                                                                )
                                                             ))
     input_df["ethnicity"] = input_df["ethnicity"].apply(lambda x: Ethnicity(x.lower()))
     input_df["race"] = input_df["race"].apply(lambda x: Race(x.lower()))

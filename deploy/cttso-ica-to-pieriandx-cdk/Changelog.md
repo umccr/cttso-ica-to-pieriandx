@@ -13,6 +13,8 @@ are nested under deploy/cttso-ica-to-pieriandx-cdk.
 
 * Dont resubmit deleted samples - also remove deleted samples from the lims sheet (https://github.com/umccr/cttso-ica-to-pieriandx/pull/151)
   * Resolves https://github.com/umccr/cttso-ica-to-pieriandx/issues/146 
+* Use loc over iloc for pandas selection (https://github.com/umccr/cttso-ica-to-pieriandx/pull/154)
+  * Resolves https://github.com/umccr/cttso-ica-to-pieriandx/issues/153
 
 ## 2023-10-18
 
