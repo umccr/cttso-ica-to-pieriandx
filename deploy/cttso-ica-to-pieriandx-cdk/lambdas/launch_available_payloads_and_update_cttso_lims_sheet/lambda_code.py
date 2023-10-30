@@ -249,6 +249,24 @@ def get_libraries_for_processing(merged_df) -> pd.DataFrame:
             columns=processing_columns
         )
 
+    # Check none of the processing df libraries are in the list of deleted lists
+    deleted_lims_df, deleted_lims_excel_row_mapping_number = get_deleted_lims_df()
+    process_row: pd.Series
+    already_deleted_list_index = []
+    for index, process_row in to_process_df.iterrows():
+        if not deleted_lims_df.query(
+            f"subject_id == '{process_row['subject_id']}' and "
+            f"library_id == '{process_row['library_id']}' and "
+            f"portal_wfr_id == '{process_row['portal_wfr_id']}'"
+        ).shape[0] == 0:
+            already_deleted_list_index.append(index)
+            logger.warning(f"Already run and deleted this combination {process_row['subject_id']} / {process_row['library_id']} / {process_row['portal_wfr_id']}, not reprocessing")
+
+    # Delete via index
+    to_process_df = to_process_df.iloc[list(
+        set(to_process_df.index.tolist()) - set(already_deleted_list_index)
+    )]
+
     # Update columns to strip glims_ attributes
     new_column_names = [
       "panel",
@@ -1861,7 +1879,7 @@ def bind_pieriandx_case_submission_time_to_merged_df(merged_df: pd.DataFrame, ct
     return merged_lims_df
 
 
-def drop_to_be_deleted_cases(merged_df: pd.DataFrame, cttso_lims_df: pd.DataFrame, excel_row_mapping_number_df: pd.DataFrame) -> (pd.DataFrame, pd.DataFrame, pd.DataFrame):
+def drop_to_be_deleted_cases(merged_df: pd.DataFrame, cttso_lims_df: pd.DataFrame, excel_row_mapping_number_df: pd.DataFrame, existing_pieriandx_cases: List) -> (pd.DataFrame, pd.DataFrame, pd.DataFrame):
     """
     Cases that have been assigned to ToBeDeleted need to be dropped from row list
     and instead attached to a new sheet
@@ -1928,17 +1946,44 @@ def drop_to_be_deleted_cases(merged_df: pd.DataFrame, cttso_lims_df: pd.DataFram
       A pandas DataFrame with the following columns:
         * cttso_lims_index
         * excel_row_number
+    :param existing_pieriandx_cases:
+      A list of pieriandx cases we have
     :return:
     """
     # Split cttso lims df by query
-    to_be_deleted_cases_lims = cttso_lims_df.query("pieriandx_assignee == 'ToBeDeleted'")
+    to_be_deleted_cases_lims = cttso_lims_df.query(
+        "pieriandx_assignee == 'ToBeDeleted' or "
+        "( "
+        "  pieriandx_case_id not in @existing_pieriandx_cases and "
+        "  not pieriandx_case_id.isnull()"
+        ")",
+        engine="python"
+    )
     to_be_deleted_cases_merged_df = merged_df.query("pieriandx_assignee == 'ToBeDeleted'")
 
-    if to_be_deleted_cases_lims.shape[0] == 0 and to_be_deleted_cases_merged_df.shape[0] == 0:
+    # Check cases that are not in pieriandx
+    if len(existing_pieriandx_cases) == 0:
+        logger.error("Something seriously wrong has happened! Got an empty list of cases")
+        raise ValueError
+    # Cases that have already been deleted are ones in the lims df that cannot be found in pieriandx
+    cases_already_deleted = list(
+        set(
+            cttso_lims_df["pieriandx_case_id"].dropna().tolist()
+        ) -
+        set(
+            existing_pieriandx_cases
+        )
+    )
+
+    if to_be_deleted_cases_lims.shape[0] == 0 and to_be_deleted_cases_merged_df.shape[0] == 0 and len(cases_already_deleted) == 0:
         logger.info("Nothing to transfer to delete pile")
         return merged_df, cttso_lims_df, excel_row_mapping_number_df
 
-    cttso_lims_df_cleaned = cttso_lims_df.query("pieriandx_assignee != 'ToBeDeleted'")
+    # Remove cases assigned to the ToBeDeleted user or cases that have already been deleted
+    cttso_lims_df_cleaned = cttso_lims_df.query(
+        "pieriandx_assignee != 'ToBeDeleted' and not "
+        "pieriandx_case_id in @cases_already_deleted"
+    )
     clean_cttso_case_ids_list = cttso_lims_df_cleaned["pieriandx_case_id"].tolist()
     deleted_case_ids_list = to_be_deleted_cases_lims["pieriandx_case_id"].tolist()
 
@@ -1960,6 +2005,12 @@ def drop_to_be_deleted_cases(merged_df: pd.DataFrame, cttso_lims_df: pd.DataFram
         "  pieriandx_case_id in @clean_cttso_case_ids_list and "
         "  pieriandx_case_id in @deleted_case_ids_list "
         ")",
+        engine="python"
+    )
+
+    # Remove cases from merged df that have already been deleted
+    merged_df = merged_df.query(
+        "pieriandx_case_id not in @cases_already_deleted",
         engine="python"
     )
 
@@ -2109,7 +2160,7 @@ def lambda_handler(event, context):
 
     # Clean out to-be-deleted cases
     merged_df, cttso_lims_df, excel_row_number_mapping_df = \
-        drop_to_be_deleted_cases(merged_df, cttso_lims_df, excel_row_number_mapping_df)
+        drop_to_be_deleted_cases(merged_df, cttso_lims_df, excel_row_number_mapping_df, pieriandx_df["pieriandx_case_id"].tolist())
 
     merged_df, cttso_lims_df, excel_row_number_mapping_df = \
         cleanup_duplicate_rows(merged_df, cttso_lims_df, excel_row_number_mapping_df)
