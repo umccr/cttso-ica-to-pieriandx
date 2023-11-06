@@ -345,6 +345,28 @@ def datetime_obj_to_utc(datetime_obj: datetime) -> datetime:
     return datetime_obj.replace(microsecond=0)
 
 
+def is_identified_sample(is_identified: Union[str, bool]) -> bool:
+    """
+    Is either True / False or "identified" / "deidentified"
+    :param is_identified:
+    :return:
+    """
+
+    if isinstance(is_identified, bool):
+        return is_identified
+
+    if isinstance(is_identified, str):
+        if is_identified not in ["identified", "deidentified"]:
+            logger.error(f"Got '{is_identified}', expected one of 'identified' or 'deidentified'")
+            raise ValueError
+        if is_identified == "identified":
+            return True
+        return False
+
+    logger.error(f"Did not expect type {type(is_identified)} for is_identified input")
+    raise TypeError
+
+
 def sanitise_data_frame(input_df: pd.DataFrame) -> pd.DataFrame:
     # Copy dataframe and convert blanks to nas
     input_df = input_df.copy().replace("", pd.NA)
@@ -461,7 +483,7 @@ def sanitise_data_frame(input_df: pd.DataFrame) -> pd.DataFrame:
     input_df["gender"] = input_df["gender"].apply(lambda x: Gender(x.lower()))
 
     # Check if identified column set, if not set, set to false
-    input_df["is_identified"] = input_df.apply(lambda x: x.is_identified
+    input_df["is_identified"] = input_df.apply(lambda x: is_identified_sample(x.is_identified)
                                                          if hasattr(x, "is_identified")
                                                          else False,
                                                axis="columns")

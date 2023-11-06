@@ -4,6 +4,16 @@ Changes in this log refer only to changes that make it to the 'main' branch. and
 
 For changes in deployment, please see the [deployment changelog](deploy/cttso-ica-to-pieriandx-cdk/Changelog.md) 
 
+## 2023-11-17
+
+> Author: Alexis Lucattini
+> Email: [Alexis.Lucattini@umccr.org](mailto:alexis.lucattini@umccr.org)
+
+
+### Hotfixes
+
+* Update how is_identified column is processed as it can both be a string and a boolean value (https://github.com/umccr/cttso-ica-to-pieriandx/pull/163)
+  * Resolves https://github.com/umccr/cttso-ica-to-pieriandx/issues/162
 
 ## 2023-10-18
 
