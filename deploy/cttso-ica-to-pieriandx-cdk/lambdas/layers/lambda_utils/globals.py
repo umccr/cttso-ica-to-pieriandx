@@ -97,7 +97,6 @@ VALIDATION_DEFAULTS = {
     "sample_type": "validation",
     "panel_type": PanelType.MAIN,
     "indication": "NA",
-    "disease_id": 285645000,
     "disease_name": "Disseminated malignancy of unknown primary",
     "is_identified": True,
     "requesting_physicians_first_name": "Sean",
@@ -175,7 +174,7 @@ PORTAL_FIELDS: List = [
 
 EXPECTED_ATTRIBUTES = [
     "sample_type",
-    "disease_id",
+    "disease_name",
     "indication",
     "accession_number",
     "external_specimen_id",

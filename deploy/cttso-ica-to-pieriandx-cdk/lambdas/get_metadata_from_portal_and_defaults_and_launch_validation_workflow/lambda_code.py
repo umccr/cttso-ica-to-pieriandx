@@ -46,7 +46,8 @@ def lambda_handler(event, context):
         "ica_workflow_run_id": "wfr.123abc",
         "panel_type": "main",
         "sample_type": "validation",
-        "is_identified": False | "deidentified"
+        "is_identified": False | "deidentified",
+        "disease_name": ""Disseminated malignancy of unknown primary""
     }
     """
 
@@ -93,13 +94,16 @@ def lambda_handler(event, context):
     if (is_identified := event.get("is_identified", None)) is None:
         is_identified = VALIDATION_DEFAULTS["is_identified"]
 
+    # Check disease name
+    if (disease_name := event.get("disease_name", None)) is None:
+        disease_name = VALIDATION_DEFAULTS["disease_name"]
+
     # Update sample_df with validation defaults
     sample_df["sample_type"] = sample_type
     sample_df["panel_type"] = panel_type
     sample_df["is_identified"] = is_identified
+    sample_df["disease_name"] = disease_name
     sample_df["indication"] = VALIDATION_DEFAULTS["indication"]
-    sample_df["disease_id"] = VALIDATION_DEFAULTS["disease_id"]
-    sample_df["disease_name"] = VALIDATION_DEFAULTS["disease_name"]
     sample_df["requesting_physicians_first_name"] = VALIDATION_DEFAULTS["requesting_physicians_first_name"]
     sample_df["requesting_physicians_last_name"] = VALIDATION_DEFAULTS["requesting_physicians_last_name"]
     sample_df["specimen_type"] = VALIDATION_DEFAULTS["specimen_type"]
