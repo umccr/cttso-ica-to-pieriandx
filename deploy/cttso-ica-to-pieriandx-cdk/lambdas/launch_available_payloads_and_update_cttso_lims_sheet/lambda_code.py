@@ -197,6 +197,7 @@ def get_libraries_for_processing(merged_df) -> pd.DataFrame:
       * is_identified
       * needs_redcap
       * redcap_is_complete
+      * default_snomed_term
     """
 
     # Initialise
@@ -208,7 +209,8 @@ def get_libraries_for_processing(merged_df) -> pd.DataFrame:
         "sample_type",
         "is_identified",
         "needs_redcap",
-        "redcap_is_complete"
+        "redcap_is_complete",
+        "default_snomed_term"
     ]
 
     # Processing libraries must meet the following criteria
@@ -275,6 +277,7 @@ def get_libraries_for_processing(merged_df) -> pd.DataFrame:
       "sample_type",
       "is_identified",
       "needs_redcap"
+      "default_snomed_term"
     ]
 
     for column_name in new_column_names:
@@ -286,14 +289,17 @@ def get_libraries_for_processing(merged_df) -> pd.DataFrame:
     ]
 
 
-def submit_library_to_pieriandx(subject_id: str, library_id: str, workflow_run_id: str, lambda_arn: str, panel_type: str, sample_type: str, is_identified: bool):
+def submit_library_to_pieriandx(subject_id: str, library_id: str, workflow_run_id: str, lambda_arn: str, panel_type: str, sample_type: str, is_identified: Union[bool | str], default_snomed_term: str):
     """
     Submit library to pieriandx
+    :param is_identified:
+    :param sample_type:
     :param subject_id:
     :param library_id:
     :param workflow_run_id:
     :param lambda_arn:
     :param panel_type:
+    :param default_snomed_term
     :return:
     """
     lambda_client: LambdaClient = get_boto3_lambda_client()
@@ -304,7 +310,8 @@ def submit_library_to_pieriandx(subject_id: str, library_id: str, workflow_run_i
             "ica_workflow_run_id": workflow_run_id,
             "panel_type": panel_type,
             "sample_type": sample_type,
-            "is_identified": is_identified
+            "is_identified": is_identified,
+            "disease_name": default_snomed_term
     }
 
     logger.info(f"Launching lambda function {lambda_arn} with the following payload {json.dumps(lambda_payload)}")
@@ -363,6 +370,7 @@ def submit_libraries_to_pieriandx(processing_df: pd.DataFrame) -> pd.DataFrame:
       * is_identified
       * needs_redcap
       * redcap_is_complete
+      * default_snomed_term
     :return:
       A pandas dataframe with the following columns
       * subject_id
@@ -413,7 +421,8 @@ def submit_libraries_to_pieriandx(processing_df: pd.DataFrame) -> pd.DataFrame:
                 lambda_arn=row.submission_arn,
                 panel_type=row.panel,
                 sample_type=row.sample_type,
-                is_identified=row.is_identified
+                is_identified=row.is_identified,
+                default_snomed_term=row.default_snomed_term
             )
         except ValueError:
             pass
