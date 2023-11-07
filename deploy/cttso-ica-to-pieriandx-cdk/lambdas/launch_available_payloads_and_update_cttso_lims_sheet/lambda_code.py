@@ -1955,7 +1955,8 @@ def drop_to_be_deleted_cases(merged_df: pd.DataFrame, cttso_lims_df: pd.DataFram
         "pieriandx_assignee == 'ToBeDeleted' or "
         "( "
         "  pieriandx_case_id not in @existing_pieriandx_cases and "
-        "  not pieriandx_case_id.isnull()"
+        "  not pieriandx_case_id.isnull() and "
+        "  not pieriandx_case_id == 'pending'"
         ")",
         engine="python"
     )
