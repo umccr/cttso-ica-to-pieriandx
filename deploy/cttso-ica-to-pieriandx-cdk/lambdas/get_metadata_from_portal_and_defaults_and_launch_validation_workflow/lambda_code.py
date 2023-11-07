@@ -46,7 +46,7 @@ def lambda_handler(event, context):
         "ica_workflow_run_id": "wfr.123abc",
         "panel_type": "main",
         "sample_type": "validation",
-        "is_identified": False
+        "is_identified": False | "deidentified"
     }
     """
 
@@ -156,6 +156,22 @@ def lambda_handler(event, context):
         axis="columns"
     )
 
+    # Convert times to utc time and strings
+    for date_column in ["date_received", "date_collected", "date_of_birth"]:
+        sample_df[date_column] = sample_df[date_column].apply(
+            lambda x: datetime_obj_to_utc_isoformat(handle_date(x))
+        )
+
+    # Assert expected values exist
+    logger.info("Check we have all of the expected information")
+    for expected_column in EXPECTED_ATTRIBUTES:
+        if expected_column not in sample_df.columns.tolist():
+            logger.error(
+                f"Expected column {expected_column} but "
+                f"did not find it in columns {', '.join(sample_df.columns.tolist())}"
+            )
+            raise ValueError
+
     # For identified - we rename external subject id as the medical record number
     if all(sample_df["is_identified"]):
         sample_df["first_name"] = VALIDATION_DEFAULTS["first_name"]
@@ -174,22 +190,6 @@ def lambda_handler(event, context):
                 "external_subject_id": "study_subject_identifier"
             }
         )
-
-    # Convert times to utc time and strings
-    for date_column in ["date_received", "date_collected", "date_of_birth"]:
-        sample_df[date_column] = sample_df[date_column].apply(
-            lambda x: datetime_obj_to_utc_isoformat(handle_date(x))
-        )
-
-    # Assert expected values exist
-    logger.info("Check we have all of the expected information")
-    for expected_column in EXPECTED_ATTRIBUTES:
-        if expected_column not in sample_df.columns.tolist():
-            logger.error(
-                f"Expected column {expected_column} but "
-                f"did not find it in columns {', '.join(sample_df.columns.tolist())}"
-            )
-            raise ValueError
 
     # Launch batch lambda function
     accession_json: Dict = sample_df.to_dict(orient="records")[0]
