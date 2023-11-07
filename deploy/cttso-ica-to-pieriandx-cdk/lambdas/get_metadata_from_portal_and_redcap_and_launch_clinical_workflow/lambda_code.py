@@ -112,7 +112,7 @@ def lambda_handler(event, context):
         "allow_missing_redcap_entry": false,
         "panel_type": "main",
         "sample_type": "patient_care_sample",
-        "is_identified": true,
+        "is_identified": true, | is_identified="identified"
     }
     """
 

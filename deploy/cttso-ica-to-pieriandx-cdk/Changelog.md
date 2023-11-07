@@ -3,6 +3,28 @@
 Changes in this log refer only to changes that make it to the 'main' branch and
 are nested under deploy/cttso-ica-to-pieriandx-cdk.  
 
+## 2023-11-17
+
+> Author: Alexis Lucattini
+> Email: [Alexis.Lucattini@umccr.org](mailto:alexis.lucattini@umccr.org)
+
+### Enhancements
+
+* Add two pieriandx columns for disease code and names (https://github.com/umccr/cttso-ica-to-pieriandx/pull/167)
+  * Resolves https://github.com/umccr/cttso-ica-to-pieriandx/issues/171
+
+### Bugfixes
+
+* Refactored validation lambda so that checks are not done before columns are renamed (https://github.com/umccr/cttso-ica-to-pieriandx/pull/168)
+  * Resolves https://github.com/umccr/cttso-ica-to-pieriandx/issues/166
+
+* Don't delete pending cases from cttso lims (https://github.com/umccr/cttso-ica-to-pieriandx/pull/169)
+  * Resolves https://github.com/umccr/cttso-ica-to-pieriandx/issues/161
+
+* Added snomed term to submission df (https://github.com/umccr/cttso-ica-to-pieriandx/pull/170)
+  * Resolves https://github.com/umccr/cttso-ica-to-pieriandx/issues/165
+
+
 ## 2023-10-18
 
 > Author: Alexis Lucattini
