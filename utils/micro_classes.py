@@ -68,7 +68,7 @@ class SnowMedObject:
         :return:
         """
         try:
-            return self.REFERENCE_DF.query(f"Label=={self.label}")['Code'].item()
+            return self.REFERENCE_DF.query(f"Label=='{self.label}'")['Code'].item()
         except ValueError:
             logger.error(f"Could not find unique label {self.label} in the csv")
             raise ValueError
