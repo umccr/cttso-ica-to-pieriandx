@@ -3,7 +3,16 @@
 Changes in this log refer only to changes that make it to the 'main' branch and
 are nested under deploy/cttso-ica-to-pieriandx-cdk.  
 
-## 2023-11-17
+## 2023-11-08
+
+> Author: Alexis Lucattini
+> Email: [Alexis.Lucattini@umccr.org](mailto:alexis.lucattini@umccr.org)
+
+### Hotfixes
+* Update date columns check (https://github.com/umccr/cttso-ica-to-pieriandx/pull/174)
+  * Resolves (https://github.com/umccr/cttso-ica-to-pieriandx/issues/173)
+
+## 2023-11-07
 
 > Author: Alexis Lucattini
 > Email: [Alexis.Lucattini@umccr.org](mailto:alexis.lucattini@umccr.org)
