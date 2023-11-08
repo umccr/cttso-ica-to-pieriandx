@@ -1,4 +1,4 @@
-name: Create and Upload Release And Docker Container(s)
+name: Check Changelog
 
 on:
   pull_request:

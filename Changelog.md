@@ -4,6 +4,22 @@ Changes in this log refer only to changes that make it to the 'main' branch. and
 
 For changes in deployment, please see the [deployment changelog](deploy/cttso-ica-to-pieriandx-cdk/Changelog.md) 
 
+## 2023-11-08
+
+> Author: Alexis Lucattini
+> Email: [Alexis.Lucattini@umccr.org](mailto:alexis.lucattini@umccr.org)
+
+### Enhancements
+
+* Build containers with ghcr.io (yet to move)  
+* Dont build containers concurrently (https://github.com/umccr/cttso-ica-to-pieriandx/pull/181)
+  * Resolves https://github.com/umccr/cttso-ica-to-pieriandx/issues/180
+
+### Hotfixes
+
+* Quote label input when no disease id (https://github.com/umccr/cttso-ica-to-pieriandx/pull/179)
+  * Resolves https://github.com/umccr/cttso-ica-to-pieriandx/issues/176 
+
 ## 2023-11-07
 
 > Author: Alexis Lucattini
