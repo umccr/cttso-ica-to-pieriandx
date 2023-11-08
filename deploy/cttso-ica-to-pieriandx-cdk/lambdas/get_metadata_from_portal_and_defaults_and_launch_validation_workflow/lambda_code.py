@@ -160,12 +160,6 @@ def lambda_handler(event, context):
         axis="columns"
     )
 
-    # Convert times to utc time and strings
-    for date_column in ["date_received", "date_collected", "date_of_birth"]:
-        sample_df[date_column] = sample_df[date_column].apply(
-            lambda x: datetime_obj_to_utc_isoformat(handle_date(x))
-        )
-
     # Assert expected values exist
     logger.info("Check we have all of the expected information")
     for expected_column in EXPECTED_ATTRIBUTES:
@@ -193,6 +187,14 @@ def lambda_handler(event, context):
             columns={
                 "external_subject_id": "study_subject_identifier"
             }
+        )
+
+    # Convert times to utc time and strings
+    for date_column in ["date_received", "date_collected", "date_of_birth"]:
+        if date_column not in sample_df.columns.tolist():
+            continue
+        sample_df[date_column] = sample_df[date_column].apply(
+            lambda x: datetime_obj_to_utc_isoformat(handle_date(x))
         )
 
     # Launch batch lambda function
