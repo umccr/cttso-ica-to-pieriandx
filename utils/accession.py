@@ -538,7 +538,7 @@ def sanitise_data_frame(input_df: pd.DataFrame) -> pd.DataFrame:
     input_df["date_of_birth"] = input_df.apply(
         lambda x: x.date_of_birth
         if hasattr(x, "date_of_birth")
-        else pd.NAT,
+        else pd.NaT,
         axis="columns"
     )
     input_df["first_name"] = input_df.apply(
