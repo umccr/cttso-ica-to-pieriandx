@@ -242,7 +242,8 @@ def get_libraries_for_processing(merged_df) -> pd.DataFrame:
         "    ( "
         "      glims_needs_redcap == False "
         "    ) "
-        "  ) "
+        "  ) and "
+        "  not subject_id == 'SBJ00006' "
         ") ",
         engine="python"  # Required for the isnull bit - https://stackoverflow.com/a/54099389/6946787
     )
