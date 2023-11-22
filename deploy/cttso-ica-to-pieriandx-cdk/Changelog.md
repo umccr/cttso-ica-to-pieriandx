@@ -3,6 +3,20 @@
 Changes in this log refer only to changes that make it to the 'main' branch and
 are nested under deploy/cttso-ica-to-pieriandx-cdk.  
 
+## 2023-11-22
+
+> Author: Alexis Lucattini
+> Email: [Alexis.Lucattini@umccr.org](mailto:alexis.lucattini@umccr.org)
+
+### Hotfixes
+* Update disease name to disease label (https://github.com/umccr/cttso-ica-to-pieriandx/pull/188)
+  * Resolves https://github.com/umccr/cttso-ica-to-pieriandx/issues/183
+* Coerce is_identified to boolean (https://github.com/umccr/cttso-ica-to-pieriandx/pull/187)
+  * Resolves https://github.com/umccr/cttso-ica-to-pieriandx/issues/184
+* Use comma after needs_redcap column (https://github.com/umccr/cttso-ica-to-pieriandx/pull/186)
+  * Resolves https://github.com/umccr/cttso-ica-to-pieriandx/issues/185
+
+
 ## 2023-11-08
 
 > Author: Alexis Lucattini

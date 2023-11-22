@@ -185,7 +185,7 @@ def get_libraries_for_processing(merged_df) -> pd.DataFrame:
       * pieriandx_assignee
       * pieriandx_case_identified
       * pieriandx_disease_code
-      * pieriandx_disease_name
+      * pieriandx_disease_label
       * pieriandx_panel_type
       * pieriandx_sample_type
     :return: A pandas dataframe with the following columns
@@ -276,7 +276,7 @@ def get_libraries_for_processing(merged_df) -> pd.DataFrame:
       "panel",
       "sample_type",
       "is_identified",
-      "needs_redcap"
+      "needs_redcap",
       "default_snomed_term"
     ]
 
@@ -489,7 +489,7 @@ def append_to_cttso_lims(merged_df: pd.DataFrame, cttso_lims_df: pd.DataFrame, e
       * pieriandx_case_identified
       * pieriandx_assignee
       * pieriandx_disease_code
-      * pieriandx_disease_name
+      * pieriandx_disease_label
       * pieriandx_panel_type
       * pieriandx_sample_type
       * pieriandx_workflow_id
@@ -663,7 +663,7 @@ def get_pieriandx_incomplete_job_df_from_cttso_lims_df(cttso_lims_df: pd.DataFra
         * pieriandx_case_creation_date
         * pieriandx_case_identified
         * pieriandx_disease_code
-        * pieriandx_disease_name
+        * pieriandx_disease_label
         * pieriandx_panel_type
         * pieriandx_sample_type
         * pieriandx_workflow_id
@@ -697,7 +697,7 @@ def get_pieriandx_incomplete_job_df_from_cttso_lims_df(cttso_lims_df: pd.DataFra
         * pieriandx_case_creation_date
         * pieriandx_case_identified
         * pieriandx_disease_code
-        * pieriandx_disease_name
+        * pieriandx_disease_label
         * pieriandx_panel_type
         * pieriandx_sample_type
         * pieriandx_workflow_id
@@ -823,7 +823,7 @@ def update_pieriandx_job_status_missing_df(pieriandx_job_status_missing_df, merg
       * pieriandx_case_accession_number
       * pieriandx_case_identified
       * pieriandx_disease_code
-      * pieriandx_disease_name
+      * pieriandx_disease_label
       * pieriandx_panel_type
       * pieriandx_sample_type
       * pieriandx_workflow_id
@@ -1140,7 +1140,7 @@ def update_cttso_lims(update_df: pd.DataFrame, cttso_lims_df: pd.DataFrame, exce
       * pieriandx_case_identified
       * pieriandx_assignee
       * pieriandx_disease_code
-      * pieriandx_disease_name
+      * pieriandx_disease_label
       * pieriandx_panel_type
       * pieriandx_sample_type
       * pieriandx_workflow_id
@@ -1192,7 +1192,7 @@ def update_cttso_lims(update_df: pd.DataFrame, cttso_lims_df: pd.DataFrame, exce
             "pieriandx_assignee",
             "pieriandx_case_identified",
             "pieriandx_disease_code",
-            "pieriandx_disease_name",
+            "pieriandx_disease_label",
             "pieriandx_panel_type",
             "pieriandx_sample_type",
             "pieriandx_workflow_id",
@@ -1249,7 +1249,7 @@ def get_duplicate_case_ids(lims_df: pd.DataFrame) -> List:
       * pieriandx_case_creation_date
       * pieriandx_assignee
       * pieriandx_disease_code
-      * pieriandx_disease_name
+      * pieriandx_disease_label
       * pieriandx_panel_type
       * pieriandx_sample_type
       * pieriandx_workflow_id
@@ -1447,7 +1447,7 @@ def cleanup_duplicate_rows(merged_df: pd.DataFrame, cttso_lims_df: pd.DataFrame,
       * pieriandx_case_identified
       * pieriandx_assignee
       * pieriandx_disease_code
-      * pieriandx_disease_name
+      * pieriandx_disease_label
       * pieriandx_panel_type
       * pieriandx_sample_type
       * pieriandx_workflow_id
@@ -1511,7 +1511,7 @@ def cleanup_duplicate_rows(merged_df: pd.DataFrame, cttso_lims_df: pd.DataFrame,
         * pieriandx_case_identified
         * pieriandx_assignee
         * pieriandx_disease_code
-        * pieriandx_disease_name
+        * pieriandx_disease_label
         * pieriandx_panel_type
         * pieriandx_sample_type
         * pieriandx_workflow_id
@@ -1689,7 +1689,7 @@ def bind_pieriandx_case_submission_time_to_merged_df(merged_df: pd.DataFrame, ct
       * pieriandx_case_identified
       * pieriandx_assignee
       * pieriandx_disease_code
-      * pieriandx_disease_name
+      * pieriandx_disease_label
       * pieriandx_panel_type
       * pieriandx_sample_type
       * pieriandx_workflow_id
@@ -1722,7 +1722,7 @@ def bind_pieriandx_case_submission_time_to_merged_df(merged_df: pd.DataFrame, ct
       * pieriandx_case_creation_date
       * pieriandx_assignee
       * pieriandx_disease_code
-      * pieriandx_disease_name
+      * pieriandx_disease_label
       * pieriandx_panel_type
       * pieriandx_sample_type
       * pieriandx_workflow_id
@@ -1970,7 +1970,7 @@ def drop_to_be_deleted_cases(merged_df: pd.DataFrame, cttso_lims_df: pd.DataFram
         * pieriandx_case_identified
         * pieriandx_assignee
         * pieriandx_disease_code
-        * pieriandx_disease_name
+        * pieriandx_disease_label
         * pieriandx_panel_type
         * pieriandx_sample_type
         * pieriandx_workflow_id

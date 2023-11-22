@@ -90,9 +90,15 @@ def lambda_handler(event, context):
         sample_type = VALIDATION_DEFAULTS["sample_type"]
 
     # Get is identified
-    is_identified: str
+    is_identified: any  # Union[str | bool] not supported in python=3.9
     if (is_identified := event.get("is_identified", None)) is None:
         is_identified = VALIDATION_DEFAULTS["is_identified"]
+
+    # Coerce is_identified to a boolean value
+    if isinstance(is_identified, str) and is_identified == 'identified':
+        is_identified = True
+    elif isinstance(is_identified, str) and is_identified == 'deidentified':
+        is_identified = False
 
     # Check disease name
     if (disease_name := event.get("disease_name", None)) is None:
