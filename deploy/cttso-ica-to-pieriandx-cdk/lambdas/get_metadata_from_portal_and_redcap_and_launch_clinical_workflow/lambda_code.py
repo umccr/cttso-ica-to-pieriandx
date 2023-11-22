@@ -210,8 +210,15 @@ def lambda_handler(event, context):
     if (sample_type := event.get("sample_type", None)) is None:
         sample_type = CLINICAL_DEFAULTS["sample_type"].name.lower()
 
+    is_identified: any  # Union[str | bool] not supported in python=3.9
     if (is_identified := event.get("is_identified", None)) is None:
         is_identified = CLINICAL_DEFAULTS["is_identified"].name.lower()
+
+    # Coerce is_identified to a boolean value
+    if isinstance(is_identified, str) and is_identified == 'identified':
+        is_identified = True
+    elif isinstance(is_identified, str) and is_identified == 'deidentified':
+        is_identified = False
 
     # Set panel type (if not null)
     merged_df["panel_type"] = panel_type
