@@ -188,10 +188,10 @@ def lambda_handler(event, context):
         )
     # For deidentified - we rename the external subject id as the study subject identifier
     else:
-        sample_df["study_identifier"] = sample_df["project_name"]
+        sample_df["study_id"] = sample_df["project_name"]
         sample_df = sample_df.rename(
             columns={
-                "external_subject_id": "study_subject_identifier"
+                "external_subject_id": "participant_id"
             }
         )
 
