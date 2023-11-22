@@ -1,4 +1,4 @@
-FROM amazon/aws-lambda-python:latest
+FROM amazon/aws-lambda-python:3.9.2023.11.10.13
 
 LABEL maintainer="Alexis Lucattini"
 
