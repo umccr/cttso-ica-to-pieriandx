@@ -303,12 +303,12 @@ def lambda_handler(event, context):
                 "external_subject_id": "mrn"
             }
         )
-    # Step 7b - for deidentified samples, use study_identified and study_subject_identifier
+    # Step 7b - for deidentified samples, use study_identified and participant_id
     else:
-        merged_df["study_identifier"] = merged_df["project_name"]
+        merged_df["study_id"] = merged_df["project_name"]
         merged_df = merged_df.rename(
             columns={
-                "external_subject_id": "study_subject_identifier"
+                "external_subject_id": "participant_id"
             }
         )
 
