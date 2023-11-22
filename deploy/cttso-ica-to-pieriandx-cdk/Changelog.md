@@ -17,6 +17,12 @@ are nested under deploy/cttso-ica-to-pieriandx-cdk.
   * Resolves https://github.com/umccr/cttso-ica-to-pieriandx/issues/185
 * Use non-latest docker tag. (https://github.com/umccr/cttso-ica-to-pieriandx/pull/191) 
   * Resolves https://github.com/umccr/cttso-ica-to-pieriandx/issues/190
+* Fix deidentified samples where wrong keys used for study id and participant id (https://github.com/umccr/cttso-ica-to-pieriandx/pull/194)
+  * Resolves https://github.com/umccr/cttso-ica-to-pieriandx/issues/193
+
+### Workarounds
+* Don't submit NTC samples (https://github.com/umccr/cttso-ica-to-pieriandx/pull/195)
+
 
 ## 2023-11-08
 
