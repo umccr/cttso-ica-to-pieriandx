@@ -276,7 +276,7 @@ def get_libraries_for_processing(merged_df) -> pd.DataFrame:
       "panel",
       "sample_type",
       "is_identified",
-      "needs_redcap"
+      "needs_redcap",
       "default_snomed_term"
     ]
 
