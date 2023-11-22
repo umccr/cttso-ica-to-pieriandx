@@ -398,7 +398,7 @@ def get_pieriandx_status_for_missing_sample(case_id: str) -> pd.Series:
       * pieriandx_case_accession_number
       * pieriandx_case_identified
       * pieriandx_disease_code
-      * pieriandx_disease_name
+      * pieriandx_disease_label
       * pieriandx_panel_type
       * pieriandx_workflow_id
       * pieriandx_workflow_status
@@ -440,7 +440,7 @@ def get_pieriandx_status_for_missing_sample(case_id: str) -> pd.Series:
             "pieriandx_case_accession_number": response.get("specimens")[0].get("accessionNumber"),
             "pieriandx_case_identified": response.get("identified", False),
             "pieriandx_disease_code": response.get("disease").get("code"),
-            "pieriandx_disease_name": response.get("disease").get("name"),
+            "pieriandx_disease_label": response.get("disease").get("label"),
             "pieriandx_panel_type": PanelType(response.get("panelName")).name,
             "pieriandx_sample_type": SampleType(response.get("sampleType")).name,
             "pieriandx_workflow_id": pd.NA,
