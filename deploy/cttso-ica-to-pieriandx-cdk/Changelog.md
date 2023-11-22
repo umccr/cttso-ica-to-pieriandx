@@ -19,6 +19,8 @@ are nested under deploy/cttso-ica-to-pieriandx-cdk.
   * Resolves https://github.com/umccr/cttso-ica-to-pieriandx/issues/190
 * Fix deidentified samples where wrong keys used for study id and participant id (https://github.com/umccr/cttso-ica-to-pieriandx/pull/194)
   * Resolves https://github.com/umccr/cttso-ica-to-pieriandx/issues/193
+* Fix deidentified samples where NAT instead of NaT null value was used (https://github.com/umccr/cttso-ica-to-pieriandx/pull/198)
+  * Resolves https://github.com/umccr/cttso-ica-to-pieriandx/issues/197
 
 ### Workarounds
 * Don't submit NTC samples (https://github.com/umccr/cttso-ica-to-pieriandx/pull/195)
