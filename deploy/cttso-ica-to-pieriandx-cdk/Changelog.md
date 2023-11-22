@@ -15,7 +15,8 @@ are nested under deploy/cttso-ica-to-pieriandx-cdk.
   * Resolves https://github.com/umccr/cttso-ica-to-pieriandx/issues/184
 * Use comma after needs_redcap column (https://github.com/umccr/cttso-ica-to-pieriandx/pull/186)
   * Resolves https://github.com/umccr/cttso-ica-to-pieriandx/issues/185
-
+* Use non-latest docker tag. (https://github.com/umccr/cttso-ica-to-pieriandx/pull/191) 
+  * Resolves https://github.com/umccr/cttso-ica-to-pieriandx/issues/190
 
 ## 2023-11-08
 
