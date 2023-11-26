@@ -290,7 +290,7 @@ def get_libraries_for_processing(merged_df) -> pd.DataFrame:
     ]
 
 
-def submit_library_to_pieriandx(subject_id: str, library_id: str, workflow_run_id: str, lambda_arn: str, panel_type: str, sample_type: str, is_identified: Union[bool | str], default_snomed_term: str):
+def submit_library_to_pieriandx(subject_id: str, library_id: str, workflow_run_id: str, lambda_arn: str, panel_type: str, sample_type: str, is_identified: str, default_snomed_term: str):
     """
     Submit library to pieriandx
     :param is_identified:
