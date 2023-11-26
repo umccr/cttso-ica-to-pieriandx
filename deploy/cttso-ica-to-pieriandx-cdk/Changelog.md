@@ -3,6 +3,19 @@
 Changes in this log refer only to changes that make it to the 'main' branch and
 are nested under deploy/cttso-ica-to-pieriandx-cdk.  
 
+## 2023-11-27
+
+> Author: Alexis Lucattini
+> Email: [Alexis.Lucattini@umccr.org](mailto:alexis.lucattini@umccr.org)
+
+### Hotfixes
+* lims maker lambda fails on type hinting for multiple types (https://github.com/umccr/cttso-ica-to-pieriandx/pull/201)
+  * Resolves https://github.com/umccr/cttso-ica-to-pieriandx/issues/200
+
+### Enhancements
+* Use global var for NTC Subject ID (https://github.com/umccr/cttso-ica-to-pieriandx/pull/202)
+
+
 ## 2023-11-22
 
 > Author: Alexis Lucattini
