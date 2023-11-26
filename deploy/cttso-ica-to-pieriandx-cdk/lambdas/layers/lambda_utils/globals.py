@@ -194,3 +194,5 @@ WFR_NAME_REGEX = re.compile(
     rf"umccr__automated__{PORTAL_CTTSO_WORKFLOW_TYPE_NAME}__(SBJ\d{{5}})__(L\d{{7}})__\S+"
 )
 
+
+NTC_SUBJECT_ID = "SBJ00006"

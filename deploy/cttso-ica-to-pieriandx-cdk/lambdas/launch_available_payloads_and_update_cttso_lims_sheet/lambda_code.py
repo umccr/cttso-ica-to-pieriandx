@@ -61,7 +61,8 @@ from lambda_utils.globals import \
     REDCAP_APIS_LAMBDA_FUNCTION_ARN_SSM_PARAMETER, \
     CLINICAL_LAMBDA_FUNCTION_SSM_PARAMETER_PATH, \
     VALIDATION_LAMBDA_FUNCTION_ARN_SSM_PARAMETER_PATH, \
-    MAX_SUBMISSIONS_PER_LIMS_UPDATE_CYCLE, MAX_ATTEMPTS_WAKE_LAMBDAS, EVENT_RULE_FUNCTION_NAME_SSM_PARAMETER_PATH
+    MAX_SUBMISSIONS_PER_LIMS_UPDATE_CYCLE, MAX_ATTEMPTS_WAKE_LAMBDAS, EVENT_RULE_FUNCTION_NAME_SSM_PARAMETER_PATH, \
+    NTC_SUBJECT_ID
 
 logger = get_logger()
 
@@ -228,23 +229,23 @@ def get_libraries_for_processing(merged_df) -> pd.DataFrame:
     one_week_ago = (datetime.now() - timedelta(days=7)).date()
 
     to_process_df = merged_df.query(
-        "("
-        "  pieriandx_case_id.isnull() and "
-        "  ( pieriandx_submission_time.isnull() or pieriandx_submission_time < @one_week_ago ) and "
-        "  not in_pieriandx and "
-        "  not portal_wfr_id.isnull() and "
-        "  portal_wfr_status == 'Succeeded' and "
-        "  portal_is_failed_run == False and "
-        "  ( "
-        "    ( "
-        "      not redcap_is_complete.isnull() and redcap_is_complete.str.lower() == 'complete' "
-        "    ) or "
-        "    ( "
-        "      glims_needs_redcap == False "
-        "    ) "
-        "  ) and "
-        "  not subject_id == 'SBJ00006' "
-        ") ",
+        f"("
+        f"  pieriandx_case_id.isnull() and "
+        f"  ( pieriandx_submission_time.isnull() or pieriandx_submission_time < @one_week_ago ) and "
+        f"  not in_pieriandx and "
+        f"  not portal_wfr_id.isnull() and "
+        f"  portal_wfr_status == 'Succeeded' and "
+        f"  portal_is_failed_run == False and "
+        f"  ( "
+        f"    ( "
+        f"      not redcap_is_complete.isnull() and redcap_is_complete.str.lower() == 'complete' "
+        f"    ) or "
+        f"    ( "
+        f"      glims_needs_redcap == False "
+        f"    ) "
+        f"  ) and "
+        f"  not subject_id == '{NTC_SUBJECT_ID}' "
+        f") ",
         engine="python"  # Required for the isnull bit - https://stackoverflow.com/a/54099389/6946787
     )
 
