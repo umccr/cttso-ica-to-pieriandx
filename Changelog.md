@@ -4,6 +4,16 @@ Changes in this log refer only to changes that make it to the 'main' branch. and
 
 For changes in deployment, please see the [deployment changelog](deploy/cttso-ica-to-pieriandx-cdk/Changelog.md) 
 
+## 2023-11-22
+
+> Author: Alexis Lucattini
+> Email: [Alexis.Lucattini@umccr.org](mailto:alexis.lucattini@umccr.org)
+
+### Hotfixes
+* Fix deidentified samples where NAT instead of NaT null value was used (https://github.com/umccr/cttso-ica-to-pieriandx/pull/198)
+  * Resolves https://github.com/umccr/cttso-ica-to-pieriandx/issues/197
+
+
 ## 2023-11-08
 
 > Author: Alexis Lucattini
