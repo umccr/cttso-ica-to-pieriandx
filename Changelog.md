@@ -4,6 +4,16 @@ Changes in this log refer only to changes that make it to the 'main' branch. and
 
 For changes in deployment, please see the [deployment changelog](deploy/cttso-ica-to-pieriandx-cdk/Changelog.md) 
 
+## 2023-11-27
+
+> Author: Alexis Lucattini
+> Email: [Alexis.Lucattini@umccr.org](mailto:alexis.lucattini@umccr.org)
+
+### Hotfixes
+* Fix Run info xml regex, run info may also come from production/raw_data (https://github.com/umccr/cttso-ica-to-pieriandx/pull/205)
+  * Resolves https://github.com/umccr/cttso-ica-to-pieriandx/issues/204
+
+
 ## 2023-11-22
 
 > Author: Alexis Lucattini
