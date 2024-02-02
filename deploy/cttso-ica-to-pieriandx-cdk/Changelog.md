@@ -3,6 +3,15 @@
 Changes in this log refer only to changes that make it to the 'main' branch and
 are nested under deploy/cttso-ica-to-pieriandx-cdk.  
 
+## 2024-02-02
+
+> Author: Alexis Lucattini
+> Email: [Alexis.Lucattini@umccr.org](mailto:alexis.lucattini@umccr.org)
+
+### Dependencies
+* Ensure gspread is less than version 6.0.0 (https://github.com/umccr/cttso-ica-to-pieriandx/pull/208)
+
+
 ## 2023-11-27
 
 > Author: Alexis Lucattini
