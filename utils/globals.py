@@ -106,7 +106,7 @@ LIST_CASES_RETRY_TIME = 20
 #########################
 # RunInfo.xml
 #########################
-RUN_INFO_XML_REGEX = re.compile(r"gds://(?:bssh\.\S+|production/raw_data)/Runs/([\w+|_]+)_r\.\S+/RunInfo\.xml")
+RUN_INFO_XML_REGEX = re.compile(r"gds://(?:bssh\.\S+|production/raw_data)/Runs/([\w+|_]+)_r\.\S+/RunInfo(?:.*)?\.xml")
 
 #################
 # OUTPUT GLOBALS
