@@ -18,6 +18,10 @@ AWS SSM Parameters for the dev pipeline stack can be found in _params-dev.json_.
 
 AWS SSM Parameters for the prod pipeline stack can be found in _params-prod.json_.
 
+The Production ctTSO LIMS sheet can be found [here][cttso_lims_link], you will need a UMCCR GSuite account to access it.  
+
+The ctTSO LIMS contains a list of samples that have been processed by the ctTSO pipeline and submitted to PierianDx.  
+
 ## Initialising the ctTSO LIMS
 
 If the lims sheet needs to be rebuilt, then the following steps may be of use.
@@ -360,6 +364,14 @@ This ssm parameter is NOT part of the cdk stack and MUST be updated using the sc
     "default_snomed_term": null
   },
   {
+    "project_owner": "KSmith",
+    "project_name": "iPredict2",
+    "panel": "subpanel",
+    "sample_type": "patient_care_sample",
+    "is_identified": "identified",
+    "default_snomed_term":null
+  },
+  {
     "project_owner": "*",
     "project_name": "*",
     "panel": "main",
@@ -414,3 +426,4 @@ before trying again.
 [ica_ica_lazy]: https://github.com/umccr/ica-ica-lazy
 [git]: https://git-scm.com/
 [aws_umccr_wiki]: https://github.com/umccr/wiki/blob/master/computing/cloud/amazon/README.md
+[cttso_lims_link]: https://docs.google.com/spreadsheets/d/1Ev2aAYYwZQd9klCKyqON1Q17lBj49fb8dIwu0u5JivE
