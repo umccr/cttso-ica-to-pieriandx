@@ -420,6 +420,22 @@ because no identity-based policy allows the lambda:InvokeFunction action
 then it's likely a permissions issue. Please talk to your account administrator to elevate your permissions 
 before trying again.
 
+#### Checking a sample has gone through PierianDx 
+
+1. Check the ctTSO Lims, see if for a given subject id / library id combination, there is a pieriandx_case_id and pieriandx_case_accession_number
+2. Check [app.pieriandx.com][cgw_link] and see if the case is present
+3. View the AWS batch logs to see if the sample has been processed by AWS Batch
+    * [AWS Batch URL][aws_batch_url]
+    * Job Queue Name: cttso-ica-to-pieriandx-prod-batch-stack-jobqueue
+
+
+## Contributing to this repository (deployment):
+
+Please make all changes in a separate branch and then create a PR to the `dev` branch. 
+
+A PR should then be made from the `dev` branch to the `main` branch.
+
+Please update the [Changelog.md](Changelog.md) file before making a PR into the main branch.  
 
 [yawsso]:  https://github.com/victorskl/yawsso
 [aws_cli_v2]: https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html
@@ -427,3 +443,5 @@ before trying again.
 [git]: https://git-scm.com/
 [aws_umccr_wiki]: https://github.com/umccr/wiki/blob/master/computing/cloud/amazon/README.md
 [cttso_lims_link]: https://docs.google.com/spreadsheets/d/1Ev2aAYYwZQd9klCKyqON1Q17lBj49fb8dIwu0u5JivE
+[cgw_link]: https://app.pieriandx.com/
+[aws_batch_url]:  https://ap-southeast-2.console.aws.amazon.com/batch/home?region=ap-southeast-2
