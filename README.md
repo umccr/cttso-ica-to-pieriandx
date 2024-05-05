@@ -393,3 +393,12 @@ The accession csv will have the following columns (all columns are reduced to lo
 * Tumor Mutational Burden (Mutations/Mb) / tumor_mutational_burden_mutations_per_mb  # Optional (not used)
 * Percent Unstable Sites / percent_unstable_sites  # Optional (not used)
 * Percent Tumor Cell Nuclei in the Selected Areas / percent_tumor_cell_nuclei_in_the_selected_areas  # Optional (not used)
+
+## Contributing to this repository:
+
+Please make all changes in a separate branch and then create a PR to the `dev` branch. 
+
+A PR should then be made from the `dev` branch to the `main` branch.
+
+Please make sure you update the [Changelog.md](Changelog.md) file with your changes before making a PR into the main branch.
+If the changes are under the `deploy/cttso-ica-to-pieriandx-cdk` folder, please update the [deploy/cttso-ica-to-pieriandx-cdk/Changelog.md](deploy/cttso-ica-to-pieriandx-cdk/Changelog.md) file.

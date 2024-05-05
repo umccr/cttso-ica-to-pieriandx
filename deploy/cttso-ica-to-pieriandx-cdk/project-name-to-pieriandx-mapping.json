@@ -80,6 +80,14 @@
     "default_snomed_term": null
   },
   {
+    "project_owner": "KSmith",
+    "project_name": "iPredict2",
+    "panel": "subpanel",
+    "sample_type": "patient_care_sample",
+    "is_identified": "identified",
+    "default_snomed_term":null
+  },
+  {
     "project_owner": "*",
     "project_name": "*",
     "panel": "main",

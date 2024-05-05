@@ -19,11 +19,11 @@ jobs:
       # Get all file changes
       - name: Get All Changed Files
         id: get_all_changed_files
-        uses: tj-actions/changed-files@v36
+        uses: tj-actions/changed-files@v41
       # Get all changed in deploy directory
       - name: Get Deployment Changed Files
         id: get_deployment_changed_files
-        uses: tj-actions/changed-files@v36
+        uses: tj-actions/changed-files@v41
         with:
           files: deploy/*
       # List all changed files
