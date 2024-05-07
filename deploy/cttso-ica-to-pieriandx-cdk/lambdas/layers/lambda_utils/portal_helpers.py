@@ -115,7 +115,8 @@ def get_portal_workflow_run_data_df() -> pd.DataFrame:
     :return: A pandas DataFrame with the following columns
       * subject_id
       * library_id
-      * portal_wfr_id
+      * portal_run_id                 -> The portal run ID
+      * portal_wfr_id                 -> The ICA workflow run ID
       * portal_wfr_end                -> The end timestamp of the workflow
       * portal_wfr_status             -> The status of the workflow run
       * portal_sequence_run_name      -> The sequence run name from this cttso sample
@@ -259,11 +260,12 @@ def get_portal_workflow_run_data_df() -> pd.DataFrame:
         [
             "subject_id",
             "library_id",
+            "portal_run_id",
             "portal_wfr_id",
             "portal_wfr_end",
             "portal_wfr_status",
             "portal_sequence_run_name",
-            "portal_is_failed_run"""
+            "portal_is_failed_run"
         ]
     ]
 

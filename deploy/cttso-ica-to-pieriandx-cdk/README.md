@@ -57,6 +57,7 @@ new_headers = [
     "glims_needs_redcap",
     "redcap_sample_type",
     "redcap_is_complete",
+    "portal_run_id",
     "portal_wfr_id",
     "portal_wfr_end",
     "portal_wfr_status",
