@@ -80,6 +80,7 @@ def merge_redcap_portal_and_glims_data(redcap_df, portal_df, glims_df) -> pd.Dat
       * subject_id
       * library_id
       * in_portal
+      * portal_run_id
       * portal_wfr_id
       * portal_wfr_end
       * portal_wfr_status
@@ -105,6 +106,7 @@ def merge_redcap_portal_and_glims_data(redcap_df, portal_df, glims_df) -> pd.Dat
       * in_glims
       * redcap_sample_type
       * redcap_is_complete
+      * portal_run_id
       * portal_wfr_id
       * portal_wfr_end
       * portal_wfr_status
@@ -167,6 +169,7 @@ def get_libraries_for_processing(merged_df) -> pd.DataFrame:
       * in_pieriandx
       * redcap_sample_type
       * redcap_is_complete
+      * portal_run_id
       * portal_wfr_id
       * portal_wfr_end
       * portal_wfr_status
@@ -192,6 +195,7 @@ def get_libraries_for_processing(merged_df) -> pd.DataFrame:
     :return: A pandas dataframe with the following columns
       * subject_id
       * library_id
+      * portal_run_id
       * portal_wfr_id
       * panel
       * sample_type
@@ -205,6 +209,7 @@ def get_libraries_for_processing(merged_df) -> pd.DataFrame:
     processing_columns = [
         "subject_id",
         "library_id",
+        "portal_run_id",
         "portal_wfr_id",
         "panel",
         "sample_type",
@@ -233,6 +238,7 @@ def get_libraries_for_processing(merged_df) -> pd.DataFrame:
         f"  pieriandx_case_id.isnull() and "
         f"  ( pieriandx_submission_time.isnull() or pieriandx_submission_time < @one_week_ago ) and "
         f"  not in_pieriandx and "
+        f"  not portal_run_id.isnull() and "
         f"  not portal_wfr_id.isnull() and "
         f"  portal_wfr_status == 'Succeeded' and "
         f"  portal_is_failed_run == False and "
@@ -263,6 +269,7 @@ def get_libraries_for_processing(merged_df) -> pd.DataFrame:
         if not deleted_lims_df.query(
             f"subject_id == '{process_row['subject_id']}' and "
             f"library_id == '{process_row['library_id']}' and "
+            f"portal_run_id == '{process_row['portal_run_id']}' and "
             f"portal_wfr_id == '{process_row['portal_wfr_id']}'"
         ).shape[0] == 0:
             already_deleted_list_index.append(index)
@@ -291,13 +298,24 @@ def get_libraries_for_processing(merged_df) -> pd.DataFrame:
     ]
 
 
-def submit_library_to_pieriandx(subject_id: str, library_id: str, workflow_run_id: str, lambda_arn: str, panel_type: str, sample_type: str, is_identified: str, default_snomed_term: str):
+def submit_library_to_pieriandx(
+        subject_id: str,
+        library_id: str,
+        portal_run_id: str,
+        workflow_run_id: str,
+        lambda_arn: str,
+        panel_type: str,
+        sample_type: str,
+        is_identified: str,
+        default_snomed_term: str
+):
     """
     Submit library to pieriandx
     :param is_identified:
     :param sample_type:
     :param subject_id:
     :param library_id:
+    :param portal_run_id:
     :param workflow_run_id:
     :param lambda_arn:
     :param panel_type:
@@ -309,6 +327,7 @@ def submit_library_to_pieriandx(subject_id: str, library_id: str, workflow_run_i
     lambda_payload: Dict = {
             "subject_id": subject_id,
             "library_id": library_id,
+            "portal_run_id": portal_run_id,
             "ica_workflow_run_id": workflow_run_id,
             "panel_type": panel_type,
             "sample_type": sample_type,
@@ -366,6 +385,7 @@ def submit_libraries_to_pieriandx(processing_df: pd.DataFrame) -> pd.DataFrame:
     :param processing_df: A pandas dataframe with the following columns
       * subject_id
       * library_id
+      * portal_run_id
       * portal_wfr_id
       * panel
       * sample_type
@@ -377,6 +397,7 @@ def submit_libraries_to_pieriandx(processing_df: pd.DataFrame) -> pd.DataFrame:
       A pandas dataframe with the following columns
       * subject_id
       * library_id
+      * portal_run_id
       * portal_wfr_id
       * panel
       * sample_type
@@ -413,12 +434,13 @@ def submit_libraries_to_pieriandx(processing_df: pd.DataFrame) -> pd.DataFrame:
 
     for index, row in processing_df.iterrows():
         logger.info(f"Submitting the following subject id / library id to PierianDx")
-        logger.info(f"SubjectID='{row.subject_id}', LibraryID='{row.library_id}', Workflow Run ID='{row.portal_wfr_id}'")
+        logger.info(f"SubjectID='{row.subject_id}', LibraryID='{row.library_id}', Portal Run ID='{row.portal_run_id}', Workflow Run ID='{row.portal_wfr_id}'")
         logger.info(f"Submitted to arn: '{row.submission_arn}'")
         try:
             submit_library_to_pieriandx(
                 subject_id=row.subject_id,
                 library_id=row.library_id,
+                portal_run_id=row.portal_run_id,
                 workflow_run_id=row.portal_wfr_id,
                 lambda_arn=row.submission_arn,
                 panel_type=row.panel,
@@ -447,6 +469,7 @@ def append_to_cttso_lims(merged_df: pd.DataFrame, cttso_lims_df: pd.DataFrame, e
       * in_pieriandx
       * redcap_sample_type
       * redcap_is_complete
+      * portal_run_id
       * portal_wfr_id
       * portal_wfr_end
       * portal_wfr_status
@@ -479,6 +502,7 @@ def append_to_cttso_lims(merged_df: pd.DataFrame, cttso_lims_df: pd.DataFrame, e
       * glims_needs_redcap
       * redcap_sample_type
       * redcap_is_complete
+      * portal_run_id
       * portal_wfr_id
       * portal_wfr_end
       * portal_wfr_status
@@ -654,6 +678,7 @@ def get_pieriandx_incomplete_job_df_from_cttso_lims_df(cttso_lims_df: pd.DataFra
         * glims_is_identified
         * glims_default_snomed_term
         * glims_needs_redcap
+        * portal_run_id
         * portal_wfr_id
         * portal_wfr_end
         * portal_wfr_status
@@ -688,6 +713,7 @@ def get_pieriandx_incomplete_job_df_from_cttso_lims_df(cttso_lims_df: pd.DataFra
         * glims_is_identified
         * glims_default_snomed_term
         * glims_needs_redcap
+        * portal_run_id
         * portal_wfr_id
         * portal_wfr_end
         * portal_wfr_status
@@ -749,6 +775,7 @@ def update_merged_df_with_processing_df(merged_df, processing_df) -> pd.DataFram
       * in_pieriandx
       * redcap_sample_type
       * redcap_is_complete
+      * portal_run_id
       * portal_wfr_id
       * portal_wfr_end
       * portal_wfr_status
@@ -768,6 +795,7 @@ def update_merged_df_with_processing_df(merged_df, processing_df) -> pd.DataFram
     :param processing_df: A pandas dataframe with the following columns
       * subject_id
       * library_id
+      * portal_run_id
       * portal_wfr_id
       * panel
       * sample_type
@@ -785,6 +813,7 @@ def update_merged_df_with_processing_df(merged_df, processing_df) -> pd.DataFram
       * in_pieriandx
       * redcap_sample_type
       * redcap_is_complete
+      * portal_run_id
       * portal_wfr_id
       * portal_wfr_end
       * portal_wfr_status
@@ -848,6 +877,7 @@ def update_pieriandx_job_status_missing_df(pieriandx_job_status_missing_df, merg
       * glims_needs_redcap
       * redcap_sample_type
       * redcap_is_complete
+      * portal_run_id
       * portal_wfr_id
       * portal_wfr_end
       * portal_wfr_status
@@ -872,6 +902,7 @@ def update_pieriandx_job_status_missing_df(pieriandx_job_status_missing_df, merg
       * glims_needs_redcap
       * redcap_sample_type
       * redcap_is_complete
+      * portal_run_id
       * portal_wfr_id
       * portal_wfr_end
       * portal_wfr_status
@@ -892,6 +923,7 @@ def update_pieriandx_job_status_missing_df(pieriandx_job_status_missing_df, merg
         "in_pieriandx",
         "redcap_sample_type",
         "redcap_is_complete",
+        "portal_run_id",
         "portal_wfr_id",
         "portal_wfr_end",
         "portal_wfr_status",
@@ -929,6 +961,7 @@ def add_pieriandx_df_to_merged_df(merged_df: pd.DataFrame, pieriandx_df: pd.Data
       * in_glims
       * redcap_sample_type
       * redcap_is_complete
+      * portal_run_id
       * portal_wfr_id
       * portal_wfr_end
       * portal_wfr_status
@@ -957,6 +990,7 @@ def add_pieriandx_df_to_merged_df(merged_df: pd.DataFrame, pieriandx_df: pd.Data
       * in_pieriandx
       * redcap_sample_type
       * redcap_is_complete
+      * portal_run_id
       * portal_wfr_id
       * portal_wfr_end
       * portal_wfr_status
@@ -1030,7 +1064,7 @@ def add_pieriandx_df_to_merged_df(merged_df: pd.DataFrame, pieriandx_df: pd.Data
 
     # Drop cases with pieriandx where duplicates have been created in id sections
     merged_df_with_pieriandx_df = merged_df_with_pieriandx_df.drop_duplicates(
-        subset=["subject_id", "library_id", "portal_wfr_id", "pieriandx_case_id"],
+        subset=["subject_id", "library_id", "portal_run_id", "portal_wfr_id", "pieriandx_case_id"],
         keep="last"
     )
 
@@ -1073,7 +1107,7 @@ def add_pieriandx_df_to_merged_df(merged_df: pd.DataFrame, pieriandx_df: pd.Data
     # Now that we've NAs a bunch of duplicates, lets group-by subject, library, portal wfr
     # And drop duplicates that have NA values for pieriandx case ids
     mini_dfs: List[pd.DataFrame] = []
-    for (subject_id, library_id, portal_wfr_id), mini_df in merged_df_with_pieriandx_df.groupby(["subject_id", "library_id", "portal_wfr_id"]):
+    for (subject_id, library_id, portal_run_id, portal_wfr_id), mini_df in merged_df_with_pieriandx_df.groupby(["subject_id", "library_id", "portal_run_id", "portal_wfr_id"]):
         if mini_df.shape[0] == 1:
             mini_dfs.append(mini_df)
             continue
@@ -1106,6 +1140,7 @@ def update_cttso_lims(update_df: pd.DataFrame, cttso_lims_df: pd.DataFrame, exce
       * glims_needs_redcap
       * redcap_sample_type
       * redcap_is_complete
+      * portal_run_id
       * portal_wfr_id
       * portal_wfr_end
       * portal_wfr_status
@@ -1130,6 +1165,7 @@ def update_cttso_lims(update_df: pd.DataFrame, cttso_lims_df: pd.DataFrame, exce
       * glims_needs_redcap
       * redcap_sample_type
       * redcap_is_complete
+      * portal_run_id
       * portal_wfr_id
       * portal_wfr_end
       * portal_wfr_status
@@ -1233,6 +1269,7 @@ def get_duplicate_case_ids(lims_df: pd.DataFrame) -> List:
       * in_pieriandx
       * redcap_sample_type
       * redcap_is_complete
+      * portal_run_id
       * portal_wfr_id
       * portal_wfr_end
       * portal_wfr_status
@@ -1291,10 +1328,11 @@ def get_duplicate_case_ids(lims_df: pd.DataFrame) -> List:
     # Append rows to drop
     subject_id: str
     library_id: str
+    portal_run_id: str
     portal_wfr_id: str
     mini_df: pd.DataFrame
-    for (subject_id, library_id, portal_wfr_id), mini_df in lims_df.groupby(
-            ["subject_id", "library_id", "portal_wfr_id"]):
+    for (subject_id, library_id, portal_run_id, portal_wfr_id), mini_df in lims_df.groupby(
+            ["subject_id", "library_id", "portal_run_id", "portal_wfr_id"]):
         # Check if it's just a single row
         if mini_df.shape[0] == 1:
             # Single unique row - nothing to see here
@@ -1315,6 +1353,7 @@ def get_duplicate_case_ids(lims_df: pd.DataFrame) -> List:
             logger.info(f"Got duplicates pieriandx case ids "
                         f"for subject_id '{subject_id}', "
                         f"library_id '{library_id}' and "
+                        f"portal_run_id '{portal_run_id}' and "
                         f"portal_wfr_id '{portal_wfr_id}'")
             continue
 
@@ -1405,6 +1444,7 @@ def cleanup_duplicate_rows(merged_df: pd.DataFrame, cttso_lims_df: pd.DataFrame,
       * in_pieriandx
       * redcap_sample_type
       * redcap_is_complete
+      * portal_run_id
       * portal_wfr_id
       * portal_wfr_end
       * portal_wfr_status
@@ -1437,6 +1477,7 @@ def cleanup_duplicate_rows(merged_df: pd.DataFrame, cttso_lims_df: pd.DataFrame,
       * glims_needs_redcap
       * redcap_sample_type
       * redcap_is_complete
+      * portal_run_id
       * portal_wfr_id
       * portal_wfr_end
       * portal_wfr_status
@@ -1468,6 +1509,7 @@ def cleanup_duplicate_rows(merged_df: pd.DataFrame, cttso_lims_df: pd.DataFrame,
         * in_pieriandx
         * redcap_sample_type
         * redcap_is_complete
+        * portal_run_id
         * portal_wfr_id
         * portal_wfr_end
         * portal_wfr_status
@@ -1501,6 +1543,7 @@ def cleanup_duplicate_rows(merged_df: pd.DataFrame, cttso_lims_df: pd.DataFrame,
         * glims_needs_redcap
         * redcap_sample_type
         * redcap_is_complete
+        * portal_run_id
         * portal_wfr_id
         * portal_wfr_end
         * portal_wfr_status
@@ -1529,7 +1572,7 @@ def cleanup_duplicate_rows(merged_df: pd.DataFrame, cttso_lims_df: pd.DataFrame,
     # Merge our dataframes so we only need to do this once
     merged_lims_df: pd.DataFrame = pd.merge(
         merged_df, cttso_lims_df,
-        on=["subject_id", "library_id", "portal_wfr_id", "pieriandx_case_id"],
+        on=["subject_id", "library_id", "portal_run_id", "portal_wfr_id", "pieriandx_case_id"],
         how="outer", suffixes=("", "_lims")
     )
 
@@ -1547,7 +1590,7 @@ def cleanup_duplicate_rows(merged_df: pd.DataFrame, cttso_lims_df: pd.DataFrame,
     # Iterate again through the lims df and drop any duplicates now where pieriandx case id is null
     # And another pieriandx case id exists
     mini_dfs: List[pd.DataFrame] = []
-    for (subject_id, library_id, portal_wfr_id), mini_df in cttso_lims_df_dedup.groupby(["subject_id", "library_id", "portal_wfr_id"]):
+    for (subject_id, library_id, portal_run_id, portal_wfr_id), mini_df in cttso_lims_df_dedup.groupby(["subject_id", "library_id", "portal_run_id", "portal_wfr_id"]):
         if mini_df.shape[0] == 1:
             mini_dfs.append(mini_df)
             continue
@@ -1601,17 +1644,19 @@ def get_pieriandx_case_id_from_merged_df_for_pending_case(cttso_lims_series, mer
 
     subject_id: str = cttso_lims_series['subject_id']
     library_id: str = cttso_lims_series['library_id']
+    portal_run_id: str = cttso_lims_series['portal_run_id']
     portal_wfr_id: str = cttso_lims_series['portal_wfr_id']
 
     merged_rows = merged_df.query(
         f"subject_id=='{subject_id}' and "
         f"library_id=='{library_id}' and "
+        f"portal_run_id=='{portal_run_id}' and "
         f"portal_wfr_id=='{portal_wfr_id}'"
     )
 
     # Check we've gotten just one row
     if merged_rows.shape[0] == 0:
-        logger.warning(f"Subject '{subject_id}', library '{library_id}', '{portal_wfr_id}' cannot be found in merged df")
+        logger.warning(f"Subject '{subject_id}', library '{library_id}', '{portal_run_id}', '{portal_wfr_id}' cannot be found in merged df")
         return None
     if merged_rows.shape[0] > 1:
         # Returning the 'latest' id makes sense but what if it hasn't been created yet
@@ -1647,6 +1692,7 @@ def bind_pieriandx_case_submission_time_to_merged_df(merged_df: pd.DataFrame, ct
       * in_pieriandx
       * redcap_sample_type
       * redcap_is_complete
+      * portal_run_id
       * portal_wfr_id
       * portal_wfr_end
       * portal_wfr_status
@@ -1679,6 +1725,7 @@ def bind_pieriandx_case_submission_time_to_merged_df(merged_df: pd.DataFrame, ct
       * glims_needs_redcap
       * redcap_sample_type
       * redcap_is_complete
+      * portal_run_id
       * portal_wfr_id
       * portal_wfr_end
       * portal_wfr_status
@@ -1706,6 +1753,7 @@ def bind_pieriandx_case_submission_time_to_merged_df(merged_df: pd.DataFrame, ct
       * in_pieriandx
       * redcap_sample_type
       * redcap_is_complete
+      * portal_run_id
       * portal_wfr_id
       * portal_wfr_end
       * portal_wfr_status
@@ -1756,7 +1804,7 @@ def bind_pieriandx_case_submission_time_to_merged_df(merged_df: pd.DataFrame, ct
     cttso_lims_df_valid_merge = cttso_lims_df.query(
         "not pieriandx_case_id.isnull() and "
         "not pieriandx_submission_time.isnull() "
-    )[["subject_id", "library_id", "portal_wfr_id", "pieriandx_case_id", "pieriandx_submission_time"]].drop_duplicates()
+    )[["subject_id", "library_id", "portal_run_id", "portal_wfr_id", "pieriandx_case_id", "pieriandx_submission_time"]].drop_duplicates()
 
     cttso_lims_df_with_valid_case_id = cttso_lims_df_valid_merge.query(
         "pieriandx_case_id.str.isdigit()",
@@ -1781,14 +1829,14 @@ def bind_pieriandx_case_submission_time_to_merged_df(merged_df: pd.DataFrame, ct
     merged_lims_df_valid = pd.merge(
         merged_df, cttso_lims_df_with_valid_case_id,
         how="left",
-        on=["subject_id", "library_id", "portal_wfr_id", "pieriandx_case_id"]
+        on=["subject_id", "library_id", "portal_run_id", "portal_wfr_id", "pieriandx_case_id"]
     )
 
     # Join pieriandx submission time for merged_lims_df where pieriandx_submission_time is null?
     merged_lims_df_invalid = pd.merge(
         merged_df, cttso_lims_df_without_valid_case_id,
         how="left",
-        on=["subject_id", "library_id", "portal_wfr_id"],
+        on=["subject_id", "library_id", "portal_run_id", "portal_wfr_id"],
         suffixes=("_merged", "_lims")
     )
 
@@ -1828,8 +1876,8 @@ def bind_pieriandx_case_submission_time_to_merged_df(merged_df: pd.DataFrame, ct
         # Case 2
         elif pd.isnull(pieriandx_case_id_merged) and pieriandx_case_id_lims == 'pending':
             # Check sample submission time is not too old
-            logger.info(f"Got 'pending' case id for sample subject / library / portal "
-                        f"{row['subject_id']}, {row['library_id']} {row['portal_wfr_id']} "
+            logger.info(f"Got 'pending' case id for sample subject / library / portal run / portal wfr "
+                        f"{row['subject_id']}, {row['library_id']} {row['portal_run_id']} {row['portal_wfr_id']} "
                         f"but never got a matching pieriandx accession number")
             one_week_ago = (datetime.utcnow() - timedelta(days=7)).date()
 
@@ -1871,12 +1919,12 @@ def bind_pieriandx_case_submission_time_to_merged_df(merged_df: pd.DataFrame, ct
             merged_lims_df_invalid
         ],
         ignore_index=True
-    )[["subject_id", "library_id", "portal_wfr_id", "pieriandx_case_id", "pieriandx_submission_time"]]
+    )[["subject_id", "library_id", "portal_run_id", "portal_wfr_id", "pieriandx_case_id", "pieriandx_submission_time"]]
 
     # Drop duplicates but fill pieriandx submission time
     new_rows = []
-    for (subject_id, library_id, portal_wfr_id, pieriandx_case_id), time_df in merged_lims_df_valid_and_invalid_df.groupby(
-        ["subject_id", "library_id", "portal_wfr_id", "pieriandx_case_id"]
+    for (subject_id, library_id, portal_run_id, portal_wfr_id, pieriandx_case_id), time_df in merged_lims_df_valid_and_invalid_df.groupby(
+        ["subject_id", "library_id", "portal_run_id", "portal_wfr_id", "pieriandx_case_id"]
     ):
         if time_df.shape[0] == 1:
             new_rows.append(time_df)
@@ -1892,7 +1940,7 @@ def bind_pieriandx_case_submission_time_to_merged_df(merged_df: pd.DataFrame, ct
         new_rows.append(
             time_df.drop_duplicates(
                 subset=[
-                    "subject_id", "library_id",
+                    "subject_id", "library_id", "portal_run_id",
                     "portal_wfr_id", "pieriandx_case_id"
                 ],
                 keep="first"
@@ -1908,7 +1956,7 @@ def bind_pieriandx_case_submission_time_to_merged_df(merged_df: pd.DataFrame, ct
     merged_lims_df = merged_df.merge(
         merged_lims_df_valid_and_invalid_df,
         how="left",
-        on=["subject_id", "library_id", "portal_wfr_id", "pieriandx_case_id"]
+        on=["subject_id", "library_id", "portal_run_id", "portal_wfr_id", "pieriandx_case_id"]
     )
 
     return merged_lims_df
@@ -1927,6 +1975,7 @@ def drop_to_be_deleted_cases(merged_df: pd.DataFrame, cttso_lims_df: pd.DataFram
       * in_pieriandx
       * redcap_sample_type
       * redcap_is_complete
+      * portal_run_id
       * portal_wfr_id
       * portal_wfr_end
       * portal_wfr_status
@@ -1960,6 +2009,7 @@ def drop_to_be_deleted_cases(merged_df: pd.DataFrame, cttso_lims_df: pd.DataFram
         * glims_needs_redcap
         * redcap_sample_type
         * redcap_is_complete
+        * portal_run_id
         * portal_wfr_id
         * portal_wfr_end
         * portal_wfr_status

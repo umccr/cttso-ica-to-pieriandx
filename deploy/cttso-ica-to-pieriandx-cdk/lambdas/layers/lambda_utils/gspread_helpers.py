@@ -211,6 +211,7 @@ def get_cttso_lims() -> (pd.DataFrame, pd.DataFrame):
         * glims_needs_redcap
         * redcap_sample_type
         * redcap_is_complete
+        * portal_run_id
         * portal_wfr_id
         * portal_wfr_end
         * portal_wfr_status
@@ -291,6 +292,7 @@ def get_deleted_lims_df() -> (pd.DataFrame, pd.DataFrame):
         * redcap_sample_type
         * redcap_is_complete
         * portal_wfr_id
+        * portal_run_id
         * portal_wfr_end
         * portal_wfr_status
         * portal_sequence_run_name
