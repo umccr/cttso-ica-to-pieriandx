@@ -9,7 +9,6 @@ import { LinuxBuildImage } from "aws-cdk-lib/aws-codebuild";
 import { CodeBuildStep } from "aws-cdk-lib/pipelines";
 import {CttsoIcaToPieriandxRedcapLambdaStage} from "./cttso-ica-to-pieriandx-redcap-lambda-stage";
 import {CttsoIcaToPieriandxValidationLambdaStage} from "./cttso-ica-to-pieriandx-validation-lambda-stage";
-import {CttsoIcaToPieriandxTokenRefreshLambdaStage} from "./cttso-ica-to-pieriandx-token-refresher-lambda-stage";
 import {CttsoIcaToPieriandxLimsMakerLambdaStage} from "./cttso-ica-to-pieriandx-lims-make-stage";
 
 
@@ -130,21 +129,6 @@ export class CttsoIcaToPieriandxPipelineStack extends Stack {
         // Add the validation lambda stage to the pipeline wave
         pipeline_lambdas_wave.addStage(
             validation_lambda_stage
-        )
-
-        // Add the token refresh tage to the pipeline wave
-        const token_refresh_lambda_stage = new CttsoIcaToPieriandxTokenRefreshLambdaStage(this, props.stack_prefix + "-TokenRefreshLambdaStage", {
-            stack_prefix: `${props.stack_prefix}-token-refresh-lambda-stack`,
-            env: {
-                account: props.aws_account_id,
-                region: props.aws_region
-            },
-            stack_suffix: props.stack_suffix
-        })
-
-        // Add the token_refresh lambda stage to the pipeline wave
-        pipeline_lambdas_wave.addStage(
-            token_refresh_lambda_stage
         )
 
         // Add the launch all available payloads and update cttso lims sheet as a new pipeline wave

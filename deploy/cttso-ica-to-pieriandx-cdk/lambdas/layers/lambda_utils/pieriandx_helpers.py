@@ -7,6 +7,8 @@ All things PierianDx that are useful
 import os
 import re
 from typing import Tuple, Dict, List, Union
+
+from mypy_boto3_lambda import LambdaClient
 from pyriandx.client import Client
 import json
 import pandas as pd
@@ -17,17 +19,15 @@ from pyriandx.utils import retry_session
 from .globals import \
     PIERIANDX_CDK_SSM_LIST, \
     PIERIANDX_CDK_SSM_PATH, \
-    PIERIANDX_USER_AUTH_TOKEN_SECRETS_MANAGER_PATH, \
-    PIERIANDX_USER_AUTH_TOKEN_SECRETS_MANAGER_KEY, \
     MAX_ATTEMPTS_GET_CASES, LIST_CASES_RETRY_TIME, \
-    PanelType, SampleType
+    PanelType, SampleType, PIERIANDX_USER_AUTH_TOKEN_LAMBDA_PATH
 
 from .miscell import \
     change_case
 
 from .aws_helpers import \
     SSMClient, get_boto3_ssm_client, \
-    SecretsManagerClient, get_boto3_secretsmanager_client
+    get_boto3_lambda_client
 
 from .logger import get_logger
 
@@ -75,22 +75,24 @@ def get_pieriandx_env_vars() -> Tuple:
 
         output_dict[env_var] = parameter_value
 
-    # Set PIERIANDX_USER_PASSWORD based on secret
+    # Set PIERIANDX_USER_AUTH_TOKEN based on secret
     if "PIERIANDX_USER_AUTH_TOKEN" in os.environ:
         # Already here!
         output_dict["PIERIANDX_USER_AUTH_TOKEN"] = os.environ["PIERIANDX_USER_AUTH_TOKEN"]
     else:
         # Get the secrets manager client
-        secrets_manager_client: SecretsManagerClient = get_boto3_secretsmanager_client()
-        response = secrets_manager_client.get_secret_value(
-            SecretId=str(PIERIANDX_USER_AUTH_TOKEN_SECRETS_MANAGER_PATH)
-        )
-        secrets_json = json.loads(response.get("SecretString"))
-        if PIERIANDX_USER_AUTH_TOKEN_SECRETS_MANAGER_KEY not in secrets_json.keys():
-            logger.error(f"Could not find secrets key in {PIERIANDX_USER_AUTH_TOKEN_SECRETS_MANAGER_PATH}")
-            raise ValueError
+        lambda_client: LambdaClient = get_boto3_lambda_client()
 
-        output_dict["PIERIANDX_USER_AUTH_TOKEN"] = secrets_json[PIERIANDX_USER_AUTH_TOKEN_SECRETS_MANAGER_KEY]
+        # Collect the auth token
+        auth_token_resp = None
+        while auth_token_resp is None or auth_token_resp == 'null' or json.loads(auth_token_resp).get("auth_token") is None:
+            response = lambda_client.invoke(
+                FunctionName=PIERIANDX_USER_AUTH_TOKEN_LAMBDA_PATH,
+                InvocationType="RequestResponse"
+            )
+            auth_token_resp = response['Payload'].read().decode('utf-8')
+
+        output_dict["PIERIANDX_USER_AUTH_TOKEN"] = json.loads(auth_token_resp).get("auth_token")
 
     return (
         output_dict.get("PIERIANDX_USER_EMAIL"),
