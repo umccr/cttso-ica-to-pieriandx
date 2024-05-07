@@ -18,10 +18,11 @@ import {
     GLIMS_SSM_PARAMETER_PATH,
     REDCAP_LAMBDA_FUNCTION_SSM_KEY,
     SSM_LIMS_LAMBDA_FUNCTION_EVENT_RULE_NAME_VALUE,
-    SSM_PROJECT_NAME_TO_PIERIANDX_CONFIG_SSM_PATH
+    SSM_PROJECT_NAME_TO_PIERIANDX_CONFIG_SSM_PATH, PIERIANDX_AUTH_TOKEN_COLLECTOR_LAMBDA_FUNCTION_NAME
 } from "../constants";
 import {Rule, Schedule} from "aws-cdk-lib/aws-events";
 import { LambdaFunction as LambdaFunctionTarget } from "aws-cdk-lib/aws-events-targets"
+import {Function as LambdaFunction} from "aws-cdk-lib/aws-lambda";
 
 
 interface CttsoIcaToPieriandxLimsMakerLambdaStackProps extends StackProps {
@@ -266,7 +267,13 @@ export class CttsoIcaToPieriandxLimsMakerLambdaStack extends Stack {
             })
         )
 
-        // Step 4: Add ssm access to get Rule
+        // Allow secret collection
+        const pieriandx_access_token_lambda_obj = LambdaFunction.fromFunctionName(
+            this,
+            'pieriandx-access-token-lambda',
+            PIERIANDX_AUTH_TOKEN_COLLECTOR_LAMBDA_FUNCTION_NAME
+        )
+        pieriandx_access_token_lambda_obj.grantInvoke(<Role>lambda_function.role)
 
 
         // Create a rule to trigger this lambda

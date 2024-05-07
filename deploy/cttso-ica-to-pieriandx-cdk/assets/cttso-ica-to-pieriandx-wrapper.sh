@@ -13,6 +13,7 @@ CONTAINER_MEM     : The memory to assign to the container (for metric logging on
 '
 
 export AWS_DEFAULT_REGION="ap-southeast-2"
+PIERIANDX_ACCESS_TOKEN_LAMBDA_FUNCTION_NAME="collectPierianDxAccessToken"
 CLOUDWATCH_NAMESPACE="cttso-ica-to-pieriandx"
 CONTAINER_MOUNT_POINT="/work"
 METADATA_TOKEN=$(curl -X PUT "http://169.254.169.254/latest/api/token" -H "X-aws-ec2-metadata-token-ttl-seconds: 21600")
@@ -24,6 +25,35 @@ echo_stderr() {
   Write output to stderr
   '
   echo "$@" 1>&2
+}
+
+get_pieriandx_access_token() {
+  : '
+  Collect the PierianDx access token
+  '
+  local access_token_temp_file="$(mktemp access_token.XXX.json)"
+
+  # Run the lambda command to collect the access token
+  aws lambda invoke --function-name "${PIERIANDX_ACCESS_TOKEN_LAMBDA_FUNCTION_NAME}" "${access_token_temp_file}" 1>/dev/null
+
+  # Check if access_token_temp_file is empty
+  if [[ ! -s "${access_token_temp_file}" ]]; then
+    echo_stderr "Could not collect PierianDx access token"
+    return 1
+  fi
+
+  if [[ "$(jq --raw-output < "${access_token_temp_file}")" == "null" ]]; then
+    echo_stderr "Could not collect PierianDx access token, returned null, try again in a few moments"
+    return 1
+  fi
+
+  # Extract the access token
+  access_token="$( \
+    jq --raw-output '.auth_token' "${access_token_temp_file}" \
+  )"
+  rm -f "${access_token_temp_file}"
+
+  echo "${access_token}"
 }
 
 # Help function
@@ -134,25 +164,35 @@ job_output_dir="$(mktemp \
   "${CONTAINER_MOUNT_POINT}/${sample_name}.workdir.XXX")"
 
 # Create a job temp space
-job_temp_space="$(mktemp \
-  --directory \
-  "${CONTAINER_MOUNT_POINT}/${sample_name}.tmpspace.XXX")"
+job_temp_space="$( \
+  mktemp \
+    --directory \
+    "${CONTAINER_MOUNT_POINT}/${sample_name}.tmpspace.XXX" \
+)"
 
 # Set env vars
-ICA_ACCESS_TOKEN="$(aws secretsmanager get-secret-value --secret-id 'IcaSecretsPortal' | \
-                    jq --raw-output '.SecretString' \
-                  )"
+ICA_ACCESS_TOKEN="$( \
+  aws secretsmanager get-secret-value --secret-id 'IcaSecretsPortal' | \
+  jq --raw-output '.SecretString' \
+)"
 
 # Auth_tokens
-PIERIANDX_AWS_ACCESS_KEY_ID="$(aws secretsmanager get-secret-value --secret-id 'PierianDx/AWSAccessKeyID' | \
-                               jq --raw-output '.SecretString | fromjson | .PierianDxAWSAccessKeyID' \
-                              )"
-PIERIANDX_AWS_SECRET_ACCESS_KEY="$(aws secretsmanager get-secret-value --secret-id 'PierianDx/AWSSecretAccessKey' | \
-                                   jq --raw-output '.SecretString | fromjson | .PierianDxAWSSecretAccessKey' \
-                                 )"
-PIERIANDX_USER_AUTH_TOKEN="$(aws secretsmanager get-secret-value --secret-id 'PierianDx/UserAuthToken' | \
-                           jq --raw-output '.SecretString | fromjson | .PierianDxUserAuthToken' \
-                          )"
+PIERIANDX_AWS_ACCESS_KEY_ID="$(
+  aws secretsmanager get-secret-value --secret-id 'PierianDx/AWSAccessKeyID' | \
+  jq --raw-output '.SecretString | fromjson | .PierianDxAWSAccessKeyID' \
+)"
+PIERIANDX_AWS_SECRET_ACCESS_KEY="$(
+  aws secretsmanager get-secret-value --secret-id 'PierianDx/AWSSecretAccessKey' | \
+  jq --raw-output '.SecretString | fromjson | .PierianDxAWSSecretAccessKey' \
+)"
+
+# Collect the pieriandx access token
+# We assume that there is more than 5 minutes left on the clock
+while :; do
+  PIERIANDX_USER_AUTH_TOKEN="$(get_pieriandx_access_token)"
+  [[ -z "${PIERIANDX_USER_AUTH_TOKEN}" ]] || break
+  sleep 10
+done
 
 # Export env vars
 export ICA_ACCESS_TOKEN

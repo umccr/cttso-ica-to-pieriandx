@@ -44,8 +44,7 @@ CTTSO_LIMS_SHEET_ID_SSM_PARAMETER_PATH = "/cdk/cttso-ica-to-pieriandx/cttso_lims
 
 PIERIANDX_USER_EMAIL_SSM_PARAMETER_PATH = "/cdk/cttso-ica-to-pieriandx/env_vars/pieriandx_user_email"
 PIERIANDX_INSTITUTION_SSM_PARAMETER_PATH = "/cdk/cttso-ica-to-pieriandx/env_vars/pieriandx_institution"
-PIERIANDX_USER_AUTH_TOKEN_SECRETS_MANAGER_PATH = "PierianDx/UserAuthToken"
-PIERIANDX_USER_AUTH_TOKEN_SECRETS_MANAGER_KEY = "PierianDxUserAuthToken"
+PIERIANDX_USER_AUTH_TOKEN_LAMBDA_PATH = "collectPierianDxAccessToken"
 
 PIERIANDX_CDK_SSM_PATH: Path = Path("/cdk") / "cttso-ica-to-pieriandx" / "env_vars"
 PIERIANDX_CDK_SSM_LIST: List = [
@@ -53,9 +52,6 @@ PIERIANDX_CDK_SSM_LIST: List = [
     "PIERIANDX_INSTITUTION",
     "PIERIANDX_BASE_URL"
 ]
-
-PIERIANDX_USER_AUTH_TOKEN_SECRETS_PATH: Path = Path("PierianDx") / "UserAuthToken"
-PIERIANDX_USER_AUTH_TOKEN_SECRETS_KEY: str = "PierianDxUserAuthToken"
 
 PIERIANDX_LAMBDA_LAUNCH_FUNCTION_ARN_SSM_PATH = "cttso-ica-to-pieriandx-lambda-function"
 
