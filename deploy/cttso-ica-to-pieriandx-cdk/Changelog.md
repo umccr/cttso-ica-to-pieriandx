@@ -3,6 +3,34 @@
 Changes in this log refer only to changes that make it to the 'main' branch and
 are nested under deploy/cttso-ica-to-pieriandx-cdk.  
 
+## 2024-05-07
+
+> Author: Alexis Lucattini
+> Email: [Alexis.Lucattini@umccr.org](mailto:alexis.lucattini@umccr.org)
+
+### Enhancements
+
+* Add ctTSO 1.2 portal run id to the LIMS sheet (https://github.com/umccr/cttso-ica-to-pieriandx/issues/216)
+  * Resolves https://github.com/umccr/cttso-ica-to-pieriandx/issues/222
+
+* Move to pieriandx infrastructure secret (https://github.com/umccr/cttso-ica-to-pieriandx/pull/221)
+  * Resolves https://github.com/umccr/cttso-ica-to-pieriandx/issues/220
+
+### Configuration Changes
+
+* Update project name mapping (https://github.com/umccr/cttso-ica-to-pieriandx/pull/217)
+  * Resolves https://github.com/umccr/cttso-ica-to-pieriandx/issues/215
+
+### Documentation
+
+* Add place to check if a sample has gone through pieriandx (https://github.com/umccr/cttso-ica-to-pieriandx/pull/218/files)
+  * Resolves https://github.com/umccr/cttso-ica-to-pieriandx/issues/213
+
+* Update links (https://github.com/umccr/cttso-ica-to-pieriandx/pull/217)
+  * Resolves https://github.com/umccr/cttso-ica-to-pieriandx/issues/214
+
+* Update manual launch optional parameters
+
 ## 2024-02-02
 
 > Author: Alexis Lucattini

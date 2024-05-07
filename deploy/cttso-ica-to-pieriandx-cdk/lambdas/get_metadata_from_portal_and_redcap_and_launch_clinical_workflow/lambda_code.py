@@ -233,12 +233,6 @@ def lambda_handler(event, context):
     # Step 6 - check if case accession number is defined
     logger.info("Ensure that the case accession value does not already exist in PierianDx")
 
-    # Step 7 - Get Case accesison number
-    if (case_accession_number := event.get("case_accession_number", None)) is not None:
-        validate_case_accession_number(subject_id=subject_id,
-                                       library_id=library_id,
-                                       case_accession_number=case_accession_number)
-
     # Step 7 - Assign case accession number
     case_accession_number: str
     if (case_accession_number := event.get("case_accession_number", None)) is not None:

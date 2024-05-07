@@ -152,7 +152,7 @@ An example of the payloads file is as below:
 And then launch like so
 
 ```bash
-./scripts/launch_clinical_payloads --payloads-file "payloads.jsonl"
+./scripts/launch_clinical_payloads.sh --payloads-file "payloads.jsonl"
 ```
 
 Please note that the ica_workflow_run_id value is the "TSO_CTDNA_TUMOR_ONLY" workflow id. 
@@ -171,7 +171,7 @@ An example of the payloads file is as below:
 And then launch like so
 
 ```bash
-./scripts/launch_validation_payloads --payloads-file "payloads.jsonl"
+./scripts/launch_validation_payloads.sh --payloads-file "payloads.jsonl"
 ```
 
 ### ./scripts/wake_up_lambdas
@@ -392,6 +392,16 @@ Regardless of panel type, payloads will in jsonl format with each line comprisin
 * ica_workflow_run_id
 
 An example payloads file can be seen under [examples](examples/).
+
+Optional inputs for the payload include the following keys:
+
+* sample_type (patient_care_sample by default for clinical, validation for validation)
+* is_identified (identified by default for clinical, deidentified for validation 
+* panel_type: (subpanel by default for clinical, main for validation)
+* case_access_number: (must be in the format of `<subject_id>_<library_id>_001) 
+  * It is not recommended to set this, instead let the lambda generate this for you.
+* disease_name: "Disseminated malignancy of unknown primary" by default for validation. 
+  * For clinical, it is expected that this is set by RedCap.
 
 ### Running the command
 
