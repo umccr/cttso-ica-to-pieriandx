@@ -163,7 +163,14 @@ def append_df_to_cttso_lims(new_df: pd.DataFrame, replace=False):
     new_df = new_df.replace({pd.NaT: None}).replace({'NaT': None}).replace({np.NaN: ""})
 
     if replace:
-        # Add an extra 1000 rows to the bottom of the page
+        # We have to resize the sheet, rather than reset/replace
+        # Since the replace method also removes the formats
+        sheet_obj.sheet.resize(1, 1)
+        # Add the header
+        sheet_obj.df_to_sheet(pd.DataFrame(data=None, columns=new_df.columns), index=False)
+        # Reformat the sheet so that the portal_run_id is interpreted as a string
+        sheet_obj.sheet.format("P", {"numberFormat": {"type": "TEXT"}})
+        # Update the sheet with the data
         sheet_obj.df_to_sheet(
             pd.concat(
                 [
@@ -171,11 +178,18 @@ def append_df_to_cttso_lims(new_df: pd.DataFrame, replace=False):
                     pd.DataFrame(columns=new_df.columns, index=range(1000))
                 ]
             ),
-            index=False, replace=True, fill_value=""
+            index=False, replace=False, fill_value=""
         )
     else:
         # Get existing sheet
         existing_sheet = sheet_obj.sheet_to_df(index=0)
+        # We have to resize the sheet, rather than reset/replace
+        # Since the replace method also removes the formats
+        sheet_obj.sheet.resize(1, 1)
+        # Add the header
+        sheet_obj.df_to_sheet(pd.DataFrame(data=None, columns=new_df.columns), index=False)
+        # Reformat the sheet so that the portal_run_id is interpreted as a string
+        sheet_obj.sheet.format("P", {"numberFormat": {"type": "TEXT"}})
         # Update the sheet object with the list
         sheet_obj.df_to_sheet(
             pd.concat(
@@ -185,7 +199,7 @@ def append_df_to_cttso_lims(new_df: pd.DataFrame, replace=False):
                     pd.DataFrame(columns=existing_sheet.columns, index=range(1000))
                 ]
             ),
-            index=False, replace=True, fill_value=""
+            index=False, replace=False, fill_value=""
         )
 
 
@@ -353,6 +367,12 @@ def append_rows_to_deleted_lims(to_be_deleted: pd.DataFrame):
 
     # Get existing sheet
     existing_sheet = sheet_obj.sheet_to_df(index=0)
+    # Since the replace method also removes the formats
+    sheet_obj.sheet.resize(1, 1)
+    # Add the header
+    sheet_obj.df_to_sheet(pd.DataFrame(data=None, columns=existing_sheet.columns), index=False)
+    # Reformat the sheet so that the portal_run_id is interpreted as a string
+    sheet_obj.sheet.format("P", {"numberFormat": {"type": "TEXT"}})
     # Update the sheet object with the list
     sheet_obj.df_to_sheet(
         pd.concat(
@@ -362,7 +382,7 @@ def append_rows_to_deleted_lims(to_be_deleted: pd.DataFrame):
                 pd.DataFrame(columns=existing_sheet.columns, index=range(1000))
             ]
         ),
-        index=False, replace=True, fill_value=""
+        index=False, replace=False, fill_value=""
     )
 
 
