@@ -124,12 +124,6 @@ def lambda_handler(event, context):
     # Get pieriandx case accession numbers
     pieriandx_case_accession_numbers: List = get_existing_pieriandx_case_accession_numbers()
 
-    # Get Case accession number
-    if (case_accession_number := event.get("case_accession_number", None)) is not None:
-        validate_case_accession_number(subject_id=subject_id,
-                                       library_id=library_id,
-                                       case_accession_number=case_accession_number)
-
     # Assign case accession number
     case_accession_number: str
     if (case_accession_number := event.get("case_accession_number", None)) is not None:

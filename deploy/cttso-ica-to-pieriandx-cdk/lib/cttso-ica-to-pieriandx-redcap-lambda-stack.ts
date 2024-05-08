@@ -2,7 +2,7 @@ import {
     CfnOutput, Stack, StackProps, Duration
 } from 'aws-cdk-lib'
 import { Construct } from 'constructs';
-import { DockerImageFunction, DockerImageCode } from "aws-cdk-lib/aws-lambda";
+import { DockerImageFunction, DockerImageCode, Function as LambdaFunction } from "aws-cdk-lib/aws-lambda";
 import { StringParameter } from "aws-cdk-lib/aws-ssm";
 import { Role, ManagedPolicy, ServicePrincipal, PolicyStatement } from "aws-cdk-lib/aws-iam";
 import { Secret } from "aws-cdk-lib/aws-secretsmanager";
@@ -11,7 +11,7 @@ import {
     REDCAP_LAMBDA_FUNCTION_SSM_KEY,
     SECRETS_MANAGER_PIERIANDX_PATH, SSM_LAMBDA_FUNCTION_ARN_VALUE,
     SSM_PIERIANDX_PATH,
-    SSM_CLINICAL_LAMBDA_FUNCTION_ARN_VALUE
+    SSM_CLINICAL_LAMBDA_FUNCTION_ARN_VALUE, PIERIANDX_AUTH_TOKEN_COLLECTOR_LAMBDA_FUNCTION_NAME
 } from "../constants";
 
 
@@ -209,6 +209,15 @@ export class CttsoIcaToPieriandxRedcapLambdaStack extends Stack {
                 ]
             })
         )
+
+        // Step 4: Give access to the lambda function to get the pieriandx auth token
+        // Allow secret collection
+        const pieriandx_access_token_lambda_obj = LambdaFunction.fromFunctionName(
+            this,
+            'pieriandx-access-token-lambda',
+            PIERIANDX_AUTH_TOKEN_COLLECTOR_LAMBDA_FUNCTION_NAME
+        )
+        pieriandx_access_token_lambda_obj.grantInvoke(<Role>lambda_function.role)
 
         // Create the ssm parameter to represent the cttso lambda function
         const ssm_parameter = new StringParameter(

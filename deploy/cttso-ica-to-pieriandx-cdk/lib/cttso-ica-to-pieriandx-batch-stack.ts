@@ -54,8 +54,12 @@ import {
     SSM_LAMBDA_FUNCTION_ARN_VALUE,
     DATA_PORTAL_API_ID_SSM_PARAMETER,
     SECRETS_MANAGER_PIERIANDX_PATH,
-    SECRETS_MANAGER_ICA_SECRETS_PATH, SSM_PIERIANDX_PATH, DATA_PORTAL_API_DOMAIN_NAME_SSM_PARAMETER
+    SECRETS_MANAGER_ICA_SECRETS_PATH,
+    SSM_PIERIANDX_PATH,
+    DATA_PORTAL_API_DOMAIN_NAME_SSM_PARAMETER,
+    PIERIANDX_AUTH_TOKEN_COLLECTOR_LAMBDA_FUNCTION_NAME
 } from "../constants";
+import {Lambda} from "aws-cdk-lib/aws-ses-actions";
 
 
 interface CttsoIcaToPieriandxBatchStackProps extends StackProps {
@@ -155,6 +159,14 @@ export class CttsoIcaToPieriandxBatchStack extends Stack {
                 }
             )
         )
+
+        // Allow batch instance role to invoke the collect Pieriandx Access Token Function
+        const pieriandx_access_token_lambda_obj = LambdaFunction.fromFunctionName(
+            this,
+            'pieriandx-access-token-lambda',
+            PIERIANDX_AUTH_TOKEN_COLLECTOR_LAMBDA_FUNCTION_NAME
+        )
+        pieriandx_access_token_lambda_obj.grantInvoke(batch_instance_role)
 
         // Add ICA secrets access to batch instance role
         const ica_secrets_path = Secret.fromSecretNameV2(
