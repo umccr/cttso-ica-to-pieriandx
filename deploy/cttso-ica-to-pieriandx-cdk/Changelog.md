@@ -3,6 +3,15 @@
 Changes in this log refer only to changes that make it to the 'main' branch and
 are nested under deploy/cttso-ica-to-pieriandx-cdk.  
 
+## 2024-05-08
+
+> Author: Alexis Lucattini
+> Email: [Alexis.Lucattini@umccr.org](mailto:alexis.lucattini@umccr.org)
+
+### Hotfixes
+
+* Excel interprets a few portal run ids as numbers i.e 2021121980805e78 
+
 ## 2024-05-07
 
 > Author: Alexis Lucattini
