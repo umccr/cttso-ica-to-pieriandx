@@ -3,6 +3,16 @@
 Changes in this log refer only to changes that make it to the 'main' branch and
 are nested under deploy/cttso-ica-to-pieriandx-cdk.  
 
+## 2024-05-23
+
+> Author: Alexis Lucattini
+> Email: [Alexis.Lucattini@umccr.org](mailto:alexis.lucattini@umccr.org)
+
+### Hotfixes
+
+* Improve access token handling (https://github.com/umccr/cttso-ica-to-pieriandx/pull/226)
+  * Resolves https://github.com/umccr/cttso-ica-to-pieriandx/issues/227
+
 ## 2024-05-08
 
 > Author: Alexis Lucattini
