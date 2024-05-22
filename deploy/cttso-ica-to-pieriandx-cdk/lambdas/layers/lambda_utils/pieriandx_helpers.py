@@ -6,6 +6,7 @@ All things PierianDx that are useful
 
 import os
 import re
+from datetime import datetime
 from typing import Tuple, Dict, List, Union
 
 from mypy_boto3_lambda import LambdaClient
@@ -13,6 +14,9 @@ from pyriandx.client import Client
 import json
 import pandas as pd
 import time
+import jwt
+from jwt import DecodeError
+
 
 from pyriandx.utils import retry_session
 
@@ -20,7 +24,7 @@ from .globals import \
     PIERIANDX_CDK_SSM_LIST, \
     PIERIANDX_CDK_SSM_PATH, \
     MAX_ATTEMPTS_GET_CASES, LIST_CASES_RETRY_TIME, \
-    PanelType, SampleType, PIERIANDX_USER_AUTH_TOKEN_LAMBDA_PATH
+    PanelType, SampleType, PIERIANDX_USER_AUTH_TOKEN_LAMBDA_PATH, JWT_EXPIRY_BUFFER
 
 from .miscell import \
     change_case
@@ -76,7 +80,7 @@ def get_pieriandx_env_vars() -> Tuple:
         output_dict[env_var] = parameter_value
 
     # Set PIERIANDX_USER_AUTH_TOKEN based on secret
-    if "PIERIANDX_USER_AUTH_TOKEN" in os.environ:
+    if "PIERIANDX_USER_AUTH_TOKEN" in os.environ and jwt_is_valid(os.environ["PIERIANDX_USER_AUTH_TOKEN"]):
         # Already here!
         output_dict["PIERIANDX_USER_AUTH_TOKEN"] = os.environ["PIERIANDX_USER_AUTH_TOKEN"]
     else:
@@ -91,8 +95,12 @@ def get_pieriandx_env_vars() -> Tuple:
                 InvocationType="RequestResponse"
             )
             auth_token_resp = response['Payload'].read().decode('utf-8')
+            if auth_token_resp is None or auth_token_resp == 'null' or json.loads(auth_token_resp).get("auth_token") is None:
+                logger.info("Could not get valid auth token from lambda, trying again in five seconds")
+                time.sleep(5)
 
         output_dict["PIERIANDX_USER_AUTH_TOKEN"] = json.loads(auth_token_resp).get("auth_token")
+        os.environ["PIERIANDX_USER_AUTH_TOKEN"] = output_dict["PIERIANDX_USER_AUTH_TOKEN"]
 
     return (
         output_dict.get("PIERIANDX_USER_EMAIL"),
@@ -479,3 +487,25 @@ def get_pieriandx_status_for_missing_sample(case_id: str) -> pd.Series:
         case_dict["pieriandx_report_status"] = report["status"]
 
     return pd.Series(case_dict)
+
+
+def decode_jwt(jwt_string: str) -> Dict:
+    return jwt.decode(
+        jwt_string,
+        algorithms=["HS256"],
+        options={"verify_signature": False}
+    )
+
+
+def jwt_is_valid(jwt_string: str) -> bool:
+    try:
+        decode_jwt(jwt_string)
+        timestamp_exp = decode_jwt(jwt_string).get("exp")
+
+        # If timestamp will expire in less than one minute's time, return False
+        if int(timestamp_exp) < (int(datetime.now().timestamp()) + JWT_EXPIRY_BUFFER):
+            return False
+        else:
+            return True
+    except DecodeError as e:
+        return False
