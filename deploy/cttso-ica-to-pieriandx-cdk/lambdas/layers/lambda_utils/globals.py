@@ -192,3 +192,5 @@ WFR_NAME_REGEX = re.compile(
 
 
 NTC_SUBJECT_ID = "SBJ00006"
+
+JWT_EXPIRY_BUFFER = 60  # 1 minute
