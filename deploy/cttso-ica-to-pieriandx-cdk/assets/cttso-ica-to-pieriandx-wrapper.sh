@@ -31,7 +31,19 @@ get_pieriandx_access_token() {
   : '
   Collect the PierianDx access token
   '
-  local access_token_temp_file="$(mktemp access_token.XXX.json)"
+  local access_token_tmpdir
+  local access_token_temp_file
+
+  access_token_tmpdir="$(
+    mktemp \
+      --directory \
+      "${CONTAINER_MOUNT_POINT}/${sample_name}.access_token.XXX"
+  )"
+  access_token_temp_file="$( \
+    mktemp \
+      --tmpdir="${access_token_tmpdir}" \
+      "${sample_name}.access_token.XXX"
+  )"
 
   # Run the lambda command to collect the access token
   aws lambda invoke --function-name "${PIERIANDX_ACCESS_TOKEN_LAMBDA_FUNCTION_NAME}" "${access_token_temp_file}" 1>/dev/null

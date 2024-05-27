@@ -20,6 +20,7 @@ COPY ${APP_ROOT}/${THIS_DIR_NAME}/lambda_code.py ./
 COPY ${APP_ROOT}/layers/ ./layers/
 
 RUN ( \
+      chmod +rx ./lambda_code.py && \
       cd layers && \
       python setup.py install \
     )
