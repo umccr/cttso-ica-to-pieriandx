@@ -3,6 +3,7 @@
 """
 Run sample on ICA to PierianDx
 """
+from __future__ import annotations
 
 from typing import Dict, Match
 from pathlib import Path

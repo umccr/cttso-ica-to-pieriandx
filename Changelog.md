@@ -4,6 +4,15 @@ Changes in this log refer only to changes that make it to the 'main' branch. and
 
 For changes in deployment, please see the [deployment changelog](deploy/cttso-ica-to-pieriandx-cdk/Changelog.md) 
 
+## 2024-05-27
+
+> Author: Alexis Lucattini
+> Email: [Alexis.Lucattini@umccr.org](mailto:alexis.lucattini@umccr.org)
+
+### Hotfix
+
+* Debug authentication issues (https://github.com/umccr/cttso-ica-to-pieriandx/issues/229)
+
 ## 2024-05-06
 
 > Author: Alexis Lucattini

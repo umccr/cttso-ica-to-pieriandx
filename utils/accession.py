@@ -85,6 +85,11 @@ def get_cases_df() -> pd.DataFrame:
         logger.debug("Printing response")
         if response is None:
             logger.warning(f"Trying again to get cases - attempt {iter_count}")
+            logger.warning(f"Client vars were: "
+                           f"'baseurl': {pyriandx_client.baseURL}, "
+                           f"'email': {pyriandx_client.headers['X-Auth-Email']}, "
+                           f"'institution': {pyriandx_client.headers['X-Auth-Institution']}, "
+                           f"'Token': {pyriandx_client.headers['X-Auth-Token'][:5]}***{pyriandx_client.headers['X-Auth-Token'][-5:]}")
             time.sleep(LIST_CASES_RETRY_TIME)
         else:
             break
