@@ -189,9 +189,12 @@ PIERIANDX_AWS_SECRET_ACCESS_KEY="$(
 # Collect the pieriandx access token
 # We assume that there is more than 5 minutes left on the clock
 while :; do
-  PIERIANDX_USER_AUTH_TOKEN="$(get_pieriandx_access_token)"
-  [[ -z "${PIERIANDX_USER_AUTH_TOKEN}" ]] || break
-  sleep 10
+  echo_stderr "Collecting PierianDx access token..."
+  if ! PIERIANDX_USER_AUTH_TOKEN="$(get_pieriandx_access_token)"; then
+      sleep 10
+  else
+      break
+  fi
 done
 
 # Export env vars
