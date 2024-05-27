@@ -11,6 +11,9 @@ are nested under deploy/cttso-ica-to-pieriandx-cdk.
 ### Hotfix
 
 * Debug authentication issues (https://github.com/umccr/cttso-ica-to-pieriandx/issues/229)
+* Chmod on lambdas (prevents local deployments from failing)
+* Update wrapper shell script to use latest access token
+
 
 ## 2024-05-23
 
